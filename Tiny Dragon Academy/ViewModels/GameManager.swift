@@ -26,6 +26,7 @@ enum AppRoute: Equatable {
     case trainingHub
     case incubator
     case hallOfLegends
+    case trainingGame(TrainingGameType)
 }
 
 @MainActor
@@ -116,6 +117,10 @@ final class GameManager: ObservableObject {
             case "trainingHub": self.currentRoute = .trainingHub
             case "incubator": self.currentRoute = .incubator
             case "hallOfLegends": self.currentRoute = .hallOfLegends
+            case "dragonDash": self.currentRoute = .trainingGame(.dragonDash)
+            case "fireTarget": self.currentRoute = .trainingGame(.fireTarget)
+            case "skyFlight": self.currentRoute = .trainingGame(.skyFlight)
+            case "snackCatch": self.currentRoute = .trainingGame(.snackCatch)
             default: self.currentRoute = loaded.hasCompletedOnboarding ? .mainMenu : .onboarding
             }
         } else {
@@ -275,7 +280,7 @@ final class GameManager: ObservableObject {
         return (xpEarned, isFavorite, leveledUp, outcome)
     }
     
-    private func calculateLevel(for xp: Int) -> Int {
+    func calculateLevel(for xp: Int) -> Int {
         var lvl = 1
         while lvl < 50 {
             let nextXP = DragonStats.defaultStats().xpRequiredForLevel(lvl + 1)

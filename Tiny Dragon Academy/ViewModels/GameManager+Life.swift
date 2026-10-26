@@ -240,3 +240,67 @@ extension GameManager {
         return true
     }
 }
+
+// MARK: - Training
+
+extension GameManager {
+
+    var canTrainActiveDragon: Bool {
+        CareActions.canTrain(activeDragon.stats, now: clock.now(), calendar: calendar)
+    }
+
+    /// Spends the session's energy. Returns false (spending nothing) when the dragon can't train.
+    func startTraining(_ game: TrainingGameType) -> Bool {
+        let idx = activeDragonIndex
+        guard CareActions.canTrain(state.dragons[idx].stats, now: clock.now(), calendar: calendar) else { return false }
+        state.dragons[idx].stats.energy = max(0, state.dragons[idx].stats.energy - LifeRules.trainingEnergyCost)
+        save()
+        return true
+    }
+
+    func finishTraining(
+        _ game: TrainingGameType,
+        score: Int,
+        duration: Double,
+        completedRound: Bool,
+        caughtSnacks: [FoodType] = [],
+        rng: inout some RandomNumberGenerator
+    ) -> TrainingResult {
+        let idx = activeDragonIndex
+        let isNewBest = score > (state.trainingBests[game.rawValue] ?? 0)
+        if isNewBest { state.trainingBests[game.rawValue] = score }
+
+        let snacks = Array(caughtSnacks.prefix(TrainingSessionRules.maxSnacksPerRound))
+        for food in snacks {
+            state.foodInventory[food.rawValue] = (state.foodInventory[food.rawValue] ?? 0) + 1
+        }
+
+        guard TrainingSessionRules.counts(game, duration: duration, score: score, completedRound: completedRound) else {
+            save()
+            return TrainingResult(counted: false, reward: nil, isNewBest: isNewBest, droppedEmber: false,
+                                  earnedEgg: false, snacksAdded: snacks, cured: false)
+        }
+
+        let isIll = state.dragons[idx].stats.condition.illness != nil
+        let reward = CareActions.trainingReward(normalizedScore: TrainingSessionRules.normalizedScore(game, score: score), isIll: isIll)
+        let cured = CareActions.applyCountedSession(&state.dragons[idx].stats, reward: reward)
+        state.dragons[idx].stats.experience += reward.xp
+        state.dragons[idx].stats.level = calculateLevel(for: state.dragons[idx].stats.experience)
+        state.totalStars += reward.stars
+
+        state.trainingSessionsCompleted += 1
+        let earnedEgg = state.trainingSessionsCompleted % TrainingSessionRules.sessionsPerEgg == 0
+        if earnedEgg { state.eggBasket.append(Egg(tier: .common)) }
+
+        let droppedEmber = isNewBest && Double.random(in: 0..<1, using: &rng) < TrainingSessionRules.emberDropChance
+        if droppedEmber {
+            state.itemInventory[CareItem.phoenixEmber.rawValue] = state.itemCount(.phoenixEmber) + 1
+        }
+
+        AudioService.shared.playStarCollect()
+        save()
+        rescheduleNotifications()
+        return TrainingResult(counted: true, reward: reward, isNewBest: isNewBest, droppedEmber: droppedEmber,
+                              earnedEgg: earnedEgg, snacksAdded: snacks, cured: cured)
+    }
+}
