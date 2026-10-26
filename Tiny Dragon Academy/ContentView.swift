@@ -71,7 +71,10 @@ struct ContentView: View {
                 case .dragonDash:
                     DragonDashView()
                         .transition(.opacity)
-                case .fireTarget, .skyFlight, .snackCatch:
+                case .fireTarget:
+                    FireTargetView()
+                        .transition(.opacity)
+                case .skyFlight, .snackCatch:
                     Text("Coming soon")
                 }
             case .den, .trainingHub, .incubator, .hallOfLegends:
