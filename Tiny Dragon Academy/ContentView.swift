@@ -78,7 +78,8 @@ struct ContentView: View {
                     SkyFlightView()
                         .transition(.opacity)
                 case .snackCatch:
-                    Text("Coming soon")
+                    SnackCatchView()
+                        .transition(.opacity)
                 }
             case .den, .trainingHub, .incubator, .hallOfLegends:
                 Text("Coming soon")

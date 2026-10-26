@@ -83,6 +83,8 @@ struct TrainingGameShell<Content: View>: View {
             Text(game.rawValue)
                 .font(.system(size: 20, weight: .heavy, design: .rounded))
                 .foregroundColor(DragonPalette.textDark)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
             Spacer()
             StarCounterView(count: gameManager.totalStars)
         }
