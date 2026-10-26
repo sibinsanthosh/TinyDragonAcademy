@@ -571,8 +571,8 @@ struct DragonPlaygroundView: View {
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .background(Capsule().fill(DragonPalette.lavender))
                 }
-                .disabled(isAsleep && !stats.isSleepingEarly)
-                .opacity(isAsleep && !stats.isSleepingEarly ? 0.5 : 1)
+                .disabled(!stats.isSleepingEarly && !gameManager.canLightsOut)
+                .opacity(!stats.isSleepingEarly && !gameManager.canLightsOut ? 0.5 : 1)
             }
         }
     }

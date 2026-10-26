@@ -92,9 +92,18 @@ final class CareActionsTests: XCTestCase {
         XCTAssertFalse(CareActions.revive(&s))
     }
 
+    func test_lightsOut_onlyInTheEvening() {
+        var s = stats()
+        XCTAssertFalse(CareActions.lightsOut(&s, now: TestTime.date(day: 5, hour: 8), calendar: cal))
+        XCTAssertFalse(s.isSleepingEarly)
+        XCTAssertFalse(CareActions.lightsOut(&s, now: TestTime.date(day: 5, hour: 18, minute: 59), calendar: cal))
+        XCTAssertTrue(CareActions.lightsOut(&s, now: TestTime.date(day: 5, hour: 20), calendar: cal))
+        XCTAssertTrue(s.isSleepingEarly)
+    }
+
     func test_lightsOut_and_wakeUp() {
         var s = stats()
-        CareActions.lightsOut(&s)
+        XCTAssertTrue(CareActions.lightsOut(&s, now: TestTime.date(day: 5, hour: 21), calendar: cal))
         XCTAssertTrue(s.isSleepingEarly)
         CareActions.wakeUp(&s)
         XCTAssertFalse(s.isSleepingEarly)

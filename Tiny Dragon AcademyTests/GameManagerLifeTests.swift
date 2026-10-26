@@ -90,7 +90,8 @@ final class GameManagerLifeTests: XCTestCase {
         XCTAssertEqual(result.gainedXP, FoodType.dragonRoast.baseXP / 2)
         XCTAssertEqual(gm.state.foodInventory[FoodType.dragonRoast.rawValue], 2)
 
-        gm.lightsOut()
+        gm.clock.offset = 12 * 3600 // 20:00, inside the lights-out window
+        XCTAssertTrue(gm.lightsOut())
         let refused = gm.feedActiveDragon(food: .dragonRoast)
         XCTAssertEqual(refused.outcome, .refusedAsleep)
         XCTAssertEqual(gm.state.foodInventory[FoodType.dragonRoast.rawValue], 2)
@@ -141,11 +142,63 @@ final class GameManagerLifeTests: XCTestCase {
         XCTAssertEqual(gm.state.itemCount(.healingHerb), 0)
     }
 
-    func test_tick_reschedulesNotifications() {
-        let gm = manager { s in s.dragons[s.dragons.firstIndex { $0.id == "sparkle" }!].stats.hunger = 40 }
+    func test_tick_doesNotReschedule_butCatchUpAndCareDo() {
+        let gm = manager { s in
+            s.dragons[s.dragons.firstIndex { $0.id == "sparkle" }!].stats.hunger = 40
+            s.foodInventory[FoodType.fireBerries.rawValue] = 1
+        }
         spy.plans.removeAll()
         gm.tick()
+        XCTAssertTrue(spy.plans.isEmpty)
+        gm.catchUp()
         XCTAssertFalse(spy.plans.last?.isEmpty ?? true)
+        spy.plans.removeAll()
+        _ = gm.feedActiveDragon(food: .fireBerries)
+        XCTAssertEqual(spy.plans.count, 1)
+    }
+
+    func test_fiveDayAbsence_endToEnd() throws {
+        let gm = manager { s in
+            let i = s.dragons.firstIndex { $0.id == "sparkle" }!
+            s.dragons[i].name = "Blaze"
+            s.dragons[i].stats.hunger = 100
+            s.dragons[i].stats.fitness = 100
+            s.dragons[i].stats.health = 100
+        }
+        gm.awayReport = [:]
+        gm.clock.offset = 5 * 86_400
+        gm.catchUp()
+        XCTAssertEqual(gm.state.hallOfLegends.map(\.name), ["Blaze"])
+        XCTAssertEqual(gm.state.eggBasket.last?.fixedSpeciesId, "sparkle")
+        XCTAssertTrue(gm.state.denDragons.isEmpty)
+        XCTAssertFalse(gm.hasActiveDenDragon)
+        XCTAssertFalse(gm.canTrainActiveDragon)
+        XCTAssertEqual(gm.awayNames["sparkle"], "Blaze")
+        let events = try XCTUnwrap(gm.awayReport["sparkle"])
+        XCTAssertTrue(events.contains(.spiritExpired))
+        XCTAssertFalse(AwayReportSheet.reportable(events).contains(.died), "no '48h to revive' once the window closed")
+        XCTAssertTrue(AwayReportSheet.reportable(events).contains(.spiritExpired))
+    }
+
+    func test_nonDenDragon_cannotBeCaredForOrTrained() {
+        let gm = manager { s in
+            let i = s.dragons.firstIndex { $0.id == "sparkle" }!
+            s.dragons[i].residence = .sanctuary
+            s.foodInventory[FoodType.fireBerries.rawValue] = 2
+        }
+        XCTAssertFalse(gm.canTrainActiveDragon)
+        XCTAssertFalse(gm.startTraining(.dragonDash))
+        XCTAssertEqual(gm.feedActiveDragon(food: .fireBerries).outcome, .refusedNotInDen)
+        XCTAssertEqual(gm.state.foodInventory[FoodType.fireBerries.rawValue], 2)
+        let hearts = gm.activeDragon.friendshipHearts
+        gm.petActiveDragon()
+        XCTAssertEqual(gm.activeDragon.friendshipHearts, hearts)
+    }
+
+    func test_lightsOut_refusedInTheMorning() {
+        let gm = manager()
+        XCTAssertFalse(gm.lightsOut())
+        XCTAssertFalse(gm.activeDragon.stats.isSleepingEarly)
     }
 
     func test_purchaseDenSlot_pricesAndCap() {

@@ -14,10 +14,11 @@ extension GameManager {
     // MARK: - Simulation
 
     /// Advances every den dragon and incubator egg to now.
+    /// Reminders are replanned on catch-up, care actions and backgrounding — not here,
+    /// so the 30s tick stays cheap while arcade games are running.
     func tick() {
         _ = advanceWorld(to: clock.now())
         save()
-        rescheduleNotifications()
     }
 
     /// Like `tick`, but records what happened for the "While you were away" sheet and claims the daily bonus.
@@ -51,6 +52,9 @@ extension GameManager {
             state.dragons[idx].stats = next
             if !events.isEmpty { report[state.dragons[idx].id] = events }
             if events.contains(.spiritExpired) { expired.append(state.dragons[idx].id) }
+        }
+        for idx in state.dragons.indices where report[state.dragons[idx].id] != nil {
+            awayNames[state.dragons[idx].id] = state.dragons[idx].name
         }
         for id in expired {
             DenRules.expireSpirit(id, state: &state, now: now)
@@ -110,10 +114,17 @@ extension GameManager {
         return true
     }
 
-    func lightsOut() {
-        CareActions.lightsOut(&state.dragons[activeDragonIndex].stats)
+    var canLightsOut: Bool {
+        hasActiveDenDragon && CareActions.isLightsOutWindow(clock.now(), calendar: calendar)
+    }
+
+    @discardableResult
+    func lightsOut() -> Bool {
+        guard hasActiveDenDragon,
+              CareActions.lightsOut(&state.dragons[activeDragonIndex].stats, now: clock.now(), calendar: calendar) else { return false }
         save()
         rescheduleNotifications()
+        return true
     }
 
     func wakeUp() {
@@ -246,13 +257,13 @@ extension GameManager {
 extension GameManager {
 
     var canTrainActiveDragon: Bool {
-        CareActions.canTrain(activeDragon.stats, now: clock.now(), calendar: calendar)
+        hasActiveDenDragon && CareActions.canTrain(activeDragon.stats, now: clock.now(), calendar: calendar)
     }
 
     /// Spends the session's energy. Returns false (spending nothing) when the dragon can't train.
     func startTraining(_ game: TrainingGameType) -> Bool {
         let idx = activeDragonIndex
-        guard CareActions.canTrain(state.dragons[idx].stats, now: clock.now(), calendar: calendar) else { return false }
+        guard canTrainActiveDragon else { return false }
         state.dragons[idx].stats.energy = max(0, state.dragons[idx].stats.energy - LifeRules.trainingEnergyCost)
         save()
         return true
@@ -333,6 +344,7 @@ extension GameManager {
 
     func dismissAwayReport() {
         awayReport = [:]
+        awayNames = [:]
         dailyBonus = nil
     }
 }

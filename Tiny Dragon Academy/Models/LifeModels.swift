@@ -51,6 +51,8 @@ enum LifeRules {
     static let catchUpCap: TimeInterval = 604_800
     static let sleepStartHour = 22
     static let wakeHour = 7
+    /// "Lights out" is an evening action: from 19:00 until quiet hours begin.
+    static let lightsOutStartHour = 19
 
     // Training & migration
     static let trainingEnergyCost = 15.0

@@ -50,6 +50,13 @@ final class DenRulesTests: XCTestCase {
         XCTAssertFalse(DenRules.moveToDen("nova", state: &s, now: now))
     }
 
+    func test_moveToDen_clearsEarlySleep() {
+        var s = state(["sparkle": .den, "ember": .sanctuary])
+        s.dragons[index("ember", s)].stats.isSleepingEarly = true
+        XCTAssertTrue(DenRules.moveToDen("ember", state: &s, now: now))
+        XCTAssertFalse(s.dragons[index("ember", s)].stats.isSleepingEarly)
+    }
+
     func test_placeHatched_goesToDenWhenFree() {
         var s = state(["sparkle": .den])
         DenRules.placeHatched("ember", name: "Blaze", state: &s, now: now)

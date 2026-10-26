@@ -30,6 +30,7 @@ enum DenRules {
               state.denDragons.count < state.denCapacity else { return false }
         state.dragons[idx].residence = .den
         state.dragons[idx].stats.lastSimulatedAt = now
+        state.dragons[idx].stats.isSleepingEarly = false
         ensureActiveInDen(&state)
         return true
     }

@@ -144,7 +144,7 @@ struct MainMenuView: View {
             VStack(spacing: 6) {
                 DragonView(
                     dragon: gameManager.activeDragon,
-                    mood: companionMood,
+                    mood: gameManager.hasActiveDenDragon ? companionMood : .sleepy,
                     size: 170,
                     allowInteractivePetting: false
                 )
@@ -164,7 +164,9 @@ struct MainMenuView: View {
                         Image(systemName: "sparkles")
                             .font(.system(size: 13))
                             .foregroundColor(DragonPalette.coral)
-                        Text("\(gameManager.activeDragon.name) • Lvl \(gameManager.activeDragon.stats.level) \(gameManager.activeDragon.stats.growthStage.rawValue)")
+                        Text(gameManager.hasActiveDenDragon
+                             ? "\(gameManager.activeDragon.name) • Lvl \(gameManager.activeDragon.stats.level) \(gameManager.activeDragon.stats.growthStage.rawValue)"
+                             : "Your den is empty — hatch an egg!")
                             .font(.system(size: 14, weight: .heavy, design: .rounded))
                             .foregroundColor(DragonPalette.textDark)
                         Image(systemName: "arrow.right.circle.fill")

@@ -71,7 +71,8 @@ final class TrainingSessionRulesTests: XCTestCase {
         XCTAssertFalse(low.startTraining(.dragonDash))
         XCTAssertEqual(low.activeDragon.stats.energy, 10)
         let sleepy = manager()
-        sleepy.lightsOut()
+        sleepy.clock.offset = 8 * 3600 // 20:00
+        XCTAssertTrue(sleepy.lightsOut())
         XCTAssertFalse(sleepy.startTraining(.skyFlight))
         XCTAssertEqual(sleepy.activeDragon.stats.energy, 100)
     }

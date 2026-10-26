@@ -126,6 +126,7 @@ struct TrainingGameShell<Content: View>: View {
 
     private var cannotTrainReason: String {
         let dragon = gameManager.activeDragon
+        if !gameManager.hasActiveDenDragon { return "No dragon in your den to train." }
         if dragon.stats.condition.isSpirit { return "\(dragon.name) is a spirit and can't train." }
         if gameManager.isActiveDragonAsleep { return "\(dragon.name) is asleep. Training resumes in the morning!" }
         return "\(dragon.name) is too tired. Feed or rest to restore energy."

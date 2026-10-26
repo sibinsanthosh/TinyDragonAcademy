@@ -14,6 +14,7 @@ enum FeedOutcome: Equatable {
     case tummyAche
     case refusedAsleep
     case refusedSpirit
+    case refusedNotInDen
 }
 
 struct TrainingReward: Equatable {
@@ -59,9 +60,17 @@ enum CareActions {
         return true
     }
 
-    static func lightsOut(_ stats: inout DragonStats) {
-        guard !stats.condition.isSpirit else { return }
+    /// Early bedtime only in the evening, so it can't be used to pause decay all day.
+    @discardableResult
+    static func lightsOut(_ stats: inout DragonStats, now: Date, calendar: Calendar) -> Bool {
+        guard !stats.condition.isSpirit, isLightsOutWindow(now, calendar: calendar) else { return false }
         stats.isSleepingEarly = true
+        return true
+    }
+
+    static func isLightsOutWindow(_ date: Date, calendar: Calendar) -> Bool {
+        let hour = calendar.component(.hour, from: date)
+        return hour >= LifeRules.lightsOutStartHour && hour < LifeRules.sleepStartHour
     }
 
     static func wakeUp(_ stats: inout DragonStats) {

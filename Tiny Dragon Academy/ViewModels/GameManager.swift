@@ -36,6 +36,8 @@ final class GameManager: ObservableObject {
     /// Events per dragon id (or "incubator") that happened while the player was away.
     @Published var awayReport: [String: [LifeEvent]] = [:]
     @Published var dailyBonus: DailyBonus? = nil
+    /// Names at the time of each away event (a memorialized dragon's name resets to its species default).
+    @Published var awayNames: [String: String] = [:]
     
     let persistence: PersistenceService
     var clock: GameClock
@@ -62,7 +64,7 @@ final class GameManager: ObservableObject {
         persistence: PersistenceService = .shared,
         clock: GameClock = .fromLaunchArguments(ProcessInfo.processInfo.arguments),
         notifications: NotificationScheduling = NotificationService.shared,
-        calendar: Calendar = .current
+        calendar: Calendar = .autoupdatingCurrent
     ) {
         self.persistence = persistence
         self.clock = clock
@@ -199,7 +201,7 @@ final class GameManager: ObservableObject {
     
     func petActiveDragon() {
         let idx = activeDragonIndex
-        guard !state.dragons[idx].stats.condition.isSpirit else { return }
+        guard hasActiveDenDragon, !state.dragons[idx].stats.condition.isSpirit else { return }
         state.dragons[idx].friendshipHearts += 1
         state.dragons[idx].stats.happiness = min(100.0, state.dragons[idx].stats.happiness + 5.0)
         
@@ -213,6 +215,7 @@ final class GameManager: ObservableObject {
     
     func feedActiveDragon(food: FoodType) -> (gainedXP: Int, isFavorite: Bool, leveledUp: Bool, outcome: FeedOutcome) {
         let currentCount = state.foodInventory[food.rawValue] ?? 0
+        guard hasActiveDenDragon else { return (0, false, false, .refusedNotInDen) }
         guard currentCount > 0 else { return (0, false, false, .fed) }
         
         let idx = activeDragonIndex
@@ -221,7 +224,7 @@ final class GameManager: ObservableObject {
         
         let outcome = CareActions.feed(&stats, food: food, isFavorite: isFavorite, now: clock.now(), calendar: calendar)
         switch outcome {
-        case .refusedAsleep, .refusedSpirit:
+        case .refusedAsleep, .refusedSpirit, .refusedNotInDen:
             return (0, isFavorite, false, outcome)
         case .tummyAche:
             state.foodInventory[food.rawValue] = currentCount - 1
@@ -306,7 +309,7 @@ final class GameManager: ObservableObject {
         let idx = activeDragonIndex
         var stats = state.dragons[idx].stats
         
-        guard !stats.condition.isSpirit, power.stageRequired <= stats.growthStage, stats.energy >= power.energyCost else {
+        guard hasActiveDenDragon, !stats.condition.isSpirit, power.stageRequired <= stats.growthStage, stats.energy >= power.energyCost else {
             HapticsService.shared.light()
             return false
         }
@@ -327,7 +330,7 @@ final class GameManager: ObservableObject {
     
     func evolveActiveDragon() -> Bool {
         let idx = activeDragonIndex
-        guard state.dragons[idx].stats.condition == .healthy else { return false }
+        guard hasActiveDenDragon, state.dragons[idx].stats.condition == .healthy else { return false }
         guard let next = state.dragons[idx].stats.growthStage.nextStage else { return false }
         guard state.dragons[idx].stats.level >= next.minLevel else { return false }
         

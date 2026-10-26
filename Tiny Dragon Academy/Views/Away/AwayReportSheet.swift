@@ -10,12 +10,14 @@ import SwiftUI
 struct AwayReportSheet: View {
     @EnvironmentObject var gameManager: GameManager
 
-    /// Sleep/wake are routine and not worth reporting.
-    private func reportable(_ events: [LifeEvent]) -> [LifeEvent] {
+    /// Sleep/wake are routine; once a spirit expired, the "you have 48h" lines are stale.
+    static func reportable(_ events: [LifeEvent]) -> [LifeEvent] {
+        let expired = events.contains(.spiritExpired)
         var seen = Set<LifeEvent>()
         return events.filter { event in
             switch event {
             case .fellAsleep, .wokeUp: return false
+            case .died, .spiritLastChance where expired: return false
             default: return seen.insert(event).inserted
             }
         }
@@ -23,12 +25,12 @@ struct AwayReportSheet: View {
 
     private var rows: [(title: String, lines: [String])] {
         gameManager.awayReport.keys.sorted().compactMap { key in
-            let events = reportable(gameManager.awayReport[key] ?? [])
+            let events = Self.reportable(gameManager.awayReport[key] ?? [])
             guard !events.isEmpty else { return nil }
             if key == "incubator" {
                 return ("Incubator", events.map { NotificationPlanner.body(for: $0, name: "") })
             }
-            let name = gameManager.state.dragons.first { $0.id == key }?.name ?? key.capitalized
+            let name = gameManager.awayNames[key] ?? gameManager.state.dragons.first { $0.id == key }?.name ?? key.capitalized
             return (name, events.map { NotificationPlanner.body(for: $0, name: name) })
         }
     }
