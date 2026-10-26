@@ -102,6 +102,16 @@ enum GrowthStage: String, Codable, CaseIterable, Comparable {
         case .ancient: return nil
         }
     }
+
+    var previousStage: GrowthStage? {
+        switch self {
+        case .baby: return nil
+        case .young: return .baby
+        case .adolescent: return .young
+        case .adult: return .adolescent
+        case .ancient: return .adult
+        }
+    }
 }
 
 // MARK: - Food Types
@@ -277,7 +287,58 @@ struct DragonStats: Codable, Equatable {
     
     var unlockedPowerIds: Set<String> = []
     var equippedPowerId: String? = nil
-    
+
+    // Life simulation state
+    var fitness: Double = 100.0     // 0.0 to 100.0 (training level)
+    var condition: DragonCondition = .healthy
+    var fullnessZeroMinutes: Double = 0     // consecutive awake minutes at 0 fullness
+    var lowFitnessMinutes: Double = 0       // consecutive awake minutes below low-fitness threshold
+    var cureSessionsRemaining: Int = 0
+    var tummyAcheUntil: Date? = nil
+    var isSleepingEarly: Bool = false
+    var lastSimulatedAt: Date = Date()
+    var stagesRewarded: Set<GrowthStage> = [.baby]
+    var bornAt: Date = Date()
+
+    init() {}
+
+    enum CodingKeys: String, CodingKey {
+        case hunger, happiness, energy, health
+        case experience, level, growthStage, ageInDays, totalFeedings, favoriteFoodDiscovered
+        case lastCareTimestamp, lastFeedingTimestamp, unlockedPowerIds, equippedPowerId
+        case fitness, condition, fullnessZeroMinutes, lowFitnessMinutes, cureSessionsRemaining
+        case tummyAcheUntil, isSleepingEarly, lastSimulatedAt, stagesRewarded, bornAt
+    }
+
+    // Every field is optional on decode so saves from older versions keep loading.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        hunger = try c.decodeIfPresent(Double.self, forKey: .hunger) ?? 85.0
+        happiness = try c.decodeIfPresent(Double.self, forKey: .happiness) ?? 90.0
+        energy = try c.decodeIfPresent(Double.self, forKey: .energy) ?? 100.0
+        health = try c.decodeIfPresent(Double.self, forKey: .health) ?? 100.0
+        experience = try c.decodeIfPresent(Int.self, forKey: .experience) ?? 0
+        level = try c.decodeIfPresent(Int.self, forKey: .level) ?? 1
+        growthStage = try c.decodeIfPresent(GrowthStage.self, forKey: .growthStage) ?? .baby
+        ageInDays = try c.decodeIfPresent(Int.self, forKey: .ageInDays) ?? 1
+        totalFeedings = try c.decodeIfPresent(Int.self, forKey: .totalFeedings) ?? 0
+        favoriteFoodDiscovered = try c.decodeIfPresent(Bool.self, forKey: .favoriteFoodDiscovered) ?? false
+        lastCareTimestamp = try c.decodeIfPresent(Date.self, forKey: .lastCareTimestamp) ?? Date()
+        lastFeedingTimestamp = try c.decodeIfPresent(Date.self, forKey: .lastFeedingTimestamp) ?? Date()
+        unlockedPowerIds = try c.decodeIfPresent(Set<String>.self, forKey: .unlockedPowerIds) ?? []
+        equippedPowerId = try c.decodeIfPresent(String.self, forKey: .equippedPowerId)
+        fitness = try c.decodeIfPresent(Double.self, forKey: .fitness) ?? 100.0
+        condition = try c.decodeIfPresent(DragonCondition.self, forKey: .condition) ?? .healthy
+        fullnessZeroMinutes = try c.decodeIfPresent(Double.self, forKey: .fullnessZeroMinutes) ?? 0
+        lowFitnessMinutes = try c.decodeIfPresent(Double.self, forKey: .lowFitnessMinutes) ?? 0
+        cureSessionsRemaining = try c.decodeIfPresent(Int.self, forKey: .cureSessionsRemaining) ?? 0
+        tummyAcheUntil = try c.decodeIfPresent(Date.self, forKey: .tummyAcheUntil)
+        isSleepingEarly = try c.decodeIfPresent(Bool.self, forKey: .isSleepingEarly) ?? false
+        lastSimulatedAt = try c.decodeIfPresent(Date.self, forKey: .lastSimulatedAt) ?? Date()
+        stagesRewarded = try c.decodeIfPresent(Set<GrowthStage>.self, forKey: .stagesRewarded) ?? [.baby]
+        bornAt = try c.decodeIfPresent(Date.self, forKey: .bornAt) ?? Date()
+    }
+
     var canEvolve: Bool {
         guard let next = growthStage.nextStage else { return false }
         return level >= next.minLevel

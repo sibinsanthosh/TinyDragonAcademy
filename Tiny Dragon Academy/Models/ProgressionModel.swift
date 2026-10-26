@@ -48,6 +48,22 @@ struct AppProgressState: Codable, Equatable {
     var achievements: [DragonAchievement] = AppProgressState.defaultAchievements()
     var lastDailyBonusClaimDate: Date? = nil
     
+    // Life simulation state
+    var eggBasket: [Egg] = []
+    var incubatorSlots: [IncubatorSlot] = [IncubatorSlot(lastSimulatedAt: Date())]
+    var denCapacity: Int = 3
+    var itemInventory: [String: Int] = [:]
+    var trainingBests: [String: Int] = [:]
+    var trainingSessionsCompleted: Int = 0
+    var hallOfLegends: [Memorial] = []
+    var remindersEnabled: Bool = true
+    var hasSeenReminderPrimer: Bool = false
+    
+    var denDragons: [DragonModel] { dragons.filter { $0.residence == .den } }
+    var incubatorCapacity: Int { incubatorSlots.count }
+    
+    func itemCount(_ item: CareItem) -> Int { itemInventory[item.rawValue] ?? 0 }
+    
     static func initial() -> AppProgressState {
         return AppProgressState()
     }
@@ -163,6 +179,8 @@ struct AppProgressState: Codable, Equatable {
         case hasCompletedOnboarding, totalStars, selectedDragonId, dragons
         case island, unlockedAccessories, gameStats, settings
         case foodInventory, achievements, lastDailyBonusClaimDate
+        case eggBasket, incubatorSlots, denCapacity, itemInventory, trainingBests
+        case trainingSessionsCompleted, hallOfLegends, remindersEnabled, hasSeenReminderPrimer
     }
     
     init() {}
@@ -207,6 +225,44 @@ struct AppProgressState: Codable, Equatable {
         ]
         achievements = try container.decodeIfPresent([DragonAchievement].self, forKey: .achievements) ?? AppProgressState.defaultAchievements()
         lastDailyBonusClaimDate = try container.decodeIfPresent(Date.self, forKey: .lastDailyBonusClaimDate)
+        
+        let isLegacySave = !container.contains(.eggBasket)
+        eggBasket = try container.decodeIfPresent([Egg].self, forKey: .eggBasket) ?? []
+        incubatorSlots = try container.decodeIfPresent([IncubatorSlot].self, forKey: .incubatorSlots) ?? [IncubatorSlot(lastSimulatedAt: Date())]
+        denCapacity = try container.decodeIfPresent(Int.self, forKey: .denCapacity) ?? 3
+        itemInventory = try container.decodeIfPresent([String: Int].self, forKey: .itemInventory) ?? [:]
+        trainingBests = try container.decodeIfPresent([String: Int].self, forKey: .trainingBests) ?? [:]
+        trainingSessionsCompleted = try container.decodeIfPresent(Int.self, forKey: .trainingSessionsCompleted) ?? 0
+        hallOfLegends = try container.decodeIfPresent([Memorial].self, forKey: .hallOfLegends) ?? []
+        remindersEnabled = try container.decodeIfPresent(Bool.self, forKey: .remindersEnabled) ?? true
+        hasSeenReminderPrimer = try container.decodeIfPresent(Bool.self, forKey: .hasSeenReminderPrimer) ?? false
+        
+        if isLegacySave {
+            AppProgressState.migrateLegacy(&self, now: Date())
+        }
+    }
+    
+    /// One-time upgrade of a pre-life-simulation save: owned dragons fill the den
+    /// (selected first), extras go to the sanctuary, and everyone starts healthy.
+    static func migrateLegacy(_ state: inout AppProgressState, now: Date) {
+        let ownedIds = state.dragons.filter { $0.isUnlocked }.map(\.id)
+        let ordered = ownedIds.filter { $0 == state.selectedDragonId } + ownedIds.filter { $0 != state.selectedDragonId }
+        for idx in state.dragons.indices {
+            guard let rank = ordered.firstIndex(of: state.dragons[idx].id) else {
+                state.dragons[idx].residence = .undiscovered
+                continue
+            }
+            state.dragons[idx].residence = rank < state.denCapacity ? .den : .sanctuary
+            state.dragons[idx].stats.fitness = LifeRules.migratedFitness
+            state.dragons[idx].stats.health = 100
+            state.dragons[idx].stats.condition = .healthy
+            state.dragons[idx].stats.lastSimulatedAt = now
+            state.dragons[idx].stats.bornAt = now
+        }
+        if let first = ordered.first, !ordered.prefix(state.denCapacity).contains(state.selectedDragonId) {
+            state.selectedDragonId = first
+        }
+        state.eggBasket.append(Egg(tier: .common))
     }
     
     func encode(to encoder: Encoder) throws {
@@ -222,5 +278,14 @@ struct AppProgressState: Codable, Equatable {
         try container.encode(foodInventory, forKey: .foodInventory)
         try container.encode(achievements, forKey: .achievements)
         try container.encodeIfPresent(lastDailyBonusClaimDate, forKey: .lastDailyBonusClaimDate)
+        try container.encode(eggBasket, forKey: .eggBasket)
+        try container.encode(incubatorSlots, forKey: .incubatorSlots)
+        try container.encode(denCapacity, forKey: .denCapacity)
+        try container.encode(itemInventory, forKey: .itemInventory)
+        try container.encode(trainingBests, forKey: .trainingBests)
+        try container.encode(trainingSessionsCompleted, forKey: .trainingSessionsCompleted)
+        try container.encode(hallOfLegends, forKey: .hallOfLegends)
+        try container.encode(remindersEnabled, forKey: .remindersEnabled)
+        try container.encode(hasSeenReminderPrimer, forKey: .hasSeenReminderPrimer)
     }
 }
