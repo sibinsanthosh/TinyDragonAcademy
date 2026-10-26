@@ -9,9 +9,18 @@ import SwiftUI
 
 @main
 struct Tiny_Dragon_AcademyApp: App {
+    @StateObject private var gameManager = GameManager()
+    
+    init() {
+        #if DEBUG
+        GameLogicTests.runAllTests()
+        #endif
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(gameManager)
         }
     }
 }

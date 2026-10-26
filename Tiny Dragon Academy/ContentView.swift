@@ -2,23 +2,68 @@
 //  ContentView.swift
 //  Tiny Dragon Academy
 //
-//  Created by Sibin on 20/10/26.
+//  Root coordinator navigating between Onboarding, Main Menu, Mini Games,
+//  Collection, Dress-Up, Island Builder, and Settings.
 //
 
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var gameManager: GameManager
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        ZStack {
+            switch gameManager.currentRoute {
+            case .onboarding:
+                HatchIntroView()
+                    .transition(.opacity)
+            case .mainMenu:
+                MainMenuView()
+                    .transition(.opacity)
+            case .miniGamesHub:
+                MiniGamesHubView()
+                    .transition(.opacity)
+            case .miniGame(let gameType):
+                switch gameType {
+                case .colorGarden:
+                    ColorGardenGameView()
+                        .transition(.opacity)
+                case .shapeMagic:
+                    ShapeMagicGameView()
+                        .transition(.opacity)
+                case .countStars:
+                    CountStarsGameView()
+                        .transition(.opacity)
+                case .dragonPuzzle:
+                    DragonPuzzleGameView()
+                        .transition(.opacity)
+                }
+            case .dragonCollection:
+                DragonCollectionView()
+                    .transition(.opacity)
+            case .dragonDressUp:
+                DragonDressUpView()
+                    .transition(.opacity)
+            case .islandBuilder:
+                IslandBuilderView()
+                    .transition(.opacity)
+            case .settings:
+                SettingsView()
+                    .transition(.opacity)
+            case .dragonPlayground:
+                DragonPlaygroundView()
+                    .transition(.opacity)
+            case .powerEncyclopedia:
+                PowerEncyclopediaView(dragon: gameManager.activeDragon)
+                    .transition(.opacity)
+            case .foodInventoryShop:
+                FoodInventoryView()
+                    .transition(.opacity)
+            case .achievementsList:
+                AchievementsView()
+                    .transition(.opacity)
+            }
         }
-        .padding()
+        .animation(gameManager.state.settings.reduceMotion ? .none : .easeInOut(duration: 0.3), value: gameManager.currentRoute)
     }
-}
-
-#Preview {
-    ContentView()
 }
