@@ -207,5 +207,6 @@ final class GameManagerLifeTests: XCTestCase {
         XCTAssertEqual(clock.realDate(forGame: game), t0.addingTimeInterval(60))
         XCTAssertEqual(GameClock.fromLaunchArguments(["app", "-timeScale", "120"]).timeScale, 120)
         XCTAssertEqual(GameClock.fromLaunchArguments(["app"]).timeScale, 1)
+        XCTAssertEqual(GameClock.fromLaunchArguments(["app", "-timeOffsetHours", "12"]).offset, 12 * 3600)
     }
 }

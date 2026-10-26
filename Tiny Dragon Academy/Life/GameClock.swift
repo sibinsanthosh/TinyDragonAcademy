@@ -30,11 +30,16 @@ struct GameClock {
     }
 
     static func fromLaunchArguments(_ args: [String]) -> GameClock {
+        var clock = GameClock()
         #if DEBUG
         if let i = args.firstIndex(of: "-timeScale"), i + 1 < args.count, let scale = Double(args[i + 1]), scale > 0 {
-            return GameClock(timeScale: scale)
+            clock.timeScale = scale
+        }
+        // Shifts game time, e.g. to play at "noon" while it's night outside.
+        if let i = args.firstIndex(of: "-timeOffsetHours"), i + 1 < args.count, let hours = Double(args[i + 1]) {
+            clock.offset = hours * 3600
         }
         #endif
-        return GameClock()
+        return clock
     }
 }

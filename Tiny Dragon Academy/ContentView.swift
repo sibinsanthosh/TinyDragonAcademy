@@ -66,7 +66,15 @@ struct ContentView: View {
             case .achievementsList:
                 AchievementsView()
                     .transition(.opacity)
-            case .den, .trainingHub, .incubator, .hallOfLegends, .trainingGame:
+            case .trainingGame(let game):
+                switch game {
+                case .dragonDash:
+                    DragonDashView()
+                        .transition(.opacity)
+                case .fireTarget, .skyFlight, .snackCatch:
+                    Text("Coming soon")
+                }
+            case .den, .trainingHub, .incubator, .hallOfLegends:
                 Text("Coming soon")
                     .transition(.opacity)
             }
