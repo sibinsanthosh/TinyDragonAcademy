@@ -304,3 +304,35 @@ extension GameManager {
                               earnedEgg: earnedEgg, snacksAdded: snacks, cured: cured)
     }
 }
+
+// MARK: - Reminders & away report
+
+extension GameManager {
+
+    var shouldShowReminderPrimer: Bool {
+        state.hasCompletedOnboarding && !state.hasSeenReminderPrimer
+    }
+
+    func markReminderPrimerSeen() {
+        state.hasSeenReminderPrimer = true
+        save()
+    }
+
+    /// Shows the system permission prompt, then schedules reminders.
+    func enableReminders() async {
+        _ = await notifications.requestAuthorization()
+        markReminderPrimerSeen()
+        rescheduleNotifications()
+    }
+
+    func setRemindersEnabled(_ enabled: Bool) {
+        state.remindersEnabled = enabled
+        save()
+        rescheduleNotifications()
+    }
+
+    func dismissAwayReport() {
+        awayReport = [:]
+        dailyBonus = nil
+    }
+}

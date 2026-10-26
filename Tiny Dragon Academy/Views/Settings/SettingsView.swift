@@ -69,6 +69,15 @@ struct SettingsView: View {
                             .tint(DragonPalette.softPurple)
                         }
                         
+                        // Care Reminders Section
+                        settingsCard(title: "Care Reminders", icon: "bell.badge.fill") {
+                            Toggle("Remind me when dragons need care", isOn: Binding(
+                                get: { gameManager.state.remindersEnabled },
+                                set: { gameManager.setRemindersEnabled($0) }
+                            ))
+                            .tint(DragonPalette.coral)
+                        }
+                        
                         // Accessibility Section
                         settingsCard(title: "Accessibility", icon: "figure.walk.circle.fill") {
                             Toggle("Reduce Motion", isOn: Binding(

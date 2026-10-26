@@ -200,6 +200,33 @@ final class GameManagerLifeTests: XCTestCase {
         XCTAssertEqual(gm.currentRoute, .dragonPlayground)
     }
 
+    func test_disablingReminders_clearsSchedule() {
+        let gm = manager { s in s.dragons[s.dragons.firstIndex { $0.id == "sparkle" }!].stats.hunger = 40 }
+        gm.setRemindersEnabled(false)
+        XCTAssertFalse(gm.state.remindersEnabled)
+        XCTAssertEqual(spy.plans.last, [])
+        gm.setRemindersEnabled(true)
+        XCTAssertFalse(spy.plans.last?.isEmpty ?? true)
+    }
+
+    func test_reminderPrimer_shownOnceAfterOnboarding() {
+        let gm = manager()
+        XCTAssertTrue(gm.shouldShowReminderPrimer)
+        gm.markReminderPrimerSeen()
+        XCTAssertFalse(gm.shouldShowReminderPrimer)
+        let fresh = manager { s in s.hasCompletedOnboarding = false }
+        XCTAssertFalse(fresh.shouldShowReminderPrimer)
+    }
+
+    func test_dismissAwayReport_clearsReportAndBonus() {
+        let gm = manager()
+        gm.awayReport = ["sparkle": [.becameHungry]]
+        gm.dailyBonus = DailyBonus(stars: 8, food: .goldenFruit)
+        gm.dismissAwayReport()
+        XCTAssertTrue(gm.awayReport.isEmpty)
+        XCTAssertNil(gm.dailyBonus)
+    }
+
     func test_gameClock_scalesAndConvertsBack() {
         let clock = GameClock(timeScale: 60, origin: t0)
         let game = clock.now(real: t0.addingTimeInterval(60))

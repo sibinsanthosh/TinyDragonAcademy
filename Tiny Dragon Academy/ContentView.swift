@@ -61,7 +61,7 @@ struct ContentView: View {
                 PowerEncyclopediaView(dragon: gameManager.activeDragon)
                     .transition(.opacity)
             case .foodInventoryShop:
-                FoodInventoryView()
+                FoodInventoryView(closeRoute: .mainMenu)
                     .transition(.opacity)
             case .achievementsList:
                 AchievementsView()
@@ -91,8 +91,17 @@ struct ContentView: View {
                 IncubatorView()
                     .transition(.opacity)
             case .hallOfLegends:
-                Text("Coming soon")
+                HallOfLegendsView()
                     .transition(.opacity)
+            }
+        }
+        .overlay {
+            if gameManager.currentRoute != .onboarding {
+                if gameManager.shouldShowReminderPrimer {
+                    ReminderPrimerView()
+                } else if AwayReportSheet.hasContent(gameManager) {
+                    AwayReportSheet()
+                }
             }
         }
         .onReceive(lifeTicker) { _ in

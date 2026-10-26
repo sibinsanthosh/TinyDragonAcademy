@@ -62,6 +62,9 @@ struct DragonPlaygroundView: View {
         return catalog.filter { stats.unlockedPowerIds.contains($0.id) }
     }
     
+    var isAsleep: Bool { gameManager.isActiveDragonAsleep }
+    var isSpirit: Bool { stats.condition.isSpirit }
+    
     var primaryPower: ElementalPower {
         availablePowers.last ?? ElementalPowersCatalog.powers(for: activeDragon.element)[0]
     }
@@ -75,9 +78,9 @@ struct DragonPlaygroundView: View {
                     // Dragon View with geometry preference tracking
                     DragonView(
                         dragon: activeDragon,
-                        mood: playgroundMood,
+                        mood: (isAsleep || isSpirit) ? .sleepy : playgroundMood,
                         size: 210,
-                        allowInteractivePetting: !isEatingSequenceRunning && !isDraggingFood
+                        allowInteractivePetting: !isEatingSequenceRunning && !isDraggingFood && !isSpirit
                     ) {
                         gameManager.petActiveDragon()
                         setTemporaryMood(.happy, duration: 1.2)
@@ -135,6 +138,18 @@ struct DragonPlaygroundView: View {
                     .padding(.bottom, 16)
             }
             .zIndex(10)
+            
+            // 4b. Night-time sleep tint
+            if isAsleep && !isSpirit {
+                sleepOverlay
+                    .zIndex(9)
+            }
+            
+            // 4c. Spirit state: revive window
+            if isSpirit {
+                spiritOverlay
+                    .zIndex(45)
+            }
             
             // 5. Nom Nom Speech Bubble
             if let speech = nomNomSpeechText {
@@ -460,7 +475,7 @@ struct DragonPlaygroundView: View {
                 Spacer()
                 
                 // Evolution Alert Button if Ready
-                if stats.canEvolve {
+                if stats.canEvolve && stats.condition == .healthy {
                     Button(action: {
                         HapticsService.shared.medium()
                         showEvolutionModal = true
@@ -505,8 +520,11 @@ struct DragonPlaygroundView: View {
                 vitalMeter(icon: "fork.knife", label: "Hunger", value: stats.hunger, color: DragonPalette.coral)
                 vitalMeter(icon: "heart.fill", label: "Happy", value: stats.happiness, color: DragonPalette.rosyPink)
                 vitalMeter(icon: "bolt.fill", label: "Energy", value: stats.energy, color: DragonPalette.buttercup)
+                vitalMeter(icon: "figure.run", label: "Fitness", value: stats.fitness, color: DragonPalette.skyBlue)
                 vitalMeter(icon: "shield.fill", label: "Health", value: stats.health, color: DragonPalette.mintGreen)
             }
+            
+            careActionsRow
         }
         .padding(12)
         .background(
@@ -514,6 +532,102 @@ struct DragonPlaygroundView: View {
                 .fill(Color.white.opacity(0.92))
                 .shadow(color: DragonPalette.softShadow, radius: 6, x: 0, y: 3)
         )
+    }
+    
+    // MARK: - Care Actions (illness, bedtime)
+    
+    private var careActionsRow: some View {
+        HStack(spacing: 8) {
+            if let illness = stats.condition.illness {
+                Label(illness.displayName, systemImage: "thermometer.medium")
+                    .font(.system(size: 12, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(Capsule().fill(DragonPalette.coral))
+                Button {
+                    if !gameManager.useHealingHerb() { gameManager.navigate(to: .foodInventoryShop) }
+                } label: {
+                    Text(gameManager.state.itemCount(.healingHerb) > 0 ? "Cure (Herb ×\(gameManager.state.itemCount(.healingHerb)))" : "Buy Healing Herb")
+                        .font(.system(size: 12, weight: .heavy, design: .rounded))
+                        .foregroundColor(DragonPalette.textDark)
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(Capsule().fill(DragonPalette.mintGreen))
+                }
+            } else if stats.tummyAcheUntil != nil {
+                Label("Tummy ache", systemImage: "face.dashed")
+                    .font(.system(size: 12, weight: .heavy, design: .rounded))
+                    .foregroundColor(DragonPalette.coral)
+            }
+            Spacer()
+            if !isSpirit {
+                Button {
+                    HapticsService.shared.light()
+                    if stats.isSleepingEarly { gameManager.wakeUp() } else { gameManager.lightsOut() }
+                } label: {
+                    Label(stats.isSleepingEarly ? "Wake up" : "Lights out",
+                          systemImage: stats.isSleepingEarly ? "sun.max.fill" : "moon.fill")
+                        .font(.system(size: 12, weight: .heavy, design: .rounded))
+                        .foregroundColor(DragonPalette.textDark)
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(Capsule().fill(DragonPalette.lavender))
+                }
+                .disabled(isAsleep && !stats.isSleepingEarly)
+                .opacity(isAsleep && !stats.isSleepingEarly ? 0.5 : 1)
+            }
+        }
+    }
+    
+    private var sleepOverlay: some View {
+        ZStack(alignment: .top) {
+            Color(red: 0.12, green: 0.10, blue: 0.30).opacity(0.35)
+                .ignoresSafeArea()
+            Text("💤 \(activeDragon.name) is sleeping")
+                .font(.system(size: 16, weight: .heavy, design: .rounded))
+                .foregroundColor(.white)
+                .padding(.horizontal, 14).padding(.vertical, 8)
+                .background(Capsule().fill(Color.black.opacity(0.35)))
+                .padding(.top, 250)
+        }
+        .allowsHitTesting(false)
+    }
+    
+    private var spiritOverlay: some View {
+        let status = DragonStatus.describe(stats, now: gameManager.clock.now(), calendar: gameManager.calendar)
+        let embers = gameManager.state.itemCount(.phoenixEmber)
+        return ZStack {
+            Color(red: 0.20, green: 0.18, blue: 0.40).opacity(0.55).ignoresSafeArea()
+            VStack(spacing: 12) {
+                DragonView(dragon: activeDragon, mood: .sleepy, size: 130, allowInteractivePetting: false)
+                    .opacity(0.45)
+                    .colorMultiply(Color(red: 0.8, green: 0.85, blue: 1.0))
+                Text("\(activeDragon.name) has become a spirit 👻")
+                    .font(.system(size: 20, weight: .heavy, design: .rounded))
+                    .foregroundColor(DragonPalette.textDark)
+                    .multilineTextAlignment(.center)
+                if let status { DragonStatusBadge(status: status) }
+                Text("A Phoenix Ember can bring them back. They'll keep their level but lose one growth stage.")
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundColor(DragonPalette.textMuted)
+                    .multilineTextAlignment(.center)
+                if embers > 0 {
+                    KidButton(title: "Revive (Ember ×\(embers))", icon: "flame.fill", backgroundColor: DragonPalette.coral) {
+                        if gameManager.reviveActiveDragon() { setTemporaryMood(.celebration, duration: 2.0) }
+                    }
+                } else {
+                    KidButton(title: "Buy Ember • \(CareItem.phoenixEmber.price)★", icon: "cart.fill", backgroundColor: DragonPalette.coral) {
+                        _ = gameManager.purchaseCareItem(.phoenixEmber)
+                    }
+                    .disabled(gameManager.totalStars < CareItem.phoenixEmber.price)
+                    .opacity(gameManager.totalStars < CareItem.phoenixEmber.price ? 0.5 : 1)
+                }
+                Button("Back to the Den") { gameManager.navigate(to: .den) }
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundColor(DragonPalette.softPurple)
+            }
+            .padding(22)
+            .background(RoundedRectangle(cornerRadius: 24).fill(Color.white.opacity(0.95)))
+            .padding(.horizontal, 26)
+        }
     }
     
     private func vitalMeter(icon: String, label: String, value: Double, color: Color) -> some View {
@@ -587,8 +701,8 @@ struct DragonPlaygroundView: View {
                             .shadow(color: activeDragon.element.themeColor.opacity(0.5), radius: 6, x: 0, y: 3)
                     )
                 }
-                .disabled(stats.energy < primaryPower.energyCost)
-                .opacity(stats.energy < primaryPower.energyCost ? 0.6 : 1.0)
+                .disabled(stats.energy < primaryPower.energyCost || isSpirit || isAsleep)
+                .opacity(stats.energy < primaryPower.energyCost || isSpirit || isAsleep ? 0.6 : 1.0)
                 
                 // Pet Dragon Shortcut
                 Button(action: {
@@ -733,8 +847,24 @@ struct DragonPlaygroundView: View {
     
     // MARK: - Animated Feeding Sequence
     
+    /// Sleeping dragons and spirits can't eat; say so instead of animating.
+    private func refuseFeedingIfNeeded() -> Bool {
+        guard isAsleep || isSpirit else { return false }
+        isDraggingFood = false
+        draggedFood = nil
+        nomNomSpeechText = isSpirit ? "👻 Spirits can't eat…" : "💤 Shh… sleeping"
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.6)) { nomNomSpeechScale = 1.0 }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+            withAnimation(.easeOut(duration: 0.25)) {
+                nomNomSpeechScale = 0.0
+                nomNomSpeechText = nil
+            }
+        }
+        return true
+    }
+    
     private func launchFlyingFood(food: FoodType, from source: CGPoint) {
-        guard !isEatingSequenceRunning else { return }
+        guard !isEatingSequenceRunning, !refuseFeedingIfNeeded() else { return }
         isEatingSequenceRunning = true
         
         flyingFood = food
@@ -761,7 +891,7 @@ struct DragonPlaygroundView: View {
     }
     
     private func startFeedingSequence(food: FoodType, from startPoint: CGPoint) {
-        guard !isEatingSequenceRunning else { return }
+        guard !isEatingSequenceRunning, !refuseFeedingIfNeeded() else { return }
         isEatingSequenceRunning = true
         isDraggingFood = false
         draggedFood = nil
@@ -821,9 +951,18 @@ struct DragonPlaygroundView: View {
                     nomNomSpeechText = nil
                 }
                 
-                // Joyful dragon reaction
-                playgroundMood = .happy
-                AudioService.shared.playDragonGiggle()
+                if result.outcome == .tummyAche {
+                    nomNomSpeechText = "Ugh… too full! 🤢"
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.6)) { nomNomSpeechScale = 1.0 }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                        withAnimation { nomNomSpeechScale = 0.0; nomNomSpeechText = nil }
+                    }
+                    playgroundMood = .sleepy
+                } else {
+                    // Joyful dragon reaction
+                    playgroundMood = .happy
+                    AudioService.shared.playDragonGiggle()
+                }
                 
                 // Display XP Badge
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
