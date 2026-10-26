@@ -227,6 +227,15 @@ final class GameManagerLifeTests: XCTestCase {
         XCTAssertNil(gm.dailyBonus)
     }
 
+    func test_playgroundRedirectsToDen_whenActiveDragonNotInDen() {
+        let gm = manager { s in
+            s.dragons[s.dragons.firstIndex { $0.id == "sparkle" }!].residence = .legend
+        }
+        gm.navigate(to: .dragonPlayground)
+        XCTAssertEqual(gm.currentRoute, .den)
+        XCTAssertFalse(gm.hasActiveDenDragon)
+    }
+
     func test_gameClock_scalesAndConvertsBack() {
         let clock = GameClock(timeScale: 60, origin: t0)
         let game = clock.now(real: t0.addingTimeInterval(60))

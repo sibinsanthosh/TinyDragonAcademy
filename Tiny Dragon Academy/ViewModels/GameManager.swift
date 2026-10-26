@@ -141,9 +141,16 @@ final class GameManager: ObservableObject {
     
     // MARK: - Navigation
     
+    /// True when the selected dragon lives in the den (and so can be cared for).
+    var hasActiveDenDragon: Bool {
+        state.dragons.contains { $0.id == state.selectedDragonId && $0.residence == .den }
+    }
+    
     func navigate(to route: AppRoute) {
+        // With no den dragon selected (e.g. all spirits moved on), care happens from the Den
+        let destination: AppRoute = (route == .dragonPlayground && !hasActiveDenDragon) ? .den : route
         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-            currentRoute = route
+            currentRoute = destination
         }
     }
     
