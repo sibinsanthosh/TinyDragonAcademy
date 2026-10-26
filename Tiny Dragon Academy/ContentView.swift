@@ -81,7 +81,16 @@ struct ContentView: View {
                     SnackCatchView()
                         .transition(.opacity)
                 }
-            case .den, .trainingHub, .incubator, .hallOfLegends:
+            case .den:
+                DenView()
+                    .transition(.opacity)
+            case .trainingHub:
+                TrainingHubView()
+                    .transition(.opacity)
+            case .incubator:
+                IncubatorView()
+                    .transition(.opacity)
+            case .hallOfLegends:
                 Text("Coming soon")
                     .transition(.opacity)
             }

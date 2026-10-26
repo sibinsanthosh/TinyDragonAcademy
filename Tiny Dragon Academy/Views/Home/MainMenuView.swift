@@ -189,6 +189,19 @@ struct MainMenuView: View {
     
     private var navigationGrid: some View {
         VStack(spacing: 14) {
+            // Care loop: Den, Train, Incubator
+            HStack(spacing: 12) {
+                menuTile(title: "Den", icon: "house.fill", color: DragonPalette.coral) {
+                    gameManager.navigate(to: .den)
+                }
+                menuTile(title: "Train", icon: "figure.run.circle.fill", color: DragonPalette.skyBlue, textColor: DragonPalette.textDark) {
+                    gameManager.navigate(to: .trainingHub)
+                }
+                menuTile(title: "Incubator", icon: "oval.portrait.fill", color: DragonPalette.peach, textColor: DragonPalette.textDark) {
+                    gameManager.navigate(to: .incubator)
+                }
+            }
+            
             // Main Big Play Button
             Button(action: {
                 HapticsService.shared.medium()
@@ -200,7 +213,7 @@ struct MainMenuView: View {
                         .font(.system(size: 34, weight: .bold))
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Play Games")
+                        Text("Learning Games")
                             .font(.system(size: 24, weight: .heavy, design: .rounded))
                         Text("4 fun dragon adventures!")
                             .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -258,6 +271,15 @@ struct MainMenuView: View {
                     textColor: DragonPalette.textDark
                 ) {
                     gameManager.navigate(to: .islandBuilder)
+                }
+                
+                menuTile(
+                    title: "Shop",
+                    icon: "cart.circle.fill",
+                    color: DragonPalette.turquoise,
+                    textColor: DragonPalette.textDark
+                ) {
+                    gameManager.navigate(to: .foodInventoryShop)
                 }
             }
         }
