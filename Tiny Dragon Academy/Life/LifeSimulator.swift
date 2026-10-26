@@ -29,29 +29,57 @@ enum LifeSimulator {
     }
 
     static func advance(_ stats: DragonStats, from: Date, to: Date, calendar: Calendar) -> (DragonStats, [LifeEvent]) {
+        let (s, timed) = run(stats, from: from, to: to, calendar: calendar)
+        return (s, timed.map(\.event))
+    }
+
+    /// Notifiable events the dragon would hit with no player action, each at its first occurrence.
+    static func predict(_ stats: DragonStats, from: Date, horizon: TimeInterval, calendar: Calendar) -> [(event: LifeEvent, at: Date)] {
+        let notifiable: (LifeEvent) -> Bool = { event in
+            switch event {
+            case .becameHungry, .starving, .needsTraining, .becameIll, .healthCritical, .died, .spiritLastChance: return true
+            default: return false
+            }
+        }
+        let (_, timed) = run(stats, from: from, to: from.addingTimeInterval(horizon), calendar: calendar)
+        return firstOccurrences(timed.filter { notifiable($0.event) })
+    }
+
+    private static func run(_ stats: DragonStats, from: Date, to: Date, calendar: Calendar) -> (DragonStats, [(event: LifeEvent, at: Date)]) {
         var s = stats
-        var events: [LifeEvent] = []
+        var timed: [(event: LifeEvent, at: Date)] = []
         guard to > from else {
             s.lastSimulatedAt = to
-            return (s, events)
+            return (s, timed)
         }
-        let start = effectiveStart(from: from, to: to)
-        let total = to.timeIntervalSince(start)
-        // Counted steps: accumulating Date + dt can stall just short of `to` in floating point.
-        let fullSteps = Int(total / LifeRules.simulationStep)
-        for i in 0..<fullSteps {
-            let t = start.addingTimeInterval(Double(i) * LifeRules.simulationStep)
-            step(&s, at: t, dt: LifeRules.simulationStep, calendar: calendar, events: &events)
-        }
-        let remainder = total - Double(fullSteps) * LifeRules.simulationStep
-        if remainder > 1e-6 {
-            let t = start.addingTimeInterval(Double(fullSteps) * LifeRules.simulationStep)
-            step(&s, at: t, dt: remainder, calendar: calendar, events: &events)
+        forEachStep(from: effectiveStart(from: from, to: to), to: to) { t, dt in
+            var events: [LifeEvent] = []
+            step(&s, at: t, dt: dt, calendar: calendar, events: &events)
+            let end = t.addingTimeInterval(dt)
+            timed.append(contentsOf: events.map { (event: $0, at: end) })
         }
         s.lastSimulatedAt = to
         let livedDays = 1 + Int(to.timeIntervalSince(s.bornAt) / 86_400)
         s.ageInDays = max(s.ageInDays, livedDays)
-        return (s, events)
+        return (s, timed)
+    }
+
+    /// Counted steps: accumulating Date + dt can stall just short of `to` in floating point.
+    private static func forEachStep(from start: Date, to end: Date, _ body: (Date, TimeInterval) -> Void) {
+        let total = end.timeIntervalSince(start)
+        let fullSteps = Int(total / LifeRules.simulationStep)
+        for i in 0..<fullSteps {
+            body(start.addingTimeInterval(Double(i) * LifeRules.simulationStep), LifeRules.simulationStep)
+        }
+        let remainder = total - Double(fullSteps) * LifeRules.simulationStep
+        if remainder > 1e-6 {
+            body(start.addingTimeInterval(Double(fullSteps) * LifeRules.simulationStep), remainder)
+        }
+    }
+
+    private static func firstOccurrences(_ timed: [(event: LifeEvent, at: Date)]) -> [(event: LifeEvent, at: Date)] {
+        var seen = Set<LifeEvent>()
+        return timed.filter { seen.insert($0.event).inserted }
     }
 
     // MARK: - One step
@@ -150,30 +178,36 @@ extension LifeSimulator {
 
     /// Incubation keeps running through quiet hours; a cold egg hatches at half speed.
     static func advance(_ slot: IncubatorSlot, from: Date, to: Date) -> (IncubatorSlot, [LifeEvent]) {
+        let (s, timed) = run(slot, from: from, to: to)
+        return (s, timed.map(\.event))
+    }
+
+    static func predict(_ slot: IncubatorSlot, from: Date, horizon: TimeInterval) -> [(event: LifeEvent, at: Date)] {
+        firstOccurrences(run(slot, from: from, to: from.addingTimeInterval(horizon)).1)
+    }
+
+    private static func run(_ slot: IncubatorSlot, from: Date, to: Date) -> (IncubatorSlot, [(event: LifeEvent, at: Date)]) {
         var s = slot
-        var events: [LifeEvent] = []
+        var timed: [(event: LifeEvent, at: Date)] = []
         guard to > from, let egg = s.egg else {
             s.lastSimulatedAt = to
-            return (s, events)
+            return (s, timed)
         }
-        let total = to.timeIntervalSince(effectiveStart(from: from, to: to))
-        var remaining = total
-        while remaining > 1e-6 {
-            let dt = min(LifeRules.simulationStep, remaining)
-            remaining -= dt
+        forEachStep(from: effectiveStart(from: from, to: to), to: to) { t, dt in
+            let end = t.addingTimeInterval(dt)
             let warmthBefore = s.warmth
             let speed = warmthBefore >= eggWarmThreshold ? 1.0 : 0.5
             s.warmth = max(0, s.warmth - eggWarmthDecayPerHour * dt / 3600)
-            if warmthBefore >= eggWarmThreshold && s.warmth < eggWarmThreshold { events.append(.eggCold) }
+            if warmthBefore >= eggWarmThreshold && s.warmth < eggWarmThreshold { timed.append((.eggCold, end)) }
             if s.progress < 1 {
                 s.progress += dt / egg.tier.hatchDuration * speed
                 if s.progress >= 1 - 1e-9 {
                     s.progress = 1
-                    events.append(.eggReady)
+                    timed.append((.eggReady, end))
                 }
             }
         }
         s.lastSimulatedAt = to
-        return (s, events)
+        return (s, timed)
     }
 }
