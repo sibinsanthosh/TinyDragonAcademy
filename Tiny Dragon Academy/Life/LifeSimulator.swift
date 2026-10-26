@@ -141,3 +141,39 @@ enum LifeSimulator {
         return v < epsilon ? 0 : v
     }
 }
+
+// MARK: - Incubator
+
+extension LifeSimulator {
+    static let eggWarmthDecayPerHour = 10.0
+    static let eggWarmThreshold = 50.0
+
+    /// Incubation keeps running through quiet hours; a cold egg hatches at half speed.
+    static func advance(_ slot: IncubatorSlot, from: Date, to: Date) -> (IncubatorSlot, [LifeEvent]) {
+        var s = slot
+        var events: [LifeEvent] = []
+        guard to > from, let egg = s.egg else {
+            s.lastSimulatedAt = to
+            return (s, events)
+        }
+        let total = to.timeIntervalSince(effectiveStart(from: from, to: to))
+        var remaining = total
+        while remaining > 1e-6 {
+            let dt = min(LifeRules.simulationStep, remaining)
+            remaining -= dt
+            let warmthBefore = s.warmth
+            let speed = warmthBefore >= eggWarmThreshold ? 1.0 : 0.5
+            s.warmth = max(0, s.warmth - eggWarmthDecayPerHour * dt / 3600)
+            if warmthBefore >= eggWarmThreshold && s.warmth < eggWarmThreshold { events.append(.eggCold) }
+            if s.progress < 1 {
+                s.progress += dt / egg.tier.hatchDuration * speed
+                if s.progress >= 1 - 1e-9 {
+                    s.progress = 1
+                    events.append(.eggReady)
+                }
+            }
+        }
+        s.lastSimulatedAt = to
+        return (s, events)
+    }
+}
