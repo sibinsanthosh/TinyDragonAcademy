@@ -52,7 +52,14 @@ enum LifeSimulator {
             s.lastSimulatedAt = to
             return (s, timed)
         }
-        forEachStep(from: effectiveStart(from: from, to: to), to: to) { t, dt in
+        let start = effectiveStart(from: from, to: to)
+        // A spirit whose window already ran out before this range expires at once.
+        if let diedAt = s.condition.spiritDiedAt, start.timeIntervalSince(diedAt) >= LifeRules.spiritWindow {
+            timed.append((.spiritExpired, start))
+            s.lastSimulatedAt = to
+            return (s, timed)
+        }
+        forEachStep(from: start, to: to) { t, dt in
             var events: [LifeEvent] = []
             step(&s, at: t, dt: dt, calendar: calendar, events: &events)
             let end = t.addingTimeInterval(dt)

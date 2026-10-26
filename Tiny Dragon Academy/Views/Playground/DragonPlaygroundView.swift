@@ -198,12 +198,6 @@ struct DragonPlaygroundView: View {
                 .zIndex(48)
             }
             
-            // 10. Offline Care Welcome Modal (if returning after offline period)
-            if let summary = gameManager.offlineCareSummary {
-                offlineWelcomeModal(summary)
-                    .zIndex(50)
-            }
-            
             // 11. Evolution Ceremony Sheet
             if showEvolutionModal {
                 EvolutionCeremonyView(
@@ -894,60 +888,6 @@ struct DragonPlaygroundView: View {
         playgroundMood = mood
         DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
             playgroundMood = .idle
-        }
-    }
-    
-    // MARK: - Offline Welcome Modal
-    
-    private func offlineWelcomeModal(_ summary: CareSummary) -> some View {
-        ZStack {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 16) {
-                Image(systemName: "sun.max.fill")
-                    .font(.system(size: 48))
-                    .foregroundColor(DragonPalette.buttercup)
-                
-                Text("Welcome Back!")
-                    .font(.system(size: 24, weight: .heavy, design: .rounded))
-                    .foregroundColor(DragonPalette.textDark)
-                
-                Text("\(activeDragon.name) missed you! During rest, energy recovered by \(Int(summary.energyRecovered))%.")
-                    .font(.system(size: 15, weight: .medium, design: .rounded))
-                    .foregroundColor(DragonPalette.textMuted)
-                    .multilineTextAlignment(.center)
-                
-                if summary.dailyBonusAwarded {
-                    VStack(spacing: 6) {
-                        Text("✨ Daily Care Bonus! ✨")
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
-                            .foregroundColor(DragonPalette.coral)
-                        
-                        HStack(spacing: 8) {
-                            Text("+\(summary.bonusStars) Stars")
-                            if let food = summary.bonusFood {
-                                Text("+ 2 \(food.displayName)")
-                            }
-                        }
-                        .font(.system(size: 14, weight: .heavy, design: .rounded))
-                        .foregroundColor(DragonPalette.textDark)
-                    }
-                    .padding(10)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(DragonPalette.cream))
-                }
-                
-                KidButton(title: "Yay! Let's Play!", backgroundColor: DragonPalette.softPurple) {
-                    gameManager.offlineCareSummary = nil
-                }
-            }
-            .padding(24)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.white)
-                    .shadow(color: Color.black.opacity(0.15), radius: 12)
-            )
-            .padding(.horizontal, 32)
         }
     }
 }

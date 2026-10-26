@@ -412,13 +412,8 @@ struct DragonCollectionView: View {
             hatchCrackStage += 1
             AudioService.shared.playEggCrack(intensity: hatchCrackStage)
         } else {
-            // HATCH!
-            let success = gameManager.hatchDragon(id: dragon.id)
-            if success {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-                    isHatchCelebration = true
-                }
-            }
+            // Dragons now hatch from eggs in the incubator
+            gameManager.navigate(to: .incubator)
         }
     }
 }

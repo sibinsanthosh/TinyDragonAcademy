@@ -122,6 +122,13 @@ final class LifeSimulatorTests: XCTestCase {
         XCTAssertTrue(events.contains(.spiritExpired))
     }
 
+    func test_spiritAlreadyPastWindow_emitsExpiredOnNextAdvance() {
+        var start = fullStats()
+        start.condition = .spirit(diedAt: TestTime.date(day: 3, hour: 7))
+        let (_, events) = run(start, TestTime.date(day: 5, hour: 8), TestTime.date(day: 5, hour: 9))
+        XCTAssertEqual(events.filter { $0 == .spiritExpired }.count, 1)
+    }
+
     func test_spiritLastChance_at6hLeft() {
         var start = fullStats()
         start.condition = .spirit(diedAt: TestTime.date(day: 5, hour: 10))

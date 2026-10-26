@@ -7,9 +7,13 @@
 //
 
 import SwiftUI
+import Combine
 
 struct ContentView: View {
     @EnvironmentObject var gameManager: GameManager
+    @Environment(\.scenePhase) private var scenePhase
+    
+    private let lifeTicker = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
     
     var body: some View {
         ZStack {
@@ -62,6 +66,21 @@ struct ContentView: View {
             case .achievementsList:
                 AchievementsView()
                     .transition(.opacity)
+            case .den, .trainingHub, .incubator, .hallOfLegends:
+                Text("Coming soon")
+                    .transition(.opacity)
+            }
+        }
+        .onReceive(lifeTicker) { _ in
+            guard gameManager.state.hasCompletedOnboarding else { return }
+            gameManager.tick()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard gameManager.state.hasCompletedOnboarding else { return }
+            switch phase {
+            case .active: gameManager.catchUp()
+            case .background: gameManager.rescheduleNotifications()
+            default: break
             }
         }
         .animation(gameManager.state.settings.reduceMotion ? .none : .easeInOut(duration: 0.3), value: gameManager.currentRoute)

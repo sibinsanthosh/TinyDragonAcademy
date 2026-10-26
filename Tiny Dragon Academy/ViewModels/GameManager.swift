@@ -22,13 +22,24 @@ enum AppRoute: Equatable {
     case powerEncyclopedia
     case foodInventoryShop
     case achievementsList
+    case den
+    case trainingHub
+    case incubator
+    case hallOfLegends
 }
 
 @MainActor
 final class GameManager: ObservableObject {
     @Published var currentRoute: AppRoute = .onboarding
     @Published var state: AppProgressState
-    @Published var offlineCareSummary: CareSummary? = nil
+    /// Events per dragon id (or "incubator") that happened while the player was away.
+    @Published var awayReport: [String: [LifeEvent]] = [:]
+    @Published var dailyBonus: DailyBonus? = nil
+    
+    let persistence: PersistenceService
+    var clock: GameClock
+    let notifications: NotificationScheduling
+    let calendar: Calendar
     
     // Quick getters
     var totalStars: Int {
@@ -46,8 +57,18 @@ final class GameManager: ObservableObject {
         state.dragons.firstIndex(where: { $0.id == state.selectedDragonId }) ?? 0
     }
     
-    init() {
-        var loaded = PersistenceService.shared.loadState()
+    init(
+        persistence: PersistenceService = .shared,
+        clock: GameClock = .fromLaunchArguments(ProcessInfo.processInfo.arguments),
+        notifications: NotificationScheduling = NotificationService.shared,
+        calendar: Calendar = .current
+    ) {
+        self.persistence = persistence
+        self.clock = clock
+        self.notifications = notifications
+        self.calendar = calendar
+        
+        var loaded = persistence.loadState()
         
         // Ensure starting elemental power is unlocked for each dragon
         for idx in loaded.dragons.indices {
@@ -58,20 +79,14 @@ final class GameManager: ObservableObject {
             }
         }
         
-        // Run offline elapsed care calculation
-        if loaded.hasCompletedOnboarding, let activeIdx = loaded.dragons.firstIndex(where: { $0.id == loaded.selectedDragonId }) {
-            let summary = TimeProgressionService.shared.processOfflineProgression(
-                dragonStats: &loaded.dragons[activeIdx].stats,
-                lastDailyClaim: &loaded.lastDailyBonusClaimDate,
-                inventory: &loaded.foodInventory,
-                totalStars: &loaded.totalStars
-            )
-            if summary.hoursElapsed > 0.5 || summary.dailyBonusAwarded {
-                self.offlineCareSummary = summary
-            }
-        }
-        
         self.state = loaded
+        
+        if loaded.hasCompletedOnboarding {
+            catchUp()
+        }
+        if let service = notifications as? NotificationService {
+            service.onTap = { [weak self] dragonId in self?.handleNotificationTap(dragonId: dragonId) }
+        }
         
         // Sync audio settings
         AudioService.shared.isSoundEnabled = loaded.settings.isSoundEnabled
@@ -97,6 +112,10 @@ final class GameManager: ObservableObject {
             case "foodInventoryShop": self.currentRoute = .foodInventoryShop
             case "achievementsList": self.currentRoute = .achievementsList
             case "settings": self.currentRoute = .settings
+            case "den": self.currentRoute = .den
+            case "trainingHub": self.currentRoute = .trainingHub
+            case "incubator": self.currentRoute = .incubator
+            case "hallOfLegends": self.currentRoute = .hallOfLegends
             default: self.currentRoute = loaded.hasCompletedOnboarding ? .mainMenu : .onboarding
             }
         } else {
@@ -112,7 +131,7 @@ final class GameManager: ObservableObject {
     }
     
     func save() {
-        PersistenceService.shared.saveState(state)
+        persistence.saveState(state)
     }
     
     // MARK: - Navigation
@@ -151,35 +170,24 @@ final class GameManager: ObservableObject {
         state.hasCompletedOnboarding = true
         if let idx = state.dragons.firstIndex(where: { $0.id == "sparkle" }) {
             state.dragons[idx].name = starterDragonName
-            state.dragons[idx].isUnlocked = true
+            state.dragons[idx].residence = .den
+            state.dragons[idx].stats.bornAt = clock.now()
+            state.dragons[idx].stats.lastSimulatedAt = clock.now()
         }
         state.selectedDragonId = "sparkle"
         save()
         navigate(to: .dragonPlayground)
     }
     
-    func hatchDragon(id: String) -> Bool {
-        guard let idx = state.dragons.firstIndex(where: { $0.id == id }) else { return false }
-        let cost = state.dragons[idx].hatchCost
-        
-        guard state.totalStars >= cost else { return false }
-        
-        state.totalStars -= cost
-        state.dragons[idx].isUnlocked = true
-        state.selectedDragonId = id
-        AudioService.shared.playVictoryFanfare()
-        save()
-        return true
-    }
-    
     func selectDragon(id: String) {
-        guard state.dragons.contains(where: { $0.id == id && $0.isUnlocked }) else { return }
+        guard state.dragons.contains(where: { $0.id == id && $0.residence == .den }) else { return }
         state.selectedDragonId = id
         save()
     }
     
     func petActiveDragon() {
         let idx = activeDragonIndex
+        guard !state.dragons[idx].stats.condition.isSpirit else { return }
         state.dragons[idx].friendshipHearts += 1
         state.dragons[idx].stats.happiness = min(100.0, state.dragons[idx].stats.happiness + 5.0)
         
@@ -191,27 +199,39 @@ final class GameManager: ObservableObject {
     
     // MARK: - Interactive Feeding & Growth System
     
-    func feedActiveDragon(food: FoodType) -> (gainedXP: Int, isFavorite: Bool, leveledUp: Bool) {
+    func feedActiveDragon(food: FoodType) -> (gainedXP: Int, isFavorite: Bool, leveledUp: Bool, outcome: FeedOutcome) {
         let currentCount = state.foodInventory[food.rawValue] ?? 0
-        guard currentCount > 0 else { return (0, false, false) }
-        
-        // Decrement food
-        state.foodInventory[food.rawValue] = currentCount - 1
+        guard currentCount > 0 else { return (0, false, false, .fed) }
         
         let idx = activeDragonIndex
         var stats = state.dragons[idx].stats
         let isFavorite = (food == state.dragons[idx].favoriteFoodType)
         
-        // Multiplier for favorite foods
-        let multiplier = isFavorite ? 2 : 1
-        let xpEarned = food.baseXP * multiplier
+        let outcome = CareActions.feed(&stats, food: food, isFavorite: isFavorite, now: clock.now(), calendar: calendar)
+        switch outcome {
+        case .refusedAsleep, .refusedSpirit:
+            return (0, isFavorite, false, outcome)
+        case .tummyAche:
+            state.foodInventory[food.rawValue] = currentCount - 1
+            state.dragons[idx].stats = stats
+            HapticsService.shared.light()
+            save()
+            rescheduleNotifications()
+            return (0, isFavorite, false, outcome)
+        case .fed:
+            break
+        }
         
-        // Apply nutrition & state changes
-        stats.hunger = min(100.0, stats.hunger + food.hungerRestored)
-        stats.happiness = min(100.0, stats.happiness + (food.happinessRestored * Double(multiplier)))
-        stats.energy = min(100.0, stats.energy + food.energyRestored)
+        // Decrement food
+        state.foodInventory[food.rawValue] = currentCount - 1
+        
+        // Multiplier for favorite foods; illness halves XP
+        let multiplier = isFavorite ? 2 : 1
+        let baseEarned = food.baseXP * multiplier
+        let xpEarned = stats.condition.illness != nil ? baseEarned / 2 : baseEarned
+        
         stats.totalFeedings += 1
-        stats.lastFeedingTimestamp = Date()
+        stats.lastFeedingTimestamp = clock.now()
         
         if isFavorite {
             stats.favoriteFoodDiscovered = true
@@ -251,7 +271,8 @@ final class GameManager: ObservableObject {
         updateAchievementProgress(id: "elemental_master", setExact: stats.unlockedPowerIds.count)
         
         save()
-        return (xpEarned, isFavorite, leveledUp)
+        rescheduleNotifications()
+        return (xpEarned, isFavorite, leveledUp, outcome)
     }
     
     private func calculateLevel(for xp: Int) -> Int {
@@ -273,7 +294,7 @@ final class GameManager: ObservableObject {
         let idx = activeDragonIndex
         var stats = state.dragons[idx].stats
         
-        guard stats.energy >= power.energyCost else {
+        guard !stats.condition.isSpirit, power.stageRequired <= stats.growthStage, stats.energy >= power.energyCost else {
             HapticsService.shared.light()
             return false
         }
@@ -294,10 +315,16 @@ final class GameManager: ObservableObject {
     
     func evolveActiveDragon() -> Bool {
         let idx = activeDragonIndex
+        guard state.dragons[idx].stats.condition == .healthy else { return false }
         guard let next = state.dragons[idx].stats.growthStage.nextStage else { return false }
         guard state.dragons[idx].stats.level >= next.minLevel else { return false }
         
         state.dragons[idx].stats.growthStage = next
+        
+        // First time reaching a stage rewards a mystery egg
+        if state.dragons[idx].stats.stagesRewarded.insert(next).inserted, let tier = GameManager.eggTier(forReaching: next) {
+            state.eggBasket.append(Egg(tier: tier))
+        }
         
         // Unlock next stage powers
         let catalog = ElementalPowersCatalog.powers(for: state.dragons[idx].element)
@@ -463,7 +490,7 @@ final class GameManager: ObservableObject {
     }
     
     func resetAllProgress() {
-        PersistenceService.shared.resetAllData()
+        persistence.resetAllData()
         self.state = AppProgressState.initial()
         AudioService.shared.isSoundEnabled = true
         AudioService.shared.isMusicEnabled = true
