@@ -59,6 +59,11 @@ struct AppProgressState: Codable, Equatable {
     var remindersEnabled: Bool = true
     var hasSeenReminderPrimer: Bool = false
     
+    // Daily habit state
+    var careMode: CareMode = .classic
+    var daily: DailyState = DailyState()
+    var streak: StreakState = StreakState()
+    
     var denDragons: [DragonModel] { dragons.filter { $0.residence == .den } }
     var incubatorCapacity: Int { incubatorSlots.count }
     
@@ -181,6 +186,7 @@ struct AppProgressState: Codable, Equatable {
         case foodInventory, achievements, lastDailyBonusClaimDate
         case eggBasket, incubatorSlots, denCapacity, itemInventory, trainingBests
         case trainingSessionsCompleted, hallOfLegends, remindersEnabled, hasSeenReminderPrimer
+        case careMode, daily, streak
     }
     
     init() {}
@@ -236,6 +242,9 @@ struct AppProgressState: Codable, Equatable {
         hallOfLegends = try container.decodeIfPresent([Memorial].self, forKey: .hallOfLegends) ?? []
         remindersEnabled = try container.decodeIfPresent(Bool.self, forKey: .remindersEnabled) ?? true
         hasSeenReminderPrimer = try container.decodeIfPresent(Bool.self, forKey: .hasSeenReminderPrimer) ?? false
+        careMode = try container.decodeIfPresent(CareMode.self, forKey: .careMode) ?? .classic
+        daily = try container.decodeIfPresent(DailyState.self, forKey: .daily) ?? DailyState()
+        streak = try container.decodeIfPresent(StreakState.self, forKey: .streak) ?? StreakState()
         
         if isLegacySave {
             AppProgressState.migrateLegacy(&self, now: Date())
@@ -287,5 +296,8 @@ struct AppProgressState: Codable, Equatable {
         try container.encode(hallOfLegends, forKey: .hallOfLegends)
         try container.encode(remindersEnabled, forKey: .remindersEnabled)
         try container.encode(hasSeenReminderPrimer, forKey: .hasSeenReminderPrimer)
+        try container.encode(careMode, forKey: .careMode)
+        try container.encode(daily, forKey: .daily)
+        try container.encode(streak, forKey: .streak)
     }
 }

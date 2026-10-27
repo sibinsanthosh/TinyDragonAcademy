@@ -57,6 +57,9 @@ enum LifeRules {
     // Training & migration
     static let trainingEnergyCost = 15.0
     static let migratedFitness = 70.0
+    
+    // Gentle care mode: health never drops below this
+    static let gentleHealthFloor = 10.0
 }
 
 // MARK: - Condition
@@ -158,4 +161,35 @@ struct Memorial: Codable, Equatable, Identifiable {
     let level: Int
     let bornAt: Date
     let diedAt: Date
+    var isShiny: Bool = false
+
+    enum CodingKeys: String, CodingKey {
+        case id, dragonId, name, speciesTitle, stage, level, bornAt, diedAt, isShiny
+    }
+
+    init(id: UUID, dragonId: String, name: String, speciesTitle: String, stage: GrowthStage,
+         level: Int, bornAt: Date, diedAt: Date, isShiny: Bool = false) {
+        self.id = id
+        self.dragonId = dragonId
+        self.name = name
+        self.speciesTitle = speciesTitle
+        self.stage = stage
+        self.level = level
+        self.bornAt = bornAt
+        self.diedAt = diedAt
+        self.isShiny = isShiny
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        dragonId = try c.decode(String.self, forKey: .dragonId)
+        name = try c.decode(String.self, forKey: .name)
+        speciesTitle = try c.decode(String.self, forKey: .speciesTitle)
+        stage = try c.decode(GrowthStage.self, forKey: .stage)
+        level = try c.decode(Int.self, forKey: .level)
+        bornAt = try c.decode(Date.self, forKey: .bornAt)
+        diedAt = try c.decode(Date.self, forKey: .diedAt)
+        isShiny = try c.decodeIfPresent(Bool.self, forKey: .isShiny) ?? false
+    }
 }

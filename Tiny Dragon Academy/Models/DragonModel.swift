@@ -165,6 +165,7 @@ struct DragonModel: Identifiable, Codable, Equatable {
     var accessory: DragonAccessory
     var backdrop: IslandBackdrop
     var residence: DragonResidence
+    var isShiny: Bool = false
     var hatchCost: Int
     let favoriteSnack: String
     let personality: String
@@ -177,6 +178,9 @@ struct DragonModel: Identifiable, Codable, Equatable {
     var primaryColor: Color { Color(hex: primaryColorHex) }
     var secondaryColor: Color { Color(hex: secondaryColorHex) }
     var bellyColor: Color { Color(hex: bellyColorHex) }
+    
+    /// Name with a star for shiny dragons.
+    var badgedName: String { isShiny ? "\(name) ★" : name }
     
     /// Owned dragons live in the den or the sanctuary.
     var isUnlocked: Bool {
@@ -233,7 +237,7 @@ struct DragonModel: Identifiable, Codable, Equatable {
         case id, name, speciesTitle, element
         case primaryColorHex, secondaryColorHex, bellyColorHex
         case hornStyle, wingStyle, tailStyle, accessory, backdrop
-        case isUnlocked, residence, hatchCost, favoriteSnack, personality, friendshipHearts
+        case isUnlocked, residence, isShiny, hatchCost, favoriteSnack, personality, friendshipHearts
         case stats, favoriteFoodType
     }
     
@@ -258,6 +262,7 @@ struct DragonModel: Identifiable, Codable, Equatable {
             let legacyUnlocked = try container.decodeIfPresent(Bool.self, forKey: .isUnlocked) ?? false
             residence = legacyUnlocked ? .den : .undiscovered
         }
+        isShiny = try container.decodeIfPresent(Bool.self, forKey: .isShiny) ?? false
         hatchCost = try container.decode(Int.self, forKey: .hatchCost)
         favoriteSnack = try container.decode(String.self, forKey: .favoriteSnack)
         personality = try container.decode(String.self, forKey: .personality)
@@ -288,6 +293,7 @@ struct DragonModel: Identifiable, Codable, Equatable {
         try container.encode(accessory, forKey: .accessory)
         try container.encode(backdrop, forKey: .backdrop)
         try container.encode(residence, forKey: .residence)
+        try container.encode(isShiny, forKey: .isShiny)
         try container.encode(hatchCost, forKey: .hatchCost)
         try container.encode(favoriteSnack, forKey: .favoriteSnack)
         try container.encode(personality, forKey: .personality)
