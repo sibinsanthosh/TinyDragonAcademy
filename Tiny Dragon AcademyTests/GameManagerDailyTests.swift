@@ -164,6 +164,15 @@ final class GameManagerDailyTests: XCTestCase {
         XCTAssertTrue(gm.state.daily.caredToday)
     }
 
+    func test_questContext_readyEggIsNotIncubating() {
+        let gm = manager { s in
+            s.incubatorSlots = [IncubatorSlot(egg: Egg(tier: .common), warmth: 100, progress: 1, lastSimulatedAt: self.t0)]
+        }
+        XCTAssertFalse(gm.questContext.hasIncubatingEgg)
+        gm.state.incubatorSlots[0].progress = 0.5
+        XCTAssertTrue(gm.questContext.hasIncubatingEgg)
+    }
+
     func test_onboarding_setsCareMode() {
         let gm = manager { s in s.hasCompletedOnboarding = false }
         gm.completeOnboarding(starterDragonName: "Pip", careMode: .gentle)

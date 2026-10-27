@@ -75,6 +75,16 @@ struct DragonPlaygroundView: View {
             DragonHabitatContainerView(stage: stats.growthStage, element: activeDragon.element) {
                 // Main Interactive Dragon
                 VStack(spacing: 8) {
+                    // Today's wish, as a speech bubble above the dragon
+                    if let wish = gameManager.state.daily.wishes[activeDragon.id], !wish.granted, !isSpirit {
+                        Label(wish.title, systemImage: wish.iconName)
+                            .font(.system(size: 13, weight: .heavy, design: .rounded))
+                            .foregroundColor(DragonPalette.textDark)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(Capsule().fill(Color.white.opacity(0.95)).shadow(color: DragonPalette.softShadow, radius: 4, y: 2))
+                    }
+                    
                     // Dragon View with geometry preference tracking
                     DragonView(
                         dragon: activeDragon,
@@ -100,6 +110,7 @@ struct DragonPlaygroundView: View {
                     
                     // Dragon Name & Species Pill
                     dragonTitleBadge
+
                 }
             }
             
@@ -343,7 +354,7 @@ struct DragonPlaygroundView: View {
     
     private var dragonTitleBadge: some View {
         HStack(spacing: 8) {
-            Text(activeDragon.name)
+            Text(activeDragon.badgedName)
                 .font(.system(size: 18, weight: .heavy, design: .rounded))
                 .foregroundColor(DragonPalette.textDark)
             
@@ -592,7 +603,7 @@ struct DragonPlaygroundView: View {
     }
     
     private var spiritOverlay: some View {
-        let status = DragonStatus.describe(stats, now: gameManager.clock.now(), calendar: gameManager.calendar)
+        let status = DragonStatus.describe(stats, now: gameManager.clock.now(), calendar: gameManager.calendar, mode: gameManager.state.careMode)
         let embers = gameManager.state.itemCount(.phoenixEmber)
         return ZStack {
             Color(red: 0.20, green: 0.18, blue: 0.40).opacity(0.55).ignoresSafeArea()

@@ -22,6 +22,14 @@ struct HatchRevealView: View {
                 switch outcome {
                 case .dragon(let id):
                     if let dragon = gameManager.state.dragons.first(where: { $0.id == id }) {
+                        if dragon.isShiny {
+                            Text("✨ SHINY! ✨")
+                                .font(.system(size: 28, weight: .heavy, design: .rounded))
+                                .foregroundColor(DragonPalette.coral)
+                            Text("Only 1 in 20 eggs hatches like this.")
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundColor(DragonPalette.textMuted)
+                        }
                         Text("It's a \(dragon.speciesTitle)! 🎉")
                             .font(.system(size: 24, weight: .heavy, design: .rounded))
                             .foregroundColor(DragonPalette.textDark)

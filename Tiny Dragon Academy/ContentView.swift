@@ -81,6 +81,9 @@ struct ContentView: View {
                     SnackCatchView()
                         .transition(.opacity)
                 }
+            case .today:
+                TodayView()
+                    .transition(.opacity)
             case .den:
                 DenView()
                     .transition(.opacity)
@@ -95,6 +98,27 @@ struct ContentView: View {
                     .transition(.opacity)
             }
         }
+        .overlay(alignment: .top) {
+            if let toast = gameManager.toast {
+                Text(toast)
+                    .font(.system(size: 15, weight: .heavy, design: .rounded))
+                    .foregroundColor(DragonPalette.textDark)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 12)
+                    .background(Capsule().fill(Color.white).shadow(color: DragonPalette.popShadow, radius: 10, y: 4))
+                    .padding(.top, 8)
+                    .padding(.horizontal, 20)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .id(toast)
+                    .task(id: toast) {
+                        try? await Task.sleep(nanoseconds: 2_600_000_000)
+                        withAnimation { if gameManager.toast == toast { gameManager.toast = nil } }
+                    }
+                    .onTapGesture { withAnimation { gameManager.toast = nil } }
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: gameManager.toast)
         .overlay {
             if gameManager.currentRoute != .onboarding {
                 if gameManager.shouldShowReminderPrimer {

@@ -57,7 +57,7 @@ struct DenView: View {
     }
 
     private func dragonCard(_ dragon: DragonModel) -> some View {
-        let status = DragonStatus.describe(dragon.stats, now: gameManager.clock.now(), calendar: gameManager.calendar)
+        let status = DragonStatus.describe(dragon.stats, now: gameManager.clock.now(), calendar: gameManager.calendar, mode: gameManager.state.careMode)
         return Button {
             HapticsService.shared.medium()
             gameManager.selectDragon(id: dragon.id)
@@ -68,7 +68,7 @@ struct DenView: View {
                            size: 90, allowInteractivePetting: false)
                     .opacity(dragon.stats.condition.isSpirit ? 0.4 : 1)
                     .frame(height: 96)
-                Text(dragon.name)
+                Text(dragon.badgedName)
                     .font(.system(size: 17, weight: .heavy, design: .rounded))
                     .foregroundColor(DragonPalette.textDark)
                 if let status {

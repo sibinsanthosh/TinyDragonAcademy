@@ -35,6 +35,34 @@ struct AwayReportSheet: View {
         }
     }
 
+    private var reportList: some View {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(rows, id: \.title) { row in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(row.title)
+                                .font(.system(size: 16, weight: .heavy, design: .rounded))
+                                .foregroundColor(DragonPalette.textDark)
+                            ForEach(row.lines, id: \.self) { line in
+                                Text("• \(line)")
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                                    .foregroundColor(DragonPalette.textMuted)
+                            }
+                        }
+                    }
+                    if let bonus = gameManager.dailyBonus {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("✨ Daily care bonus")
+                                .font(.system(size: 16, weight: .heavy, design: .rounded))
+                                .foregroundColor(DragonPalette.coral)
+                            Text("+\(bonus.stars) stars and \(TimeProgressionService.bonusFoodCount) \(bonus.food.displayName)")
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .foregroundColor(DragonPalette.textMuted)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     var body: some View {
         ZStack {
             Color.black.opacity(0.4).ignoresSafeArea()
@@ -44,35 +72,11 @@ struct AwayReportSheet: View {
                     .font(.system(size: 24, weight: .heavy, design: .rounded))
                     .foregroundColor(DragonPalette.textDark)
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        ForEach(rows, id: \.title) { row in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(row.title)
-                                    .font(.system(size: 16, weight: .heavy, design: .rounded))
-                                    .foregroundColor(DragonPalette.textDark)
-                                ForEach(row.lines, id: \.self) { line in
-                                    Text("• \(line)")
-                                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                                        .foregroundColor(DragonPalette.textMuted)
-                                }
-                            }
-                        }
-                        if let bonus = gameManager.dailyBonus {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("✨ Daily care bonus")
-                                    .font(.system(size: 16, weight: .heavy, design: .rounded))
-                                    .foregroundColor(DragonPalette.coral)
-                                Text("+\(bonus.stars) stars and \(TimeProgressionService.bonusFoodCount) \(bonus.food.displayName)")
-                                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                                    .foregroundColor(DragonPalette.textMuted)
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                // Short reports hug their content; long ones scroll
+                ViewThatFits(in: .vertical) {
+                    reportList
+                    ScrollView { reportList }.frame(height: 320)
                 }
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxHeight: 320)
 
                 KidButton(title: "Let's go!", backgroundColor: DragonPalette.softPurple) {
                     gameManager.dismissAwayReport()

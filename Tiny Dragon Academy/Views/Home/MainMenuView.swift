@@ -73,6 +73,19 @@ struct MainMenuView: View {
                 HapticsService.shared.light()
             }
             
+            Button {
+                HapticsService.shared.light()
+                gameManager.navigate(to: .today)
+            } label: {
+                Text("🔥 \(gameManager.state.streak.current)")
+                    .font(.system(size: 17, weight: .heavy, design: .rounded))
+                    .foregroundColor(DragonPalette.textDark)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Capsule().fill(Color.white.opacity(0.9)))
+            }
+            .accessibilityLabel("\(gameManager.state.streak.current) day care streak")
+            
             Spacer()
             
             // Settings Button with Grown-up Lock Icon
@@ -202,6 +215,10 @@ struct MainMenuView: View {
                 menuTile(title: "Incubator", icon: "oval.portrait.fill", color: DragonPalette.peach, textColor: DragonPalette.textDark) {
                     gameManager.navigate(to: .incubator)
                 }
+                menuTile(title: "Today \(gameManager.todayQuestsDone)/\(gameManager.state.daily.quests.count)",
+                         icon: "checklist", color: DragonPalette.buttercup, textColor: DragonPalette.textDark) {
+                    gameManager.navigate(to: .today)
+                }
             }
             
             // Main Big Play Button
@@ -306,6 +323,9 @@ struct MainMenuView: View {
                 Text(title)
                     .font(.system(size: 15, weight: .bold, design: .rounded))
                     .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                    .allowsTightening(true)
             }
             .foregroundColor(textColor)
             .frame(maxWidth: .infinity)

@@ -16,6 +16,7 @@ struct HatchIntroView: View {
     @State private var isHatched: Bool = false
     @State private var chosenName: String = "Sparkle"
     @State private var celebrationConfetti: Bool = false
+    @State private var showParentGate: Bool = false
     
     private let presetNames = ["Sparkle", "Puff", "Bubbles", "Twinkle", "Sunny", "Pip"]
     
@@ -36,15 +37,95 @@ struct HatchIntroView: View {
                 } else if step == 1 {
                     eggHatchingStep
                         .transition(.scale.combined(with: .opacity))
-                } else {
+                } else if step == 2 {
                     namingAndWelcomeStep
+                        .transition(.scale.combined(with: .opacity))
+                } else {
+                    careModeStep
                         .transition(.scale.combined(with: .opacity))
                 }
                 
                 Spacer()
             }
             .padding(.horizontal, 24)
+            
+            if showParentGate {
+                ParentGateView(
+                    onSuccess: {
+                        showParentGate = false
+                        finishOnboarding(.classic)
+                    },
+                    onCancel: { showParentGate = false }
+                )
+            }
         }
+    }
+    
+    // MARK: - Step 3: Care Mode
+    
+    private var finalName: String {
+        chosenName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Sparkle" : chosenName
+    }
+    
+    private func finishOnboarding(_ mode: CareMode) {
+        gameManager.completeOnboarding(starterDragonName: finalName, careMode: mode)
+    }
+    
+    private var careModeStep: some View {
+        VStack(spacing: 16) {
+            Text("Who's raising \(finalName)?")
+                .font(.system(size: 26, weight: .heavy, design: .rounded))
+                .foregroundColor(DragonPalette.textDark)
+                .multilineTextAlignment(.center)
+            
+            careModeCard(
+                title: "Little ones",
+                subtitle: "Gentle mode. \(finalName) gets hungry and sleepy but always waits for you.",
+                icon: "heart.circle.fill",
+                color: DragonPalette.mintGreen
+            ) { finishOnboarding(.gentle) }
+            
+            careModeCard(
+                title: "Big kids & grown-ups",
+                subtitle: "Classic mode. Real stakes: neglected dragons can become spirits. A grown-up confirms this.",
+                icon: "flame.circle.fill",
+                color: DragonPalette.coral
+            ) { showParentGate = true }
+            
+            Text("A grown-up can change this later in Settings.")
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundColor(DragonPalette.textMuted)
+        }
+        .padding(24)
+        .kidCard()
+    }
+    
+    private func careModeCard(title: String, subtitle: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button {
+            HapticsService.shared.medium()
+            AudioService.shared.playPop()
+            action()
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .font(.system(size: 36))
+                    .foregroundColor(color)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.system(size: 19, weight: .heavy, design: .rounded))
+                        .foregroundColor(DragonPalette.textDark)
+                    Text(subtitle)
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundColor(DragonPalette.textMuted)
+                        .multilineTextAlignment(.leading)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(16)
+            .background(RoundedRectangle(cornerRadius: 20).fill(color.opacity(0.15)))
+            .overlay(RoundedRectangle(cornerRadius: 20).stroke(color.opacity(0.6), lineWidth: 2))
+        }
+        .buttonStyle(.plain)
     }
     
     // MARK: - Step 0: Welcome Story
@@ -250,8 +331,7 @@ struct HatchIntroView: View {
                 foregroundColor: DragonPalette.textDark,
                 minWidth: 260
             ) {
-                let finalName = chosenName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Sparkle" : chosenName
-                gameManager.completeOnboarding(starterDragonName: finalName)
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) { step = 3 }
             }
             .padding(.top, 10)
         }

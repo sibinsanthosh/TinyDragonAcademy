@@ -12,7 +12,7 @@ extension GameManager {
 
     var questContext: QuestContext {
         QuestContext(
-            hasIncubatingEgg: state.incubatorSlots.contains { $0.egg != nil },
+            hasIncubatingEgg: state.incubatorSlots.contains { $0.egg != nil && !$0.isReady },
             knowsAFavorite: state.denDragons.contains { $0.stats.favoriteFoodDiscovered },
             hasDenDragon: !state.denDragons.isEmpty
         )

@@ -26,6 +26,7 @@ enum AppRoute: Equatable {
     case trainingHub
     case incubator
     case hallOfLegends
+    case today
     case trainingGame(TrainingGameType)
 }
 
@@ -117,6 +118,7 @@ final class GameManager: ObservableObject {
             case "foodInventoryShop": self.currentRoute = .foodInventoryShop
             case "achievementsList": self.currentRoute = .achievementsList
             case "settings": self.currentRoute = .settings
+            case "today": self.currentRoute = .today
             case "den": self.currentRoute = .den
             case "trainingHub": self.currentRoute = .trainingHub
             case "incubator": self.currentRoute = .incubator

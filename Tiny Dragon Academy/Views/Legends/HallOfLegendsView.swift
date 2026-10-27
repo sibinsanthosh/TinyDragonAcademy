@@ -38,7 +38,7 @@ struct HallOfLegendsList: View {
                             .saturation(0.3)
                     }
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(memorial.name)
+                        Text(memorial.isShiny ? "\(memorial.name) ★" : memorial.name)
                             .font(.system(size: 17, weight: .heavy, design: .rounded))
                             .foregroundColor(DragonPalette.textDark)
                         Text("\(memorial.speciesTitle) • \(memorial.stage.rawValue) • Lvl \(memorial.level)")

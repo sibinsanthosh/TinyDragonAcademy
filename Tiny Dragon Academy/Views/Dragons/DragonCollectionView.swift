@@ -73,14 +73,14 @@ struct DragonCollectionView: View {
 
     private func row(_ dragon: DragonModel) -> some View {
         let status = dragon.residence == .den
-            ? DragonStatus.describe(dragon.stats, now: gameManager.clock.now(), calendar: gameManager.calendar)
+            ? DragonStatus.describe(dragon.stats, now: gameManager.clock.now(), calendar: gameManager.calendar, mode: gameManager.state.careMode)
             : nil
         return HStack(spacing: 12) {
             DragonView(dragon: dragon, mood: .idle, size: 64, allowInteractivePetting: false)
                 .opacity(dragon.stats.condition.isSpirit ? 0.45 : 1)
                 .frame(width: 70, height: 70)
             VStack(alignment: .leading, spacing: 4) {
-                Text(dragon.name)
+                Text(dragon.badgedName)
                     .font(.system(size: 17, weight: .heavy, design: .rounded))
                     .foregroundColor(DragonPalette.textDark)
                 Text("\(dragon.speciesTitle) • \(dragon.stats.growthStage.rawValue) • Lvl \(dragon.stats.level)")
