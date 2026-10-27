@@ -134,4 +134,83 @@ final class DailyRulesTests: XCTestCase {
         XCTAssertTrue(DailyRules.record(.trained(game: .dragonDash, score: 10, dragonId: "sparkle"), daily: &d).grantedWishDragonIds.isEmpty)
         XCTAssertEqual(DailyRules.record(.trained(game: .skyFlight, score: 1, dragonId: "sparkle"), daily: &d).grantedWishDragonIds, ["sparkle"])
     }
+
+    // MARK: - Streak
+
+    private func day(_ id: String, cared: Bool = true, ill: Bool = false) -> DailyState {
+        DailyState(dayId: id, caredToday: cared, illnessToday: ill)
+    }
+
+    func test_rollover_countedDayIncrements() {
+        var streak = StreakState()
+        let rewards = DailyRules.rollover(streak: &streak, previous: day("2026-01-05"), toDayId: "2026-01-06", calendar: cal)
+        XCTAssertEqual(streak.current, 1)
+        XCTAssertEqual(streak.best, 1)
+        XCTAssertEqual(streak.recent, [StreakDay(dayId: "2026-01-05", result: .counted)])
+        XCTAssertTrue(rewards.isEmpty)
+    }
+
+    func test_rollover_illnessOrNoCareBreaksStreak() {
+        var streak = StreakState(current: 5, best: 5)
+        _ = DailyRules.rollover(streak: &streak, previous: day("2026-01-05", ill: true), toDayId: "2026-01-06", calendar: cal)
+        XCTAssertEqual(streak.current, 0)
+        XCTAssertEqual(streak.best, 5)
+        XCTAssertEqual(streak.recent.last?.result, .missed)
+        streak.current = 3
+        _ = DailyRules.rollover(streak: &streak, previous: day("2026-01-06", cared: false), toDayId: "2026-01-07", calendar: cal)
+        XCTAssertEqual(streak.current, 0)
+    }
+
+    func test_rollover_gapUsesShieldsThenResets() {
+        var streak = StreakState(current: 4, best: 4, shields: 2)
+        _ = DailyRules.rollover(streak: &streak, previous: day("2026-01-05"), toDayId: "2026-01-09", calendar: cal)
+        XCTAssertEqual(streak.recent.map(\.result), [.counted, .shielded, .shielded, .missed])
+        XCTAssertEqual(streak.recent.map(\.dayId), ["2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08"])
+        XCTAssertEqual(streak.shields, 0)
+        XCTAssertEqual(streak.current, 0)
+        XCTAssertEqual(streak.best, 5)
+    }
+
+    func test_rollover_shieldKeepsStreak() {
+        var streak = StreakState(current: 9, best: 9, shields: 1)
+        _ = DailyRules.rollover(streak: &streak, previous: day("2026-01-05", cared: false), toDayId: "2026-01-06", calendar: cal)
+        XCTAssertEqual(streak.current, 9)
+        XCTAssertEqual(streak.shields, 0)
+    }
+
+    func test_milestones() {
+        func reach(_ from: Int, shields: Int = 0) -> ([StreakReward], StreakState) {
+            var streak = StreakState(current: from, best: from, shields: shields)
+            let rewards = DailyRules.rollover(streak: &streak, previous: day("2026-01-05"), toDayId: "2026-01-06", calendar: cal)
+            return (rewards, streak)
+        }
+        XCTAssertEqual(reach(2).0, [.stars(15)])
+        XCTAssertEqual(reach(6).0, [.shield, .stars(25)])
+        XCTAssertEqual(reach(6).1.shields, 1)
+        XCTAssertEqual(reach(6, shields: 2).1.shields, 2, "shields cap at 2")
+        XCTAssertEqual(reach(13).0, [.egg(.uncommon)])
+        XCTAssertEqual(reach(29).0, [.egg(.rare)])
+        XCTAssertEqual(reach(59).0, [.egg(.rare)])
+        XCTAssertEqual(reach(10).0, [])
+    }
+
+    func test_milestone_rewardedOnce() {
+        var streak = StreakState(current: 2, best: 2)
+        XCTAssertEqual(DailyRules.rollover(streak: &streak, previous: day("2026-01-05"), toDayId: "2026-01-06", calendar: cal), [.stars(15)])
+        XCTAssertEqual(DailyRules.rollover(streak: &streak, previous: day("2026-01-05"), toDayId: "2026-01-05", calendar: cal), [])
+        XCTAssertEqual(streak.current, 3)
+    }
+
+    func test_rollover_freshStateIsNoOp() {
+        var streak = StreakState()
+        XCTAssertEqual(DailyRules.rollover(streak: &streak, previous: DailyState(), toDayId: "2026-01-06", calendar: cal), [])
+        XCTAssertEqual(streak, StreakState())
+    }
+
+    func test_recent_cappedAt14() {
+        var streak = StreakState()
+        _ = DailyRules.rollover(streak: &streak, previous: day("2026-01-01"), toDayId: "2026-01-25", calendar: cal)
+        XCTAssertEqual(streak.recent.count, 14)
+        XCTAssertEqual(streak.recent.last?.dayId, "2026-01-24")
+    }
 }

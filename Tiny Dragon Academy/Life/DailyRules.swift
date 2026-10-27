@@ -14,6 +14,12 @@ struct QuestContext {
     var hasDenDragon: Bool
 }
 
+enum StreakReward: Equatable {
+    case stars(Int)
+    case shield
+    case egg(EggTier)
+}
+
 struct DailyOutcome: Equatable {
     var completedQuests: [DailyQuest] = []
     var allClearedNow = false
@@ -140,5 +146,56 @@ enum DailyRules {
         }
         daily.wishes[dragonId] = wish
         return wish.granted ? dragonId : nil
+    }
+
+    // MARK: - Streak
+
+    static let maxShields = 2
+    static let recentDaysKept = 14
+
+    /// Judges the finished day and every unopened day up to `toDayId`.
+    /// A day that doesn't count uses a shield if one is held, otherwise resets the streak.
+    static func rollover(streak: inout StreakState, previous: DailyState, toDayId: String, calendar: Calendar) -> [StreakReward] {
+        guard !previous.dayId.isEmpty else { return [] }
+        let gap = GameDay.daysBetween(previous.dayId, toDayId, calendar: calendar)
+        guard gap > 0 else { return [] }
+
+        var rewards: [StreakReward] = []
+        let firstCounted = previous.caredToday && !previous.illnessToday
+        for offset in 0..<gap {
+            let dayId = GameDay.adding(offset, to: previous.dayId, calendar: calendar)
+            if offset == 0 && firstCounted {
+                streak.current += 1
+                streak.best = max(streak.best, streak.current)
+                streak.recent.append(StreakDay(dayId: dayId, result: .counted))
+                rewards += milestoneRewards(for: streak.current, streak: &streak)
+            } else if streak.shields > 0 {
+                streak.shields -= 1
+                streak.recent.append(StreakDay(dayId: dayId, result: .shielded))
+            } else {
+                streak.current = 0
+                streak.recent.append(StreakDay(dayId: dayId, result: .missed))
+            }
+        }
+        if streak.recent.count > recentDaysKept {
+            streak.recent.removeFirst(streak.recent.count - recentDaysKept)
+        }
+        return rewards
+    }
+
+    private static func milestoneRewards(for days: Int, streak: inout StreakState) -> [StreakReward] {
+        switch days {
+        case 3:
+            return [.stars(15)]
+        case 7:
+            streak.shields = min(maxShields, streak.shields + 1)
+            return [.shield, .stars(25)]
+        case 14:
+            return [.egg(.uncommon)]
+        case let d where d >= 30 && d % 30 == 0:
+            return [.egg(.rare)]
+        default:
+            return []
+        }
     }
 }

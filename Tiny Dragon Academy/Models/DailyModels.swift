@@ -37,6 +37,13 @@ enum GameDay {
         return calendar.dateComponents([.day], from: start, to: end).day ?? 0
     }
 
+    static func adding(_ days: Int, to id: String, calendar: Calendar) -> String {
+        guard let parts = date(id), let base = calendar.date(from: parts),
+              let moved = calendar.date(byAdding: .day, value: days, to: base) else { return id }
+        let c = calendar.dateComponents([.year, .month, .day], from: moved)
+        return String(format: "%04d-%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
+    }
+
     private static func date(_ id: String) -> DateComponents? {
         let parts = id.split(separator: "-").compactMap { Int($0) }
         guard parts.count == 3 else { return nil }
