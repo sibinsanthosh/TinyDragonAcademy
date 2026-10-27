@@ -50,7 +50,7 @@ struct MiniGamesHubView: View {
                 
                 // Hub Title
                 VStack(spacing: 4) {
-                    Text("Magical Games")
+                    Text("Learning Games")
                         .font(.system(size: 30, weight: .heavy, design: .rounded))
                         .foregroundColor(DragonPalette.textDark)
                     

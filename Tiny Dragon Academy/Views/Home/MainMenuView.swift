@@ -73,6 +73,19 @@ struct MainMenuView: View {
                 HapticsService.shared.light()
             }
             
+            Button {
+                HapticsService.shared.light()
+                gameManager.navigate(to: .today)
+            } label: {
+                Text("🔥 \(gameManager.state.streak.current)")
+                    .font(.system(size: 17, weight: .heavy, design: .rounded))
+                    .foregroundColor(DragonPalette.textDark)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Capsule().fill(Color.white.opacity(0.9)))
+            }
+            .accessibilityLabel("\(gameManager.state.streak.current) day care streak")
+            
             Spacer()
             
             // Settings Button with Grown-up Lock Icon
@@ -144,7 +157,7 @@ struct MainMenuView: View {
             VStack(spacing: 6) {
                 DragonView(
                     dragon: gameManager.activeDragon,
-                    mood: companionMood,
+                    mood: gameManager.hasActiveDenDragon ? companionMood : .sleepy,
                     size: 170,
                     allowInteractivePetting: false
                 )
@@ -164,7 +177,9 @@ struct MainMenuView: View {
                         Image(systemName: "sparkles")
                             .font(.system(size: 13))
                             .foregroundColor(DragonPalette.coral)
-                        Text("\(gameManager.activeDragon.name) • Lvl \(gameManager.activeDragon.stats.level) \(gameManager.activeDragon.stats.growthStage.rawValue)")
+                        Text(gameManager.hasActiveDenDragon
+                             ? "\(gameManager.activeDragon.name) • Lvl \(gameManager.activeDragon.stats.level) \(gameManager.activeDragon.stats.growthStage.rawValue)"
+                             : "Your den is empty — hatch an egg!")
                             .font(.system(size: 14, weight: .heavy, design: .rounded))
                             .foregroundColor(DragonPalette.textDark)
                         Image(systemName: "arrow.right.circle.fill")
@@ -189,6 +204,23 @@ struct MainMenuView: View {
     
     private var navigationGrid: some View {
         VStack(spacing: 14) {
+            // Care loop: Den, Train, Incubator
+            HStack(spacing: 12) {
+                menuTile(title: "Den", icon: "house.fill", color: DragonPalette.coral) {
+                    gameManager.navigate(to: .den)
+                }
+                menuTile(title: "Train", icon: "figure.run.circle.fill", color: DragonPalette.skyBlue, textColor: DragonPalette.textDark) {
+                    gameManager.navigate(to: .trainingHub)
+                }
+                menuTile(title: "Incubator", icon: "oval.portrait.fill", color: DragonPalette.peach, textColor: DragonPalette.textDark) {
+                    gameManager.navigate(to: .incubator)
+                }
+                menuTile(title: "Today \(gameManager.todayQuestsDone)/\(gameManager.state.daily.quests.count)",
+                         icon: "checklist", color: DragonPalette.buttercup, textColor: DragonPalette.textDark) {
+                    gameManager.navigate(to: .today)
+                }
+            }
+            
             // Main Big Play Button
             Button(action: {
                 HapticsService.shared.medium()
@@ -200,7 +232,7 @@ struct MainMenuView: View {
                         .font(.system(size: 34, weight: .bold))
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Play Games")
+                        Text("Learning Games")
                             .font(.system(size: 24, weight: .heavy, design: .rounded))
                         Text("4 fun dragon adventures!")
                             .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -259,6 +291,15 @@ struct MainMenuView: View {
                 ) {
                     gameManager.navigate(to: .islandBuilder)
                 }
+                
+                menuTile(
+                    title: "Shop",
+                    icon: "cart.circle.fill",
+                    color: DragonPalette.turquoise,
+                    textColor: DragonPalette.textDark
+                ) {
+                    gameManager.navigate(to: .foodInventoryShop)
+                }
             }
         }
     }
@@ -282,6 +323,9 @@ struct MainMenuView: View {
                 Text(title)
                     .font(.system(size: 15, weight: .bold, design: .rounded))
                     .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                    .allowsTightening(true)
             }
             .foregroundColor(textColor)
             .frame(maxWidth: .infinity)

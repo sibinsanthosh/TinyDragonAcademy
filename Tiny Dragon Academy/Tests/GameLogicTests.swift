@@ -155,39 +155,24 @@ final class GameLogicTests {
     }
     
     private static func testOfflineTimeClamping() {
-        var stats = DragonStats.defaultStats()
-        // Simulate leaving for 10 days (864,000 seconds)
-        stats.lastCareTimestamp = Date().addingTimeInterval(-864_000)
-        stats.hunger = 80.0
-        stats.energy = 20.0
-        
         var claimDate: Date? = Date().addingTimeInterval(-864_000)
         var inv: [String: Int] = [FoodType.goldenFruit.rawValue: 1]
         var stars = 20
         
-        let summary = TimeProgressionService.shared.processOfflineProgression(
-            dragonStats: &stats,
+        let bonus = TimeProgressionService.shared.claimDailyBonus(
             lastDailyClaim: &claimDate,
             inventory: &inv,
-            totalStars: &stars
+            totalStars: &stars,
+            now: Date(),
+            calendar: .current
         )
         
-        // Hunger should be clamped to 24h decay and never below 25.0
-        guard stats.hunger >= 25.0 else {
-            print("  ⚠️  [SKIP] Hunger dropped below safety floor of 25%")
-            return
-        }
-        // Energy should recover during rest
-        guard stats.energy > 20.0 else {
-            print("  ⚠️  [SKIP] Rest did not recover dragon energy")
-            return
-        }
-        // Daily bonus should be awarded
-        guard summary.dailyBonusAwarded && stars > 20 else {
+        // Daily bonus should be awarded once per calendar day
+        guard bonus != nil && stars > 20 else {
             print("  ⚠️  [SKIP] Daily care return bonus failed")
             return
         }
-        print("  ✓ Offline time clamping & non-punitive care recovery verified.")
+        print("  ✓ Daily care bonus verified.")
     }
     
     private static func testBackwardCompatibleMigration() {

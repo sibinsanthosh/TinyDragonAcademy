@@ -11,14 +11,17 @@ import Foundation
 final class PersistenceService {
     static let shared = PersistenceService()
     
-    private let fileName = "tiny_dragon_academy_save.json"
+    private let saveURL: URL
     
-    private var saveURL: URL {
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        return paths[0].appendingPathComponent(fileName)
+    /// Defaults to the Documents save file; tests pass a temporary file.
+    init(fileURL: URL? = nil) {
+        if let fileURL {
+            saveURL = fileURL
+        } else {
+            let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+            saveURL = paths[0].appendingPathComponent("tiny_dragon_academy_save.json")
+        }
     }
-    
-    private init() {}
     
     func loadState() -> AppProgressState {
         do {

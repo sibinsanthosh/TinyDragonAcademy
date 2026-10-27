@@ -64,6 +64,11 @@ struct DragonView: View {
             
             // Interactive Mood FX (Zzz bubbles, hearts, sparkles)
             effectsLayer
+            
+            // Rare shiny shimmer
+            if dragon.isShiny {
+                ShinySparkles(size: size)
+            }
         }
         .frame(width: size, height: size)
         .scaleEffect(bounceScale * activeStage.scaleMultiplier * 0.85)
@@ -725,5 +730,32 @@ struct DragonView: View {
         }
         
         onPetted?()
+    }
+}
+
+
+/// Slowly orbiting sparkles for shiny dragons.
+private struct ShinySparkles: View {
+    let size: CGFloat
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            ZStack {
+                ForEach(0..<5, id: \.self) { i in
+                    let angle = t * 0.8 + Double(i) * (.pi * 2 / 5)
+                    Image(systemName: "sparkle")
+                        .font(.system(size: size * (i.isMultiple(of: 2) ? 0.09 : 0.06), weight: .bold))
+                        .foregroundStyle(LinearGradient(colors: [.white, Color(red: 1, green: 0.85, blue: 0.4)],
+                                                        startPoint: .top, endPoint: .bottom))
+                        .shadow(color: .white.opacity(0.9), radius: 3)
+                        .opacity(0.6 + 0.4 * sin(t * 3 + Double(i)))
+                        .offset(x: cos(angle) * size * 0.42, y: sin(angle) * size * 0.36)
+                }
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }

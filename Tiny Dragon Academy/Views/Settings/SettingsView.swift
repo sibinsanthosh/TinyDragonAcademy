@@ -69,6 +69,26 @@ struct SettingsView: View {
                             .tint(DragonPalette.softPurple)
                         }
                         
+                        // Care Reminders Section
+                        settingsCard(title: "Care Mode", icon: "heart.text.square.fill") {
+                            Picker("Care Mode", selection: Binding(
+                                get: { gameManager.state.careMode },
+                                set: { gameManager.setCareMode($0) }
+                            )) {
+                                Text("Gentle — never dies").tag(CareMode.gentle)
+                                Text("Classic — real stakes").tag(CareMode.classic)
+                            }
+                            .pickerStyle(.segmented)
+                        }
+                        
+                        settingsCard(title: "Care Reminders", icon: "bell.badge.fill") {
+                            Toggle("Remind me when dragons need care", isOn: Binding(
+                                get: { gameManager.state.remindersEnabled },
+                                set: { gameManager.setRemindersEnabled($0) }
+                            ))
+                            .tint(DragonPalette.coral)
+                        }
+                        
                         // Accessibility Section
                         settingsCard(title: "Accessibility", icon: "figure.walk.circle.fill") {
                             Toggle("Reduce Motion", isOn: Binding(
