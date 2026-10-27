@@ -46,9 +46,15 @@ extension GameManager {
     private func advanceWorld(to now: Date) -> [String: [LifeEvent]] {
         var report: [String: [LifeEvent]] = [:]
         var expired: [String] = []
+        var illnessDays: Set<String> = []
         for idx in state.dragons.indices where state.dragons[idx].residence == .den {
             let stats = state.dragons[idx].stats
-            let (next, events) = LifeSimulator.advance(stats, from: stats.lastSimulatedAt, to: now, calendar: calendar)
+            let (next, timed) = LifeSimulator.advanceTimed(stats, from: stats.lastSimulatedAt, to: now,
+                                                           calendar: calendar, mode: state.careMode)
+            let events = timed.map(\.event)
+            for item in timed {
+                if case .becameIll = item.event { illnessDays.insert(GameDay.id(for: item.at, calendar: calendar)) }
+            }
             state.dragons[idx].stats = next
             if !events.isEmpty { report[state.dragons[idx].id] = events }
             if events.contains(.spiritExpired) { expired.append(state.dragons[idx].id) }
@@ -66,6 +72,7 @@ extension GameManager {
             if !events.isEmpty { report["incubator", default: []] += events }
         }
         DenRules.ensureActiveInDen(&state)
+        refreshDay(illnessDays: illnessDays)
         return report
     }
 
@@ -204,9 +211,11 @@ extension GameManager {
 
     func warmEgg(slot: Int) {
         guard state.incubatorSlots.indices.contains(slot) else { return }
+        guard state.incubatorSlots[slot].egg != nil else { return }
         EggHatcher.warm(&state.incubatorSlots[slot])
         HapticsService.shared.light()
         save()
+        record(.warmedEgg)
     }
 
     /// Cracks a ready egg. A hatched dragon is placed right away under its species name; `nameHatched` renames it.
@@ -327,6 +336,7 @@ extension GameManager {
 
         AudioService.shared.playStarCollect()
         save()
+        record(.trained(game: game, score: score, dragonId: state.dragons[idx].id))
         rescheduleNotifications()
         return TrainingResult(counted: true, reward: reward, isNewBest: isNewBest, droppedEmber: droppedEmber,
                               earnedEgg: earnedEgg, snacksAdded: snacks, cured: cured)

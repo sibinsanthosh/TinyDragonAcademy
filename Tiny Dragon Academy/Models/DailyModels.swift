@@ -140,3 +140,50 @@ enum PlayerAction: Equatable {
     case wishGranted
     case playedLearningGame
 }
+
+// MARK: - Display text
+
+extension DailyQuest {
+    var title: String {
+        switch kind {
+        case .feed: return "Feed your dragons \(target) times"
+        case .feedFavorite: return "Feed a dragon its favorite treat"
+        case .train: return target == 1 ? "Finish a training session" : "Finish \(target) training sessions"
+        case .score(let game): return "Score \(target) in \(game.rawValue)"
+        case .warmEgg: return "Warm your eggs \(target) times"
+        case .pet: return "Pet your dragons \(target) times"
+        case .grantWish: return "Make a dragon's wish come true"
+        case .learningGame: return "Play a Learning Game"
+        }
+    }
+
+    var iconName: String {
+        switch kind {
+        case .feed, .feedFavorite: return "fork.knife"
+        case .train: return "figure.run"
+        case .score(let game): return game.iconName
+        case .warmEgg: return "flame.fill"
+        case .pet: return "hand.tap.fill"
+        case .grantWish: return "sparkles"
+        case .learningGame: return "puzzlepiece.fill"
+        }
+    }
+}
+
+extension DragonWish {
+    var title: String {
+        switch kind {
+        case .eat(let food): return "I wish I could eat \(food.displayName)!"
+        case .play(let game): return "Can we play \(game.rawValue)?"
+        case .pet: return "Pet me 3 times, please!"
+        }
+    }
+
+    var iconName: String {
+        switch kind {
+        case .eat(let food): return food.icon
+        case .play(let game): return game.iconName
+        case .pet: return "hand.tap.fill"
+        }
+    }
+}

@@ -61,4 +61,115 @@ final class GameManagerDailyTests: XCTestCase {
         }
         XCTAssertEqual(gm.feedActiveDragon(food: .dragonRoast).gainedXP, 28) // 25 × 1.1 = 27.5 → 28
     }
+
+    // MARK: - Day rollover & recording
+
+    func test_newDay_givesFreshQuestsAndWishes_andRollsStreak() {
+        let gm = manager { s in
+            s.daily = DailyState(dayId: "2026-01-04", caredToday: true)
+        }
+        XCTAssertEqual(gm.state.daily.dayId, "2026-01-05")
+        XCTAssertEqual(gm.state.daily.quests.count, 3)
+        XCTAssertNotNil(gm.state.daily.wishes["sparkle"])
+        XCTAssertEqual(gm.state.streak.current, 1)
+    }
+
+    func test_feeding_completesQuest_paysStars_marksCare() {
+        let gm = manager { s in
+            s.daily = DailyState(dayId: "2026-01-05", quests: [DailyQuest(kind: .feed, target: 1)])
+            s.dragons[s.dragons.firstIndex { $0.id == "sparkle" }!].stats.hunger = 40
+            s.foodInventory[FoodType.frostApples.rawValue] = 1
+        }
+        let stars = gm.state.totalStars
+        _ = gm.feedActiveDragon(food: .frostApples)
+        XCTAssertTrue(gm.state.daily.caredToday)
+        XCTAssertTrue(gm.state.daily.quests[0].isComplete)
+        XCTAssertEqual(gm.state.totalStars, stars + DailyRules.questReward + DailyRules.allClearStars)
+        XCTAssertEqual(gm.state.itemCount(.healingHerb), 1, "all-clear pays a Healing Herb")
+        XCTAssertNotNil(gm.toast)
+    }
+
+    func test_wishGranted_appliesRewards() {
+        let gm = manager { s in
+            s.daily = DailyState(dayId: "2026-01-05", quests: [DailyQuest(kind: .pet, target: 99)],
+                                 wishes: ["sparkle": DragonWish(kind: .pet)])
+        }
+        let stars = gm.state.totalStars
+        let xp = gm.activeDragon.stats.experience
+        gm.petActiveDragon(); gm.petActiveDragon(); gm.petActiveDragon()
+        XCTAssertTrue(gm.state.daily.wishes["sparkle"]!.granted)
+        XCTAssertEqual(gm.state.totalStars, stars + DailyRules.wishStars)
+        XCTAssertEqual(gm.activeDragon.stats.experience, xp + DailyRules.wishXP)
+    }
+
+    func test_streakMilestone_rewardApplied() {
+        let gm = manager { s in
+            s.totalStars = 0
+            s.streak = StreakState(current: 2, best: 2)
+            s.daily = DailyState(dayId: "2026-01-04", caredToday: true)
+        }
+        XCTAssertEqual(gm.state.streak.current, 3)
+        XCTAssertEqual(gm.state.totalStars, 15)
+    }
+
+    func test_streakEggMilestone_addsEgg() {
+        let gm = manager { s in
+            s.streak = StreakState(current: 13, best: 13)
+            s.daily = DailyState(dayId: "2026-01-04", caredToday: true)
+        }
+        XCTAssertEqual(gm.state.eggBasket.last?.tier, .uncommon)
+    }
+
+    func test_illnessDuringAbsence_creditedToItsDay() {
+        let gm = manager { s in
+            let i = s.dragons.firstIndex { $0.id == "sparkle" }!
+            s.dragons[i].stats.hunger = 0
+            s.daily = DailyState(dayId: "2026-01-05", caredToday: true)
+        }
+        gm.clock.offset = 86_400 // next day at noon; Hunger Fever struck at 14:00 on the 5th
+        gm.catchUp()
+        XCTAssertEqual(gm.state.streak.recent.last, StreakDay(dayId: "2026-01-05", result: .missed))
+        XCTAssertEqual(gm.state.daily.dayId, "2026-01-06")
+        XCTAssertFalse(gm.state.daily.illnessToday)
+    }
+
+    func test_gentleMode_reachesSimulator() {
+        let gm = manager { s in
+            s.careMode = .gentle
+            let i = s.dragons.firstIndex { $0.id == "sparkle" }!
+            s.dragons[i].stats.hunger = 0
+            s.dragons[i].stats.health = 12
+            s.dragons[i].stats.condition = .ill(.hungerFever)
+        }
+        gm.clock.offset = 2 * 86_400
+        gm.tick()
+        XCTAssertFalse(gm.activeDragon.stats.condition.isSpirit)
+        XCTAssertEqual(gm.activeDragon.stats.health, LifeRules.gentleHealthFloor, accuracy: 0.001)
+    }
+
+    func test_learningGame_countsForQuest() {
+        let gm = manager { s in
+            s.daily = DailyState(dayId: "2026-01-05", quests: [DailyQuest(kind: .learningGame, target: 1), DailyQuest(kind: .pet, target: 9)])
+        }
+        gm.awardStars(3, forGame: .colorGarden)
+        XCTAssertTrue(gm.state.daily.quests[0].isComplete)
+    }
+
+    func test_shortTrainingSession_isNotCare() {
+        let gm = manager { s in s.daily = DailyState(dayId: "2026-01-05") }
+        var rng = FixedRNG(value: .max)
+        _ = gm.finishTraining(.dragonDash, score: 10, duration: 3, completedRound: false, rng: &rng)
+        XCTAssertFalse(gm.state.daily.caredToday)
+        _ = gm.finishTraining(.dragonDash, score: 300, duration: 30, completedRound: false, rng: &rng)
+        XCTAssertTrue(gm.state.daily.caredToday)
+    }
+
+    func test_onboarding_setsCareMode() {
+        let gm = manager { s in s.hasCompletedOnboarding = false }
+        gm.completeOnboarding(starterDragonName: "Pip", careMode: .gentle)
+        XCTAssertEqual(gm.state.careMode, .gentle)
+        XCTAssertEqual(gm.state.daily.quests.count, 3)
+        gm.setCareMode(.classic)
+        XCTAssertEqual(gm.state.careMode, .classic)
+    }
 }

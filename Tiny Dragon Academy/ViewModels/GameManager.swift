@@ -38,6 +38,8 @@ final class GameManager: ObservableObject {
     @Published var dailyBonus: DailyBonus? = nil
     /// Names at the time of each away event (a memorialized dragon's name resets to its species default).
     @Published var awayNames: [String: String] = [:]
+    /// Short celebration message shown as a banner (quests, wishes, streak).
+    @Published var toast: String? = nil
     
     let persistence: PersistenceService
     var clock: GameClock
@@ -176,12 +178,14 @@ final class GameManager: ObservableObject {
         
         AudioService.shared.playStarCollect()
         save()
+        if game != nil { record(.playedLearningGame) }
     }
     
     // MARK: - Onboarding & Dragon Hatching
     
-    func completeOnboarding(starterDragonName: String) {
+    func completeOnboarding(starterDragonName: String, careMode: CareMode = .classic) {
         state.hasCompletedOnboarding = true
+        state.careMode = careMode
         if let idx = state.dragons.firstIndex(where: { $0.id == "sparkle" }) {
             state.dragons[idx].name = starterDragonName
             state.dragons[idx].residence = .den
@@ -189,6 +193,7 @@ final class GameManager: ObservableObject {
             state.dragons[idx].stats.lastSimulatedAt = clock.now()
         }
         state.selectedDragonId = "sparkle"
+        refreshDay()
         save()
         navigate(to: .dragonPlayground)
     }
@@ -209,6 +214,7 @@ final class GameManager: ObservableObject {
             updateAchievementProgress(id: "full_tummy", incrementBy: 1)
         }
         save()
+        record(.petted(dragonId: state.dragons[idx].id))
     }
     
     // MARK: - Interactive Feeding & Growth System
@@ -287,6 +293,7 @@ final class GameManager: ObservableObject {
         updateAchievementProgress(id: "elemental_master", setExact: stats.unlockedPowerIds.count)
         
         save()
+        record(.fed(food: food, isFavorite: isFavorite, dragonId: state.dragons[idx].id))
         rescheduleNotifications()
         return (xpEarned, isFavorite, leveledUp, outcome)
     }
