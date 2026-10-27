@@ -28,24 +28,33 @@ enum LifeSimulator {
         max(from, to.addingTimeInterval(-LifeRules.catchUpCap))
     }
 
-    static func advance(_ stats: DragonStats, from: Date, to: Date, calendar: Calendar) -> (DragonStats, [LifeEvent]) {
-        let (s, timed) = run(stats, from: from, to: to, calendar: calendar)
+    static func advance(_ stats: DragonStats, from: Date, to: Date, calendar: Calendar,
+                        mode: CareMode = .classic) -> (DragonStats, [LifeEvent]) {
+        let (s, timed) = run(stats, from: from, to: to, calendar: calendar, mode: mode)
         return (s, timed.map(\.event))
     }
 
+    /// Like `advance`, but each event carries the time it happened (for crediting it to a game day).
+    static func advanceTimed(_ stats: DragonStats, from: Date, to: Date, calendar: Calendar,
+                             mode: CareMode = .classic) -> (DragonStats, [(event: LifeEvent, at: Date)]) {
+        run(stats, from: from, to: to, calendar: calendar, mode: mode)
+    }
+
     /// Notifiable events the dragon would hit with no player action, each at its first occurrence.
-    static func predict(_ stats: DragonStats, from: Date, horizon: TimeInterval, calendar: Calendar) -> [(event: LifeEvent, at: Date)] {
+    static func predict(_ stats: DragonStats, from: Date, horizon: TimeInterval, calendar: Calendar,
+                        mode: CareMode = .classic) -> [(event: LifeEvent, at: Date)] {
         let notifiable: (LifeEvent) -> Bool = { event in
             switch event {
             case .becameHungry, .starving, .needsTraining, .becameIll, .healthCritical, .died, .spiritLastChance: return true
             default: return false
             }
         }
-        let (_, timed) = run(stats, from: from, to: from.addingTimeInterval(horizon), calendar: calendar)
+        let (_, timed) = run(stats, from: from, to: from.addingTimeInterval(horizon), calendar: calendar, mode: mode)
         return firstOccurrences(timed.filter { notifiable($0.event) })
     }
 
-    private static func run(_ stats: DragonStats, from: Date, to: Date, calendar: Calendar) -> (DragonStats, [(event: LifeEvent, at: Date)]) {
+    private static func run(_ stats: DragonStats, from: Date, to: Date, calendar: Calendar,
+                            mode: CareMode) -> (DragonStats, [(event: LifeEvent, at: Date)]) {
         var s = stats
         var timed: [(event: LifeEvent, at: Date)] = []
         guard to > from else {
@@ -61,7 +70,7 @@ enum LifeSimulator {
         }
         forEachStep(from: start, to: to) { t, dt in
             var events: [LifeEvent] = []
-            step(&s, at: t, dt: dt, calendar: calendar, events: &events)
+            step(&s, at: t, dt: dt, calendar: calendar, mode: mode, events: &events)
             let end = t.addingTimeInterval(dt)
             timed.append(contentsOf: events.map { (event: $0, at: end) })
         }
@@ -91,7 +100,8 @@ enum LifeSimulator {
 
     // MARK: - One step
 
-    private static func step(_ s: inout DragonStats, at t: Date, dt: TimeInterval, calendar: Calendar, events: inout [LifeEvent]) {
+    private static func step(_ s: inout DragonStats, at t: Date, dt: TimeInterval, calendar: Calendar,
+                             mode: CareMode, events: inout [LifeEvent]) {
         let end = t.addingTimeInterval(dt)
         let hours = dt / 3600
 
@@ -154,6 +164,10 @@ enum LifeSimulator {
         if s.fitness < LifeRules.lowFitnessThreshold { drain += LifeRules.lowFitnessDrainPerHour }
         let regen = (!isIll && s.hunger >= LifeRules.healthRegenMinFullness) ? LifeRules.healthRegenPerHour : 0
         s.health = clamp(s.health + (regen - drain) * hours)
+        if mode == .gentle {
+            // Gentle dragons never die: they fall into a deep sleep at the floor until fed
+            s.health = max(s.health, LifeRules.gentleHealthFloor)
+        }
 
         if healthBefore >= LifeRules.healthCriticalThreshold && s.health < LifeRules.healthCriticalThreshold {
             events.append(.healthCritical)

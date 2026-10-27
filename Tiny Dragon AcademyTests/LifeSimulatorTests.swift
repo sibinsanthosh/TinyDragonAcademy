@@ -111,6 +111,21 @@ final class LifeSimulatorTests: XCTestCase {
         XCTAssertLessThan(critical, died)
     }
 
+    func test_gentle_neverDies() {
+        let (s, events) = LifeSimulator.advance(fullStats(), from: TestTime.date(day: 5, hour: 7),
+                                                to: TestTime.date(day: 12, hour: 7), calendar: cal, mode: .gentle)
+        XCTAssertFalse(s.condition.isSpirit)
+        XCTAssertEqual(s.health, LifeRules.gentleHealthFloor, accuracy: 0.001)
+        XCTAssertFalse(events.contains(.died))
+        XCTAssertTrue(events.contains { if case .becameIll = $0 { return true } else { return false } }, "illness still happens")
+    }
+
+    func test_gentle_predictsNoDeath() {
+        let predicted = LifeSimulator.predict(fullStats(), from: TestTime.date(day: 5, hour: 7), horizon: 6 * 86_400,
+                                              calendar: cal, mode: .gentle)
+        XCTAssertFalse(predicted.contains { $0.event == .died })
+    }
+
     func test_spirit_doesNotDecay_andExpiresAfter48h() {
         var start = fullStats()
         start.hunger = 50

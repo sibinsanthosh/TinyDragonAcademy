@@ -94,6 +94,30 @@ final class NotificationPlannerTests: XCTestCase {
         XCTAssertEqual(ids, ["sparkle"])
     }
 
+    func test_gentle_noDeathNotices_andAtMostThreePerDay() {
+        var s = state(hunger: 100, fitness: 100)
+        s.careMode = .gentle
+        var ember = s.dragons.first { $0.id == "ember" }!
+        ember.residence = .den
+        ember.stats.hunger = 35; ember.stats.fitness = 35; ember.stats.health = 100
+        ember.stats.lastSimulatedAt = eight
+        s.dragons[s.dragons.firstIndex { $0.id == "ember" }!] = ember
+        let notes = plan(s)
+        XCTAssertFalse(notes.contains { $0.body.contains("spirit") })
+        let perDay = Dictionary(grouping: notes) { GameDay.id(for: $0.fireDate, calendar: cal) }
+        XCTAssertFalse(perDay.isEmpty)
+        XCTAssertTrue(perDay.values.allSatisfy { $0.count <= 3 })
+    }
+
+    func test_gentleCopy() {
+        XCTAssertEqual(NotificationPlanner.body(for: .becameHungry, name: "Pip", mode: .gentle), "Pip would love a snack 🍓")
+        XCTAssertEqual(NotificationPlanner.body(for: .starving, name: "Pip", mode: .gentle), "Pip is very hungry — time to eat!")
+        XCTAssertEqual(NotificationPlanner.body(for: .needsTraining, name: "Pip", mode: .gentle), "Pip wants to play! 🏃")
+        XCTAssertEqual(NotificationPlanner.body(for: .becameIll(.hungerFever), name: "Pip", mode: .gentle), "Pip isn't feeling well 🤒")
+        XCTAssertEqual(NotificationPlanner.body(for: .healthCritical, name: "Pip", mode: .gentle), "Pip fell into a deep sleep 💤 — food will wake them")
+        XCTAssertEqual(NotificationPlanner.body(for: .becameHungry, name: "Pip"), "Pip is hungry! 🍖")
+    }
+
     func test_remindersDisabled_planIsEmpty() {
         var s = state(hunger: 40)
         s.remindersEnabled = false

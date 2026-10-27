@@ -13,11 +13,14 @@ struct DragonStatus: Equatable {
     let isUrgent: Bool
 
     /// Most urgent first: spirit, illness, asleep, hungry, needs training. Nil when all is well.
-    static func describe(_ stats: DragonStats, now: Date, calendar: Calendar) -> DragonStatus? {
+    static func describe(_ stats: DragonStats, now: Date, calendar: Calendar, mode: CareMode = .classic) -> DragonStatus? {
         if let diedAt = stats.condition.spiritDiedAt {
             let left = max(0, LifeRules.spiritWindow - now.timeIntervalSince(diedAt))
             let label = left >= 3600 ? "\(Int(left / 3600))h" : "\(Int(left / 60))m"
             return DragonStatus(text: "Spirit • \(label) left", icon: "sparkles", isUrgent: true)
+        }
+        if mode == .gentle && stats.health <= LifeRules.gentleHealthFloor + 0.001 {
+            return DragonStatus(text: "Deep sleep — feed me!", icon: "zzz", isUrgent: true)
         }
         if let illness = stats.condition.illness {
             return DragonStatus(text: "Sick: \(illness.displayName)", icon: "thermometer.medium", isUrgent: true)

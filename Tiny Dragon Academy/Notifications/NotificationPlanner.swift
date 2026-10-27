@@ -21,18 +21,23 @@ enum NotificationPlanner {
     static let horizon: TimeInterval = 72 * 3600
     static let collapseWindow: TimeInterval = 30 * 60
     static let minimumSpacing: TimeInterval = 2 * 3600
+    static let gentleDailyLimit = 3
 
     static func plan(state: AppProgressState, now: Date, calendar: Calendar) -> [PlannedNotification] {
         guard state.remindersEnabled else { return [] }
+        let mode = state.careMode
         var result: [PlannedNotification] = []
 
         for dragon in state.denDragons {
-            let predicted = LifeSimulator.predict(dragon.stats, from: now, horizon: horizon, calendar: calendar)
+            var predicted = LifeSimulator.predict(dragon.stats, from: now, horizon: horizon, calendar: calendar, mode: mode)
+            if mode == .gentle {
+                predicted.removeAll { $0.event == .died || $0.event == .spiritLastChance }
+            }
             result += throttle(predicted, calendar: calendar).map { item in
                 PlannedNotification(
                     id: "\(dragon.id).\(key(for: item.event))",
                     title: dragon.name,
-                    body: body(for: item.event, name: dragon.name),
+                    body: body(for: item.event, name: dragon.name, mode: mode),
                     fireDate: item.at,
                     dragonId: dragon.id
                 )
@@ -51,10 +56,30 @@ enum NotificationPlanner {
                 )
             }
         }
-        return result.sorted { $0.fireDate < $1.fireDate }
+        result.sort { $0.fireDate < $1.fireDate }
+        if mode == .gentle {
+            // Gentle players get at most a few nudges per game day
+            var perDay: [String: Int] = [:]
+            result = result.filter { note in
+                let day = GameDay.id(for: note.fireDate, calendar: calendar)
+                perDay[day, default: 0] += 1
+                return perDay[day]! <= gentleDailyLimit
+            }
+        }
+        return result
     }
 
-    static func body(for event: LifeEvent, name: String) -> String {
+    static func body(for event: LifeEvent, name: String, mode: CareMode = .classic) -> String {
+        if mode == .gentle {
+            switch event {
+            case .becameHungry: return "\(name) would love a snack 🍓"
+            case .starving: return "\(name) is very hungry — time to eat!"
+            case .needsTraining: return "\(name) wants to play! 🏃"
+            case .becameIll: return "\(name) isn't feeling well 🤒"
+            case .healthCritical: return "\(name) fell into a deep sleep 💤 — food will wake them"
+            default: break
+            }
+        }
         switch event {
         case .becameHungry: return "\(name) is hungry! 🍖"
         case .starving: return "\(name) is starving — feed them soon!"
