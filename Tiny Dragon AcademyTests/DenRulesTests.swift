@@ -99,6 +99,28 @@ final class DenRulesTests: XCTestCase {
         XCTAssertEqual(egg.tier, .rare)
     }
 
+    func test_expireSpirit_keepsShinyInMemorial_resetsSpecies() throws {
+        var s = state(["sparkle": .den, "nova": .den])
+        let i = index("nova", s)
+        s.dragons[i].isShiny = true
+        s.dragons[i].primaryColorHex = "#000000"
+        s.dragons[i].stats.condition = .spirit(diedAt: now)
+        DenRules.expireSpirit("nova", state: &s, now: now)
+        XCTAssertTrue(try XCTUnwrap(s.hallOfLegends.last).isShiny)
+        XCTAssertFalse(s.dragons[i].isShiny)
+        XCTAssertEqual(s.dragons[i].primaryColorHex, DragonModel.defaultDragons().first { $0.id == "nova" }!.primaryColorHex)
+    }
+
+    func test_placeHatched_resetsColorsAndShiny() {
+        var s = state(["sparkle": .den, "ember": .legend])
+        let i = index("ember", s)
+        s.dragons[i].isShiny = true
+        s.dragons[i].primaryColorHex = "#123456"
+        DenRules.placeHatched("ember", name: "Blaze", state: &s, now: now)
+        XCTAssertFalse(s.dragons[i].isShiny)
+        XCTAssertEqual(s.dragons[i].primaryColorHex, DragonModel.defaultDragons().first { $0.id == "ember" }!.primaryColorHex)
+    }
+
     func test_expireSpirit_starterGetsCommonFixedEgg() throws {
         var s = state(["sparkle": .den])
         s.dragons[index("sparkle", s)].stats.condition = .spirit(diedAt: now)

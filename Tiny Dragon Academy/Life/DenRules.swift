@@ -42,6 +42,7 @@ enum DenRules {
         stats.lastSimulatedAt = now
         state.dragons[idx].stats = stats
         state.dragons[idx].name = name
+        resetLook(of: idx, state: &state)
         state.dragons[idx].residence = state.denDragons.count < state.denCapacity ? .den : .sanctuary
         ensureActiveInDen(&state)
     }
@@ -58,7 +59,8 @@ enum DenRules {
             stage: dragon.stats.growthStage,
             level: dragon.stats.level,
             bornAt: dragon.stats.bornAt,
-            diedAt: dragon.stats.condition.spiritDiedAt ?? now
+            diedAt: dragon.stats.condition.spiritDiedAt ?? now,
+            isShiny: dragon.isShiny
         ))
         state.eggBasket.append(Egg(tier: EggTier.tier(forSpecies: id) ?? .common, fixedSpeciesId: id))
 
@@ -66,7 +68,17 @@ enum DenRules {
         state.dragons[idx].residence = .legend
         state.dragons[idx].name = defaults?.name ?? dragon.name
         state.dragons[idx].stats = DragonStats.defaultStats(for: dragon.element)
+        resetLook(of: idx, state: &state)
         ensureActiveInDen(&state)
+    }
+
+    /// A species starts each new life with its default colors and no shine.
+    private static func resetLook(of idx: Int, state: inout AppProgressState) {
+        state.dragons[idx].isShiny = false
+        guard let defaults = DragonModel.defaultDragons().first(where: { $0.id == state.dragons[idx].id }) else { return }
+        state.dragons[idx].primaryColorHex = defaults.primaryColorHex
+        state.dragons[idx].secondaryColorHex = defaults.secondaryColorHex
+        state.dragons[idx].bellyColorHex = defaults.bellyColorHex
     }
 
     /// The active dragon must live in the den; with an empty den the selection is left as is.

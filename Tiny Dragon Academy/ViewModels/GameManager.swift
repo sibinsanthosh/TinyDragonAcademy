@@ -243,7 +243,8 @@ final class GameManager: ObservableObject {
         // Multiplier for favorite foods; illness halves XP
         let multiplier = isFavorite ? 2 : 1
         let baseEarned = food.baseXP * multiplier
-        let xpEarned = stats.condition.illness != nil ? baseEarned / 2 : baseEarned
+        let illnessAdjusted = stats.condition.illness != nil ? baseEarned / 2 : baseEarned
+        let xpEarned = GameManager.shinyBoosted(illnessAdjusted, isShiny: state.dragons[idx].isShiny)
         
         stats.totalFeedings += 1
         stats.lastFeedingTimestamp = clock.now()

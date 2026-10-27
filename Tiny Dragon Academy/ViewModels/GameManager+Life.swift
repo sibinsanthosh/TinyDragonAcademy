@@ -133,6 +133,12 @@ extension GameManager {
         rescheduleNotifications()
     }
 
+    static let shinyXPMultiplier = 1.1
+
+    static func shinyBoosted(_ xp: Int, isShiny: Bool) -> Int {
+        isShiny ? Int((Double(xp) * shinyXPMultiplier).rounded()) : xp
+    }
+
     static func eggTier(forReaching stage: GrowthStage) -> EggTier? {
         switch stage {
         case .baby: return nil
@@ -205,10 +211,14 @@ extension GameManager {
 
     /// Cracks a ready egg. A hatched dragon is placed right away under its species name; `nameHatched` renames it.
     func crackEgg(slot: Int) -> HatchOutcome? {
+        var rng = SystemRandomNumberGenerator()
+        return crackEgg(slot: slot, rng: &rng)
+    }
+
+    func crackEgg(slot: Int, rng: inout some RandomNumberGenerator) -> HatchOutcome? {
         guard state.incubatorSlots.indices.contains(slot),
               state.incubatorSlots[slot].isReady,
               let egg = state.incubatorSlots[slot].egg else { return nil }
-        var rng = SystemRandomNumberGenerator()
         let outcome = EggHatcher.roll(egg, dragons: state.dragons, rng: &rng)
         let now = clock.now()
         state.incubatorSlots[slot] = IncubatorSlot(lastSimulatedAt: now)
@@ -216,6 +226,13 @@ extension GameManager {
         case .dragon(let id):
             let defaultName = DragonModel.defaultDragons().first { $0.id == id }?.name ?? id.capitalized
             DenRules.placeHatched(id, name: defaultName, state: &state, now: now)
+            if EggHatcher.rollShiny(rng: &rng), let idx = state.dragons.firstIndex(where: { $0.id == id }) {
+                let colors = ShinyPalette.colors(for: state.dragons[idx].element)
+                state.dragons[idx].isShiny = true
+                state.dragons[idx].primaryColorHex = colors.primary
+                state.dragons[idx].secondaryColorHex = colors.secondary
+                state.dragons[idx].bellyColorHex = colors.belly
+            }
             if state.denDragons.count == 1 { state.selectedDragonId = id }
             AudioService.shared.playVictoryFanfare()
         case .stars(let stars):
@@ -295,7 +312,7 @@ extension GameManager {
         let isIll = state.dragons[idx].stats.condition.illness != nil
         let reward = CareActions.trainingReward(normalizedScore: TrainingSessionRules.normalizedScore(game, score: score), isIll: isIll)
         let cured = CareActions.applyCountedSession(&state.dragons[idx].stats, reward: reward)
-        state.dragons[idx].stats.experience += reward.xp
+        state.dragons[idx].stats.experience += GameManager.shinyBoosted(reward.xp, isShiny: state.dragons[idx].isShiny)
         state.dragons[idx].stats.level = calculateLevel(for: state.dragons[idx].stats.experience)
         state.totalStars += reward.stars
 

@@ -14,6 +14,12 @@ enum HatchOutcome: Equatable {
 
 enum EggHatcher {
     static let warmthPerTap = 10.0
+    static let shinyChance = 0.05
+
+    /// One in twenty hatches is shiny.
+    static func rollShiny(rng: inout some RandomNumberGenerator) -> Bool {
+        Double.random(in: 0..<1, using: &rng) < shinyChance
+    }
 
     static func warm(_ slot: inout IncubatorSlot) {
         guard slot.egg != nil else { return }

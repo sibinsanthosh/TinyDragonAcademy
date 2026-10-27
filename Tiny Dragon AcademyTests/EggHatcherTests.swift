@@ -96,6 +96,21 @@ final class EggHatcherTests: XCTestCase {
         XCTAssertEqual(EggHatcher.roll(Egg(tier: .common), dragons: roster, rng: &rng), .stars(12))
     }
 
+    func test_rollShiny_oneInTwenty() {
+        var lucky = FixedRNG(value: 0)
+        XCTAssertTrue(EggHatcher.rollShiny(rng: &lucky))
+        var unlucky = FixedRNG(value: .max)
+        XCTAssertFalse(EggHatcher.rollShiny(rng: &unlucky))
+        XCTAssertEqual(EggHatcher.shinyChance, 0.05)
+    }
+
+    func test_shinyPalette_coversEveryElement() {
+        for element in DragonElement.allCases {
+            let colors = ShinyPalette.colors(for: element)
+            XCTAssertTrue([colors.primary, colors.secondary, colors.belly].allSatisfy { $0.hasPrefix("#") && $0.count == 7 }, "\(element)")
+        }
+    }
+
     func test_seededRNG_isDeterministic() {
         var a = SeededRNG(seed: 42)
         var b = SeededRNG(seed: 42)
