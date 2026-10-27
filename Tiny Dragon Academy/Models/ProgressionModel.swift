@@ -243,8 +243,9 @@ struct AppProgressState: Codable, Equatable {
         remindersEnabled = try container.decodeIfPresent(Bool.self, forKey: .remindersEnabled) ?? true
         hasSeenReminderPrimer = try container.decodeIfPresent(Bool.self, forKey: .hasSeenReminderPrimer) ?? false
         careMode = try container.decodeIfPresent(CareMode.self, forKey: .careMode) ?? .classic
-        daily = try container.decodeIfPresent(DailyState.self, forKey: .daily) ?? DailyState()
-        streak = try container.decodeIfPresent(StreakState.self, forKey: .streak) ?? StreakState()
+        // Daily state is disposable: a field we can no longer read must not cost the whole save
+        daily = (try? container.decodeIfPresent(DailyState.self, forKey: .daily)) ?? DailyState()
+        streak = (try? container.decodeIfPresent(StreakState.self, forKey: .streak)) ?? StreakState()
         
         if isLegacySave {
             AppProgressState.migrateLegacy(&self, now: Date())

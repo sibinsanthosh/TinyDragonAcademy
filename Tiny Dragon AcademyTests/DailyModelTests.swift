@@ -16,6 +16,26 @@ final class DailyModelTests: XCTestCase {
         XCTAssertEqual(GameDay.id(for: TestTime.date(day: 5, hour: 23), calendar: cal), "2026-01-05")
     }
 
+    func test_gameDay_followsWallClockOnDSTDays() {
+        var ny = Calendar(identifier: .gregorian)
+        ny.timeZone = TimeZone(identifier: "America/New_York")!
+        func local(_ d: Int, _ h: Int, _ m: Int) -> Date { ny.date(from: DateComponents(year: 2026, month: 3, day: d, hour: h, minute: m))! }
+        XCTAssertEqual(GameDay.id(for: local(8, 7, 30), calendar: ny), "2026-03-08", "spring-forward morning")
+        XCTAssertEqual(GameDay.id(for: local(8, 6, 59), calendar: ny), "2026-03-07")
+        XCTAssertEqual(GameDay.id(for: local(9, 7, 0), calendar: ny), "2026-03-09")
+    }
+
+    func test_malformedDaily_fallsBackInsteadOfLosingTheSave() throws {
+        var root = try XCTUnwrap(try JSONSerialization.jsonObject(with: JSONEncoder().encode(AppProgressState.initial())) as? [String: Any])
+        root["totalStars"] = 77
+        root["daily"] = ["dayId": "2026-01-05", "quests": [["kind": ["score": ["_0": "Retired Game"]], "target": 5]]]
+        root["streak"] = ["current": "oops"]
+        let state = try JSONDecoder().decode(AppProgressState.self, from: JSONSerialization.data(withJSONObject: root))
+        XCTAssertEqual(state.totalStars, 77)
+        XCTAssertEqual(state.daily, DailyState())
+        XCTAssertEqual(state.streak, StreakState())
+    }
+
     func test_daysBetween_acrossMonthEnd() {
         XCTAssertEqual(GameDay.daysBetween("2026-01-30", "2026-02-02", calendar: cal), 3)
         XCTAssertEqual(GameDay.daysBetween("2026-01-05", "2026-01-05", calendar: cal), 0)

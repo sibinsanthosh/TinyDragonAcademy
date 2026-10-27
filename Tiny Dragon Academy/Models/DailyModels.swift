@@ -25,9 +25,11 @@ enum CareMode: String, Codable, CaseIterable {
 
 enum GameDay {
     /// The game day starts at wake-up (07:00), so late-night play still counts for "today".
+    /// Uses wall-clock hours, like quiet hours, so DST days still start at 07:00.
     static func id(for date: Date, calendar: Calendar) -> String {
-        let shifted = date.addingTimeInterval(-Double(LifeRules.wakeHour) * 3600)
-        let c = calendar.dateComponents([.year, .month, .day], from: shifted)
+        let hour = calendar.component(.hour, from: date)
+        let day = hour < LifeRules.wakeHour ? (calendar.date(byAdding: .day, value: -1, to: date) ?? date) : date
+        let c = calendar.dateComponents([.year, .month, .day], from: day)
         return String(format: "%04d-%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
     }
 
@@ -108,6 +110,8 @@ struct DailyState: Codable, Equatable {
     var caredToday: Bool = false
     var illnessToday: Bool = false
     var allClearRewarded: Bool = false
+    /// Gentle mode: reminder times planned for this game day (past ones were delivered).
+    var reminderDates: [Date] = []
 }
 
 enum StreakDayResult: String, Codable {

@@ -25,7 +25,8 @@ struct TrainingReward: Equatable {
 
 enum CareActions {
 
-    static func feed(_ stats: inout DragonStats, food: FoodType, isFavorite: Bool, now: Date, calendar: Calendar) -> FeedOutcome {
+    static func feed(_ stats: inout DragonStats, food: FoodType, isFavorite: Bool, now: Date, calendar: Calendar,
+                     mode: CareMode = .classic) -> FeedOutcome {
         if stats.condition.isSpirit { return .refusedSpirit }
         if LifeSimulator.isAsleep(stats, at: now, calendar: calendar) { return .refusedAsleep }
 
@@ -39,6 +40,11 @@ enum CareActions {
         stats.hunger = min(100, stats.hunger + food.hungerRestored)
         stats.happiness = min(100, stats.happiness + food.happinessRestored * multiplier)
         stats.energy = min(100, stats.energy + food.energyRestored)
+        // In Gentle mode a good meal is the cure for Hunger Fever
+        if mode == .gentle && stats.condition == .ill(.hungerFever) {
+            stats.condition = .healthy
+            resetIllnessTimers(&stats)
+        }
         return .fed
     }
 

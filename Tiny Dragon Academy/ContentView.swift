@@ -98,8 +98,18 @@ struct ContentView: View {
                     .transition(.opacity)
             }
         }
+        .overlay {
+            if gameManager.currentRoute != .onboarding {
+                if gameManager.shouldShowReminderPrimer {
+                    ReminderPrimerView()
+                } else if AwayReportSheet.hasContent(gameManager) {
+                    AwayReportSheet()
+                }
+            }
+        }
+        // Celebrations sit above every sheet and play one after another
         .overlay(alignment: .top) {
-            if let toast = gameManager.toast {
+            if let toast = gameManager.toasts.first {
                 Text(toast)
                     .font(.system(size: 15, weight: .heavy, design: .rounded))
                     .foregroundColor(DragonPalette.textDark)
@@ -110,24 +120,15 @@ struct ContentView: View {
                     .padding(.top, 8)
                     .padding(.horizontal, 20)
                     .transition(.move(edge: .top).combined(with: .opacity))
-                    .id(toast)
-                    .task(id: toast) {
+                    .id(toast + "\(gameManager.toasts.count)")
+                    .task(id: toast + "\(gameManager.toasts.count)") {
                         try? await Task.sleep(nanoseconds: 2_600_000_000)
-                        withAnimation { if gameManager.toast == toast { gameManager.toast = nil } }
+                        withAnimation { if gameManager.toasts.first == toast { gameManager.toasts.removeFirst() } }
                     }
-                    .onTapGesture { withAnimation { gameManager.toast = nil } }
+                    .onTapGesture { withAnimation { if !gameManager.toasts.isEmpty { gameManager.toasts.removeFirst() } } }
             }
         }
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: gameManager.toast)
-        .overlay {
-            if gameManager.currentRoute != .onboarding {
-                if gameManager.shouldShowReminderPrimer {
-                    ReminderPrimerView()
-                } else if AwayReportSheet.hasContent(gameManager) {
-                    AwayReportSheet()
-                }
-            }
-        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: gameManager.toasts)
         .onReceive(lifeTicker) { _ in
             guard gameManager.state.hasCompletedOnboarding else { return }
             gameManager.tick()

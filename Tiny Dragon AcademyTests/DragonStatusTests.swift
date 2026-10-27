@@ -43,6 +43,12 @@ final class DragonStatusTests: XCTestCase {
         XCTAssertEqual(DragonStatus.describe(s, now: noon, calendar: TestTime.utc, mode: .classic)?.text, "Sick: Hunger Fever")
     }
 
+    func test_gentleSluggishAtFloor_asksToPlay() {
+        var s = DragonStats()
+        s.health = LifeRules.gentleHealthFloor; s.hunger = 80; s.condition = .ill(.sluggishScales)
+        XCTAssertEqual(DragonStatus.describe(s, now: noon, calendar: TestTime.utc, mode: .gentle)?.text, "Deep sleep — play a game with me!")
+    }
+
     func test_asleep() {
         XCTAssertEqual(status({ _ in }, at: TestTime.date(day: 5, hour: 23))?.text, "Asleep")
     }

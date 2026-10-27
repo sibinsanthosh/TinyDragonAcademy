@@ -49,7 +49,19 @@ struct AwayReportSheet: View {
                             }
                         }
                     }
-                    if let bonus = gameManager.dailyBonus {
+                    if !gameManager.awayStreakNotes.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("🔥 Care streak")
+                        .font(.system(size: 16, weight: .heavy, design: .rounded))
+                        .foregroundColor(DragonPalette.textDark)
+                    ForEach(gameManager.awayStreakNotes, id: \.self) { note in
+                        Text("• \(note)")
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundColor(DragonPalette.textMuted)
+                    }
+                }
+            }
+            if let bonus = gameManager.dailyBonus {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("✨ Daily care bonus")
                                 .font(.system(size: 16, weight: .heavy, design: .rounded))
@@ -92,7 +104,7 @@ struct AwayReportSheet: View {
 extension AwayReportSheet {
     /// Only worth interrupting the player when something reportable happened.
     static func hasContent(_ gameManager: GameManager) -> Bool {
-        if gameManager.dailyBonus != nil { return true }
+        if gameManager.dailyBonus != nil || !gameManager.awayStreakNotes.isEmpty { return true }
         return gameManager.awayReport.values.contains { events in
             events.contains { $0 != .fellAsleep && $0 != .wokeUp }
         }

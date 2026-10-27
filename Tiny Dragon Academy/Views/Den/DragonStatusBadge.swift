@@ -20,7 +20,9 @@ struct DragonStatus: Equatable {
             return DragonStatus(text: "Spirit • \(label) left", icon: "sparkles", isUrgent: true)
         }
         if mode == .gentle && stats.health <= LifeRules.gentleHealthFloor + 0.001 {
-            return DragonStatus(text: "Deep sleep — feed me!", icon: "zzz", isUrgent: true)
+            // Say what actually wakes them: training for Sluggish Scales, food otherwise
+            let text = stats.condition.illness == .sluggishScales ? "Deep sleep — play a game with me!" : "Deep sleep — feed me!"
+            return DragonStatus(text: text, icon: "zzz", isUrgent: true)
         }
         if let illness = stats.condition.illness {
             return DragonStatus(text: "Sick: \(illness.displayName)", icon: "thermometer.medium", isUrgent: true)

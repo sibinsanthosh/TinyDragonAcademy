@@ -109,6 +109,15 @@ final class NotificationPlannerTests: XCTestCase {
         XCTAssertTrue(perDay.values.allSatisfy { $0.count <= 3 })
     }
 
+    func test_gentleCap_countsRemindersAlreadyDeliveredToday() {
+        var s = state(hunger: 35, fitness: 35)
+        s.careMode = .gentle
+        s.daily = DailyState(dayId: "2026-01-05")
+        s.daily.reminderDates = [TestTime.date(day: 5, hour: 7, minute: 10), TestTime.date(day: 5, hour: 7, minute: 40)]
+        let today = plan(s).filter { GameDay.id(for: $0.fireDate, calendar: cal) == "2026-01-05" }
+        XCTAssertLessThanOrEqual(today.count, 1)
+    }
+
     func test_gentleCopy() {
         XCTAssertEqual(NotificationPlanner.body(for: .becameHungry, name: "Pip", mode: .gentle), "Pip would love a snack 🍓")
         XCTAssertEqual(NotificationPlanner.body(for: .starving, name: "Pip", mode: .gentle), "Pip is very hungry — time to eat!")

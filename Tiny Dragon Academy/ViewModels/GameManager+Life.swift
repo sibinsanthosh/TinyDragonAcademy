@@ -77,7 +77,15 @@ extension GameManager {
     }
 
     func rescheduleNotifications() {
-        let plan = NotificationPlanner.plan(state: state, now: clock.now(), calendar: calendar)
+        let now = clock.now()
+        let plan = NotificationPlanner.plan(state: state, now: now, calendar: calendar)
+        if state.careMode == .gentle {
+            // Remember today's reminders so the daily cap holds across reschedules
+            let today = state.daily.dayId
+            let delivered = state.daily.reminderDates.filter { $0 <= now }
+            let upcoming = plan.map(\.fireDate).filter { GameDay.id(for: $0, calendar: calendar) == today }
+            state.daily.reminderDates = delivered + upcoming
+        }
         // Under a debug time scale, game-time dates must be converted back to real time.
         let realPlan = plan.map {
             PlannedNotification(id: $0.id, title: $0.title, body: $0.body,
@@ -372,6 +380,7 @@ extension GameManager {
     func dismissAwayReport() {
         awayReport = [:]
         awayNames = [:]
+        awayStreakNotes = []
         dailyBonus = nil
     }
 }

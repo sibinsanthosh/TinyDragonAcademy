@@ -56,6 +56,18 @@ final class CareActionsTests: XCTestCase {
         XCTAssertEqual(s.hunger, 50)
     }
 
+    func test_gentleFeeding_curesHungerFever() {
+        var s = stats(hunger: 0)
+        s.condition = .ill(.hungerFever)
+        s.fullnessZeroMinutes = 300
+        XCTAssertEqual(CareActions.feed(&s, food: .frostApples, isFavorite: false, now: noon, calendar: cal, mode: .gentle), .fed)
+        XCTAssertEqual(s.condition, .healthy)
+        var classic = stats(hunger: 0)
+        classic.condition = .ill(.hungerFever)
+        _ = CareActions.feed(&classic, food: .frostApples, isFavorite: false, now: noon, calendar: cal)
+        XCTAssertEqual(classic.condition, .ill(.hungerFever), "Classic still needs a Healing Herb")
+    }
+
     func test_herb_curesIllness_onlyWhenIll() {
         var s = stats()
         XCTAssertFalse(CareActions.useHealingHerb(&s))

@@ -58,8 +58,10 @@ enum NotificationPlanner {
         }
         result.sort { $0.fireDate < $1.fireDate }
         if mode == .gentle {
-            // Gentle players get at most a few nudges per game day
-            var perDay: [String: Int] = [:]
+            // Gentle players get at most a few nudges per game day, counting ones already delivered today
+            let today = GameDay.id(for: now, calendar: calendar)
+            let deliveredToday = state.daily.dayId == today ? state.daily.reminderDates.filter { $0 <= now }.count : 0
+            var perDay: [String: Int] = [today: deliveredToday]
             result = result.filter { note in
                 let day = GameDay.id(for: note.fireDate, calendar: calendar)
                 perDay[day, default: 0] += 1

@@ -39,8 +39,10 @@ final class GameManager: ObservableObject {
     @Published var dailyBonus: DailyBonus? = nil
     /// Names at the time of each away event (a memorialized dragon's name resets to its species default).
     @Published var awayNames: [String: String] = [:]
-    /// Short celebration message shown as a banner (quests, wishes, streak).
-    @Published var toast: String? = nil
+    /// Celebration banners (quests, wishes, streak), shown one after another.
+    @Published var toasts: [String] = []
+    /// Streak changes that happened at day rollover, for the away report.
+    @Published var awayStreakNotes: [String] = []
     
     let persistence: PersistenceService
     var clock: GameClock
@@ -230,7 +232,8 @@ final class GameManager: ObservableObject {
         var stats = state.dragons[idx].stats
         let isFavorite = (food == state.dragons[idx].favoriteFoodType)
         
-        let outcome = CareActions.feed(&stats, food: food, isFavorite: isFavorite, now: clock.now(), calendar: calendar)
+        let outcome = CareActions.feed(&stats, food: food, isFavorite: isFavorite, now: clock.now(), calendar: calendar,
+                                       mode: state.careMode)
         switch outcome {
         case .refusedAsleep, .refusedSpirit, .refusedNotInDen:
             return (0, isFavorite, false, outcome)
