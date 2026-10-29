@@ -13,6 +13,8 @@ struct TalentHUD: View {
     let game: TrainingGameType
     /// The game state's trigger counter; each change shows the pop.
     let triggers: Int
+    /// Games that need the bottom of the field (Catch the Snacks) put the badge up top.
+    var badgeAtTop = false
 
     @State private var popToken = 0
     @State private var showPop = false
@@ -20,10 +22,11 @@ struct TalentHUD: View {
     var body: some View {
         if let talent, talent.game == game {
             VStack {
+                if badgeAtTop { badge(talent) }
                 if showPop {
                     Text("✨ \(talent.title)!")
                         .font(.system(size: 24, weight: .heavy, design: .rounded))
-                        .foregroundColor(.white)
+                        .foregroundColor(DragonPalette.textDark)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(Capsule().fill(game.themeColor))
@@ -31,18 +34,22 @@ struct TalentHUD: View {
                         .transition(.scale.combined(with: .opacity))
                 }
                 Spacer()
-                Label(talent.title, systemImage: "sparkles")
-                    .font(.system(size: 13, weight: .heavy, design: .rounded))
-                    .foregroundColor(DragonPalette.textDark)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Capsule().fill(Color.white.opacity(0.85)))
+                if !badgeAtTop { badge(talent) }
             }
             .padding(.top, 48)
             .padding(.bottom, 10)
             .allowsHitTesting(false)
             .onChange(of: triggers) { _, _ in pop() }
         }
+    }
+
+    private func badge(_ talent: DragonTalent) -> some View {
+        Label(talent.title, systemImage: "sparkles")
+            .font(.system(size: 13, weight: .heavy, design: .rounded))
+            .foregroundColor(DragonPalette.textDark)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Capsule().fill(Color.white.opacity(0.85)))
     }
 
     private func pop() {

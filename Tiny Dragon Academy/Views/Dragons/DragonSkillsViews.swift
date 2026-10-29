@@ -29,21 +29,25 @@ struct DragonSkillsStrip: View {
                     HStack(spacing: 10) {
                         ForEach(pair) { skill in
                             HStack(spacing: 3) {
-                                Image(systemName: skill.iconName)
-                                Text("\(dragon.skillStars(skill))★")
+                                Image(systemName: skill.iconName).foregroundColor(skill.game.themeColor)
+                                Text("\(dragon.skillStars(skill))★").foregroundColor(DragonPalette.textDark)
                             }
-                            .foregroundColor(skill.game.themeColor)
                             .fixedSize()
                         }
                     }
                 }
                 .font(.system(size: 11, weight: .heavy, design: .rounded))
-                if let talent = dragon.talent {
-                    Label(talent.title, systemImage: "sparkles")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                        .foregroundColor(DragonPalette.textMuted)
+                HStack(spacing: 4) {
+                    if let talent = dragon.talent {
+                        Label(talent.title, systemImage: "sparkles")
+                    }
+                    Image(systemName: "info.circle.fill").foregroundColor(DragonPalette.softPurple)
                 }
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundColor(DragonPalette.textMuted)
             }
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(dragon.name)'s skills")
@@ -107,7 +111,7 @@ struct DragonSkillsSheet: View {
                 Spacer()
                 Text(SkillStars.text(progress.stars))
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(skill.game.themeColor)
+                    .foregroundColor(DragonPalette.starGold)
             }
             if let needed = progress.needed {
                 ProgressView(value: Double(progress.into), total: Double(needed))

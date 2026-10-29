@@ -19,6 +19,8 @@ enum DragonPalette {
     static let softPurple = Color(red: 0.72, green: 0.62, blue: 0.92)
     static let coral = Color(red: 0.98, green: 0.62, blue: 0.60)
     static let turquoise = Color(red: 0.52, green: 0.86, blue: 0.84)
+    /// Deeper gold for star ratings, readable on white cards.
+    static let starGold = Color(red: 0.92, green: 0.60, blue: 0.08)
     
     // Background Gradients
     static let skyGradient = LinearGradient(

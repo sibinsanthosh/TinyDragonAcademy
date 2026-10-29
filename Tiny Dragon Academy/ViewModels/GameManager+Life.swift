@@ -315,8 +315,11 @@ extension GameManager {
         let idx = activeDragonIndex
         // Talent bonuses (Sweet Tooth, Sunrise Sprint) show in the score and best, not in rewards or quests
         let rewardScore = baseScore ?? score
+        let baseBest = state.trainingBaseBests[game.rawValue] ?? state.trainingBests[game.rawValue] ?? 0
+        let isNewBaseBest = rewardScore > baseBest
         let isNewBest = score > (state.trainingBests[game.rawValue] ?? 0)
         if isNewBest { state.trainingBests[game.rawValue] = score }
+        if isNewBaseBest { state.trainingBaseBests[game.rawValue] = rewardScore }
 
         let snacks = Array(caughtSnacks.prefix(TrainingSessionRules.maxSnacksPerRound))
         for food in snacks {
@@ -342,7 +345,7 @@ extension GameManager {
         let earnedEgg = state.trainingSessionsCompleted % TrainingSessionRules.sessionsPerEgg == 0
         if earnedEgg { state.eggBasket.append(Egg(tier: .common)) }
 
-        let droppedEmber = isNewBest && Double.random(in: 0..<1, using: &rng) < TrainingSessionRules.emberDropChance
+        let droppedEmber = isNewBaseBest && Double.random(in: 0..<1, using: &rng) < TrainingSessionRules.emberDropChance
         if droppedEmber {
             state.itemInventory[CareItem.phoenixEmber.rawValue] = state.itemCount(.phoenixEmber) + 1
         }

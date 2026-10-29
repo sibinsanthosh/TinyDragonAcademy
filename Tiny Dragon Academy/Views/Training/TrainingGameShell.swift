@@ -138,7 +138,7 @@ struct TrainingGameShell<Content: View>: View {
                 Image(systemName: skill.iconName)
                 Text("\(dragon.name)'s \(skill.title)")
                 Text(SkillStars.text(dragon.skillStars(skill)))
-                    .foregroundColor(game.themeColor)
+                    .foregroundColor(DragonPalette.starGold)
             }
             .font(.system(size: 15, weight: .heavy, design: .rounded))
             .foregroundColor(DragonPalette.textDark)

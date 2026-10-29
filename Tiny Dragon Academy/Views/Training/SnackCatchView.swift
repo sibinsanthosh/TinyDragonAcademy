@@ -54,7 +54,7 @@ private struct SnackCatchPlayView: View {
                     HStack {
                         Label("\(Int(state.timeRemaining.rounded(.up)))s", systemImage: "timer")
                         Spacer()
-                        Text("Caught \(state.score)")
+                        Text(state.style.has(.sweetTooth) ? "Caught \(state.baseScore) • \(state.score) pts" : "Caught \(state.baseScore)")
                         Spacer()
                         Text(String(repeating: "❤️", count: state.lives))
                     }
@@ -66,7 +66,7 @@ private struct SnackCatchPlayView: View {
                 }
                 .frame(width: w, height: h)
                 .overlay {
-                    TalentHUD(talent: state.style.talent, game: .snackCatch, triggers: state.talentTriggers)
+                    TalentHUD(talent: state.style.talent, game: .snackCatch, triggers: state.talentTriggers, badgeAtTop: true)
                         .frame(maxWidth: .infinity)
                 }
                 .clipped()

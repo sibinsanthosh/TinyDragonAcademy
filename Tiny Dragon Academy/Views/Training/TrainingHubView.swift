@@ -67,7 +67,7 @@ struct TrainingHubView: View {
         let dragon = gameManager.activeDragon
         let skill = DragonSkill.forGame(game)
         let sparkle = dragon.talent?.game == game ? " ✨" : ""
-        return "\(best) • \(skill.title) \(String(repeating: "★", count: dragon.skillStars(skill)))\(sparkle)"
+        return "\(best) • \(skill.title) \(SkillStars.text(dragon.skillStars(skill)))\(sparkle)"
     }
 
     private func gameCard(_ game: TrainingGameType) -> some View {

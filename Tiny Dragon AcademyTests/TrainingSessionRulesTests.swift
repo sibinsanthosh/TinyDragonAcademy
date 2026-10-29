@@ -189,4 +189,22 @@ final class TrainingSessionRulesTests: XCTestCase {
         XCTAssertEqual(gm.state.daily.quests[0].progress, 8, "Sweet Tooth's bonus doesn't finish the quest")
         XCTAssertEqual(result.skillGain?.points, SkillRules.points(forNormalizedScore: TrainingSessionRules.normalizedScore(.snackCatch, score: 8)))
     }
+
+    func test_emberRoll_usesTheTalentFreeBest() {
+        let game = TrainingGameType.snackCatch.rawValue
+        let gm = manager { s in
+            s.trainingBests[game] = 40      // set by a Sweet Tooth dragon
+            s.trainingBaseBests[game] = 20
+        }
+        var lucky = FixedRNG(value: 0)
+        let fair = gm.finishTraining(.snackCatch, score: 22, duration: 60, completedRound: true, rng: &lucky)
+        XCTAssertFalse(fair.isNewBest, "the shown best is still 40")
+        XCTAssertTrue(fair.droppedEmber, "22 real catches beat the real best of 20")
+        XCTAssertEqual(gm.state.trainingBaseBests[game], 22)
+
+        var lucky2 = FixedRNG(value: 0)
+        let inflated = gm.finishTraining(.snackCatch, score: 44, baseScore: 22, duration: 60, completedRound: true, rng: &lucky2)
+        XCTAssertTrue(inflated.isNewBest)
+        XCTAssertFalse(inflated.droppedEmber, "a doubled score doesn't earn an ember roll")
+    }
 }
