@@ -10,7 +10,8 @@ import SwiftUI
 struct HallOfLegendsView: View {
     var body: some View {
         ZStack {
-            DragonPalette.nightGradient.ignoresSafeArea()
+            ClayBackdrop()
+            Color(red: 0.35, green: 0.28, blue: 0.55).opacity(0.18).ignoresSafeArea()
             VStack(spacing: 12) {
                 ScreenTopBar(title: "Hall of Legends", backTo: .dragonCollection)
                 ScrollView { HallOfLegendsList().padding(.horizontal, 16) }
@@ -25,8 +26,8 @@ struct HallOfLegendsList: View {
     var body: some View {
         VStack(spacing: 12) {
             if gameManager.state.hallOfLegends.isEmpty {
-                Text("No legends yet. Every dragon here is still with you. 💜")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                Label("No legends yet. Every dragon is still with you.", systemImage: "heart.fill")
+                    .font(.clay(15, .semibold))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
                     .padding(.top, 30)
@@ -39,22 +40,22 @@ struct HallOfLegendsList: View {
                     }
                     VStack(alignment: .leading, spacing: 3) {
                         Text(memorial.isShiny ? "\(memorial.name) ★" : memorial.name)
-                            .font(.system(size: 17, weight: .heavy, design: .rounded))
+                            .font(.clay(17, .heavy))
                             .foregroundColor(DragonPalette.textDark)
                         Text("\(memorial.speciesTitle) • \(memorial.stage.rawValue) • Lvl \(memorial.level)")
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .font(.clay(12, .bold))
                             .foregroundColor(DragonPalette.textMuted)
                         Text("\(memorial.bornAt.formatted(date: .abbreviated, time: .omitted)) – \(memorial.diedAt.formatted(date: .abbreviated, time: .omitted))")
-                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .font(.clay(12, .medium))
                             .foregroundColor(DragonPalette.textMuted)
                     }
                     Spacer()
                     Image(systemName: "laurel.leading")
                         .font(.system(size: 22))
-                        .foregroundColor(DragonPalette.buttercup)
+                        .foregroundColor(ClayColor.sunShade)
                 }
                 .padding(12)
-                .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.92)))
+                .claySurface(cornerRadius: 18)
             }
         }
     }

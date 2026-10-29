@@ -43,6 +43,8 @@ private struct SnackCatchPlayView: View {
                 }
             } content: {
                 ZStack(alignment: .topLeading) {
+                    PicnicScene(size: geo.size)
+
                     ForEach(Array(state.items.enumerated()), id: \.offset) { _, item in
                         itemView(item.kind, size: w * 0.11)
                             .position(x: item.x * w, y: (1 - item.y) * h)
@@ -51,18 +53,11 @@ private struct SnackCatchPlayView: View {
                     DragonView(dragon: gameManager.activeDragon, mood: .anticipatingFood, size: w * 0.2, allowInteractivePetting: false)
                         .position(x: state.dragonX * w, y: (1 - SnackCatchGameState.dragonY) * h)
 
-                    HStack {
-                        Label("\(Int(state.timeRemaining.rounded(.up)))s", systemImage: "timer")
-                        Spacer()
-                        Text(state.style.has(.sweetTooth) ? "Caught \(state.baseScore) • \(state.score) pts" : "Caught \(state.baseScore)")
-                        Spacer()
-                        Text(String(repeating: "❤️", count: state.lives))
-                    }
-                    .font(.system(size: 18, weight: .heavy, design: .rounded))
-                    .foregroundColor(DragonPalette.textDark)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-                    .frame(width: w)
+                    ClayGameHUD(seconds: Int(state.timeRemaining.rounded(.up)),
+                                score: state.style.has(.sweetTooth) ? "\(state.baseScore) · \(state.score)pts" : "\(state.baseScore)",
+                                scoreIcon: "basket.fill",
+                                lives: state.lives)
+                        .frame(width: w)
                 }
                 .frame(width: w, height: h)
                 .overlay {
@@ -84,13 +79,9 @@ private struct SnackCatchPlayView: View {
     private func itemView(_ kind: FallingItem.Kind, size: CGFloat) -> some View {
         switch kind {
         case .food(let food):
-            Image(systemName: food.icon)
-                .font(.system(size: size * 0.55, weight: .bold))
-                .foregroundColor(.white)
-                .frame(width: size, height: size)
-                .background(Circle().fill(food.primaryColor))
+            ClayFoodToken(food: food, size: size)
         case .storm:
-            Text("⛈️").font(.system(size: size * 0.9))
+            ClayStormCloud(size: size * 1.1)
         }
     }
 }

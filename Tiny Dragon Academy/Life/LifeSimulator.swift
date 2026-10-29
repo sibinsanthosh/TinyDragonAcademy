@@ -221,7 +221,7 @@ extension LifeSimulator {
             s.warmth = max(0, s.warmth - eggWarmthDecayPerHour * dt / 3600)
             if warmthBefore >= eggWarmThreshold && s.warmth < eggWarmThreshold { timed.append((.eggCold, end)) }
             if s.progress < 1 {
-                s.progress += dt / egg.tier.hatchDuration * speed
+                s.progress += dt / egg.hatchDuration * speed
                 if s.progress >= 1 - 1e-9 {
                     s.progress = 1
                     timed.append((.eggReady, end))

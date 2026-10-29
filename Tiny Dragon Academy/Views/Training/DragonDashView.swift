@@ -43,14 +43,10 @@ private struct DragonDashPlayView: View {
                 }
             } content: {
                 ZStack(alignment: .topLeading) {
-                    Rectangle()
-                        .fill(DragonPalette.mintGreen)
-                        .frame(width: w, height: geo.size.height - groundY)
-                        .offset(y: groundY)
+                    DashScene(size: geo.size, groundY: groundY)
 
                     ForEach(Array(state.obstacles.enumerated()), id: \.offset) { _, obstacle in
-                        Text(emoji(for: obstacle.kind))
-                            .font(.system(size: obstacle.height * w * 1.1))
+                        obstacleView(obstacle, w: w)
                             .position(x: obstacle.x * w, y: groundY - (obstacle.y + obstacle.height / 2) * w)
                     }
 
@@ -59,11 +55,8 @@ private struct DragonDashPlayView: View {
                         .position(x: DashGameState.dragonX * w,
                                   y: groundY - (state.dragonY + DashGameState.dragonHeight / 2) * w)
 
-                    Text("\(state.score)")
-                        .font(.system(size: 32, weight: .heavy, design: .rounded))
-                        .foregroundColor(DragonPalette.textDark)
+                    ClayGameHUD(score: "\(state.score)", scoreIcon: "figure.run")
                         .frame(width: w)
-                        .padding(.top, 12)
                 }
                 .frame(width: w, height: geo.size.height)
                 .overlay {
@@ -83,11 +76,12 @@ private struct DragonDashPlayView: View {
         }
     }
 
-    private func emoji(for kind: DashObstacle.Kind) -> String {
-        switch kind {
-        case .rock: return "🪨"
-        case .cactus: return "🌵"
-        case .bat: return "🦇"
+    @ViewBuilder
+    private func obstacleView(_ obstacle: DashObstacle, w: CGFloat) -> some View {
+        switch obstacle.kind {
+        case .rock: ClayRock(width: obstacle.width * w * 1.2, height: obstacle.height * w * 1.1)
+        case .cactus: ClayCactus(width: obstacle.width * w * 0.8, height: obstacle.height * w * 1.1)
+        case .bat: ClayBat(width: obstacle.width * w * 1.3)
         }
     }
 }

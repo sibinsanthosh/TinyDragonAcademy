@@ -24,28 +24,25 @@ struct DragonCollectionView: View {
 
     var body: some View {
         ZStack {
-            DragonPalette.skyGradient.ignoresSafeArea()
+            ClayBackdrop()
 
             VStack(spacing: 12) {
-                ScreenTopBar(title: "My Dragons")
+                ScreenTopBar(title: "Dragons")
 
-                Picker("Section", selection: $tab) {
-                    ForEach(Tab.allCases, id: \.self) { Text($0.rawValue).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, 16)
+                ClaySegmented(options: Tab.allCases, selection: $tab) { $0.rawValue }
+                    .padding(.horizontal, 16)
 
                 ScrollView {
                     VStack(spacing: 12) {
                         switch tab {
                         case .den:
                             Text("\(gameManager.state.denDragons.count) of \(gameManager.state.denCapacity) den spots used")
-                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .font(.clay(13, .bold))
                                 .foregroundColor(DragonPalette.textMuted)
                             ForEach(dragons(in: .den)) { row($0) }
                         case .sanctuary:
                             Text("Sanctuary dragons are frozen in time — no care needed, no danger.")
-                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .font(.clay(13, .bold))
                                 .foregroundColor(DragonPalette.textMuted)
                                 .multilineTextAlignment(.center)
                             ForEach(dragons(in: .sanctuary)) { row($0) }
@@ -83,10 +80,10 @@ struct DragonCollectionView: View {
                 .frame(width: 70, height: 70)
             VStack(alignment: .leading, spacing: 4) {
                 Text(dragon.badgedName)
-                    .font(.system(size: 17, weight: .heavy, design: .rounded))
+                    .font(.clay(17, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 Text("\(dragon.speciesTitle) • \(dragon.stats.growthStage.rawValue) • Lvl \(dragon.stats.level)")
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .font(.clay(12, .bold))
                     .foregroundColor(DragonPalette.textMuted)
                 if let status { DragonStatusBadge(status: status) }
                 DragonSkillsStrip(dragon: dragon) { skillsDragon = dragon }
@@ -107,7 +104,7 @@ struct DragonCollectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.92)))
+        .claySurface(cornerRadius: 18)
         .contentShape(Rectangle())
         .onTapGesture {
             guard dragon.residence == .den else { return }
@@ -122,11 +119,11 @@ struct DragonCollectionView: View {
             action()
         }) {
             Label(title, systemImage: icon)
-                .font(.system(size: 13, weight: .heavy, design: .rounded))
-                .foregroundColor(DragonPalette.textDark)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .background(Capsule().fill(DragonPalette.lavender))
+                .font(.clay(13, .heavy))
+                .foregroundColor(ClayColor.accentShade)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Capsule().fill(ClayColor.accent.opacity(0.14)))
         }
         .buttonStyle(.plain)
     }
@@ -139,17 +136,17 @@ struct DragonCollectionView: View {
                         .colorMultiply(.black)
                         .opacity(0.25)
                     Text("???")
-                        .font(.system(size: 15, weight: .heavy, design: .rounded))
+                        .font(.clay(15, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                     if let tier = EggTier.tier(forSpecies: dragon.id) {
                         Text(tier.displayName)
-                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .font(.clay(11, .bold))
                             .foregroundColor(DragonPalette.textMuted)
                     }
                 }
                 .padding(10)
                 .frame(maxWidth: .infinity)
-                .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.85)))
+                .claySurface(cornerRadius: 16)
             }
         }
     }

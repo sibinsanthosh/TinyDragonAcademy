@@ -41,12 +41,12 @@ struct CountStarsGameView: View {
                         .font(.system(size: 20))
                         .foregroundColor(DragonPalette.buttercup)
                     Text("Count the stars! Tap them to count:")
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .font(.clay(17, .bold))
                         .foregroundColor(.white)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(Capsule().fill(Color.white.opacity(0.18)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
                 
                 // Starry Sky Field (Play area)
                 GeometryReader { geo in
@@ -88,7 +88,7 @@ struct CountStarsGameView: View {
                         startNewGame()
                     },
                     onBackToMenu: {
-                        gameManager.navigate(to: .miniGamesHub)
+                        gameManager.navigate(to: .trainingHub)
                     }
                 )
                 .transition(.opacity)
@@ -103,25 +103,18 @@ struct CountStarsGameView: View {
     
     private var headerView: some View {
         HStack {
-            Button(action: {
-                HapticsService.shared.medium()
-                AudioService.shared.playPop()
-                gameManager.navigate(to: .miniGamesHub)
-            }) {
-                Image(systemName: "chevron.left.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(.white)
-                    .background(Circle().fill(Color.white.opacity(0.25)))
+            ClayIconButton(systemName: "chevron.left", accessibilityLabel: "Back") {
+                gameManager.navigate(to: .trainingHub)
             }
             
             Spacer()
             
             Text("Round \(round) of 3")
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.clay(16, .bold))
                 .foregroundColor(.white)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 6)
-                .background(Capsule().fill(Color.white.opacity(0.25)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
             
             Spacer()
             
@@ -155,7 +148,7 @@ struct CountStarsGameView: View {
                 // Number badge
                 if let order = star.countOrder {
                     Text("\(order)")
-                        .font(.system(size: 18, weight: .heavy, design: .rounded))
+                        .font(.clay(18, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                         .transition(.scale)
                 }
@@ -171,7 +164,7 @@ struct CountStarsGameView: View {
     private var numberChoicesView: some View {
         VStack(spacing: 10) {
             Text("How many stars did you find?")
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.clay(16, .bold))
                 .foregroundColor(.white.opacity(0.9))
             
             HStack(spacing: 16) {
@@ -180,7 +173,7 @@ struct CountStarsGameView: View {
                         checkAnswer(num)
                     }) {
                         Text("\(num)")
-                            .font(.system(size: 32, weight: .heavy, design: .rounded))
+                            .font(.clay(32, .heavy))
                             .foregroundColor(DragonPalette.textDark)
                             .frame(minWidth: 70, minHeight: 68)
                             .background(

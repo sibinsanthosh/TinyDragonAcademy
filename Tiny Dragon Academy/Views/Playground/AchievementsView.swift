@@ -16,11 +16,11 @@ struct AchievementsView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                DragonPalette.skyGradient
-                    .ignoresSafeArea()
-                
+        ZStack {
+            ClayBackdrop()
+
+            VStack(spacing: 4) {
+                ClaySheetHeader(title: "Milestones") { close() }
                 ScrollView {
                     VStack(spacing: 14) {
                         ForEach(achievements) { ach in
@@ -30,17 +30,15 @@ struct AchievementsView: View {
                     .padding(20)
                 }
             }
-            .navigationTitle("Dragon Milestones")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
-                    .foregroundColor(DragonPalette.textDark)
-                }
-            }
+        }
+    }
+
+    /// Sheets dismiss; the full-screen route goes back Home.
+    private func close() {
+        if gameManager.currentRoute == .powerEncyclopedia || gameManager.currentRoute == .achievementsList {
+            gameManager.navigate(to: .mainMenu)
+        } else {
+            dismiss()
         }
     }
     
@@ -59,11 +57,11 @@ struct AchievementsView: View {
             
             VStack(alignment: .leading, spacing: 3) {
                 Text(ach.title)
-                    .font(.system(size: 16, weight: .heavy, design: .rounded))
+                    .font(.clay(16, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 
                 Text(ach.subtitle)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .font(.clay(12, .medium))
                     .foregroundColor(DragonPalette.textMuted)
                 
                 // Progress Bar
@@ -84,7 +82,7 @@ struct AchievementsView: View {
                 Image(systemName: "star.fill")
                     .foregroundColor(DragonPalette.buttercup)
                 Text("+\(ach.rewardStars)")
-                    .font(.system(size: 14, weight: .heavy, design: .rounded))
+                    .font(.clay(14, .heavy))
                     .foregroundColor(DragonPalette.textDark)
             }
             .padding(.horizontal, 10)

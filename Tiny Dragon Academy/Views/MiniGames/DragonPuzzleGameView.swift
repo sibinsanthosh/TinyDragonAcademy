@@ -28,8 +28,7 @@ struct DragonPuzzleGameView: View {
     
     var body: some View {
         ZStack {
-            DragonPalette.sunsetGradient
-                .ignoresSafeArea()
+            ClayBackdrop()
             
             VStack(spacing: 16) {
                 // Header
@@ -39,14 +38,14 @@ struct DragonPuzzleGameView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "puzzlepiece.fill")
                         .font(.system(size: 20))
-                        .foregroundColor(DragonPalette.coral)
+                        .foregroundColor(ClayColor.coralShade)
                     Text(isComplete ? "Hooray! The puzzle is complete!" : "Place the pieces to reveal the dragon!")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(.clay(16, .bold))
                         .foregroundColor(DragonPalette.textDark)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(Capsule().fill(Color.white.opacity(0.9)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
                 
                 Spacer()
                 
@@ -82,7 +81,7 @@ struct DragonPuzzleGameView: View {
                         startNewGame()
                     },
                     onBackToMenu: {
-                        gameManager.navigate(to: .miniGamesHub)
+                        gameManager.navigate(to: .trainingHub)
                     }
                 )
                 .transition(.opacity)
@@ -97,25 +96,18 @@ struct DragonPuzzleGameView: View {
     
     private var headerView: some View {
         HStack {
-            Button(action: {
-                HapticsService.shared.medium()
-                AudioService.shared.playPop()
-                gameManager.navigate(to: .miniGamesHub)
-            }) {
-                Image(systemName: "chevron.left.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(DragonPalette.textDark)
-                    .background(Circle().fill(Color.white.opacity(0.85)))
+            ClayIconButton(systemName: "chevron.left", accessibilityLabel: "Back") {
+                gameManager.navigate(to: .trainingHub)
             }
             
             Spacer()
             
             Text("Baby Dragon Puzzle")
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.clay(16, .bold))
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 6)
-                .background(Capsule().fill(Color.white.opacity(0.85)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
             
             Spacer()
             
@@ -202,7 +194,7 @@ struct DragonPuzzleGameView: View {
     private var piecesTrayView: some View {
         VStack(spacing: 8) {
             Text("Tap a piece, then tap its slot:")
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .font(.clay(13, .medium))
                 .foregroundColor(DragonPalette.textMuted)
             
             HStack(spacing: 12) {

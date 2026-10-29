@@ -24,8 +24,8 @@ struct TalentHUD: View {
             VStack {
                 if badgeAtTop { badge(talent) }
                 if showPop {
-                    Text("✨ \(talent.title)!")
-                        .font(.system(size: 24, weight: .heavy, design: .rounded))
+                    Label("\(talent.title)!", systemImage: "sparkles")
+                        .font(.clay(24, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
@@ -45,11 +45,11 @@ struct TalentHUD: View {
 
     private func badge(_ talent: DragonTalent) -> some View {
         Label(talent.title, systemImage: "sparkles")
-            .font(.system(size: 13, weight: .heavy, design: .rounded))
+            .font(.clay(13, .heavy))
             .foregroundColor(DragonPalette.textDark)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background(Capsule().fill(Color.white.opacity(0.85)))
+            .claySurface(cornerRadius: 100, elevation: 0.7)
     }
 
     private func pop() {

@@ -45,7 +45,7 @@ struct DragonStatusBadge: View {
 
     var body: some View {
         Label(status.text, systemImage: status.icon)
-            .font(.system(size: 12, weight: .heavy, design: .rounded))
+            .font(.clay(12, .heavy))
             .foregroundColor(.white)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)

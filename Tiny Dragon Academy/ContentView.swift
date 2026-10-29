@@ -21,9 +21,16 @@ struct ContentView: View {
             case .onboarding:
                 HatchIntroView()
                     .transition(.opacity)
-            case .mainMenu:
-                MainMenuView()
-                    .transition(.opacity)
+            case .mainMenu, .dragonPlayground:
+                // Home: the den dragon front and centre, or the hatch-an-egg welcome
+                Group {
+                    if gameManager.hasActiveDenDragon {
+                        DragonPlaygroundView()
+                    } else {
+                        MainMenuView()
+                    }
+                }
+                .transition(.opacity)
             case .miniGamesHub:
                 MiniGamesHubView()
                     .transition(.opacity)
@@ -54,9 +61,6 @@ struct ContentView: View {
             case .settings:
                 SettingsView()
                     .transition(.opacity)
-            case .dragonPlayground:
-                DragonPlaygroundView()
-                    .transition(.opacity)
             case .powerEncyclopedia:
                 PowerEncyclopediaView(dragon: gameManager.activeDragon)
                     .transition(.opacity)
@@ -84,6 +88,9 @@ struct ContentView: View {
             case .today:
                 TodayView()
                     .transition(.opacity)
+            case .photoBooth:
+                PhotoBoothView()
+                    .transition(.opacity)
             case .den:
                 DenView()
                     .transition(.opacity)
@@ -98,6 +105,20 @@ struct ContentView: View {
                     .transition(.opacity)
             }
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if AppTab.forRoute(gameManager.currentRoute) != nil && !gameManager.isHomeModalPresented {
+                ClayTabBar()
+                    .background(alignment: .bottom) {
+                        // Fade scrolling content out before it reaches the bar
+                        LinearGradient(colors: [ClayColor.backdropBottom.opacity(0), ClayColor.backdropBottom],
+                                       startPoint: .top, endPoint: .bottom)
+                            .frame(height: 44)
+                            .ignoresSafeArea(edges: .bottom)
+                            .allowsHitTesting(false)
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
         .overlay {
             if gameManager.currentRoute != .onboarding {
                 if gameManager.shouldShowReminderPrimer {
@@ -110,13 +131,13 @@ struct ContentView: View {
         // Celebrations sit above every sheet and play one after another
         .overlay(alignment: .top) {
             if let toast = gameManager.toasts.first {
-                Text(toast)
-                    .font(.system(size: 15, weight: .heavy, design: .rounded))
-                    .foregroundColor(DragonPalette.textDark)
+                Label(toast, systemImage: "sparkles")
+                    .font(.clay(16, .heavy))
+                    .foregroundColor(ClayColor.ink)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 18)
                     .padding(.vertical, 12)
-                    .background(Capsule().fill(Color.white).shadow(color: DragonPalette.popShadow, radius: 10, y: 4))
+                    .claySurface(cornerRadius: 24, elevation: 1.3)
                     .padding(.top, 8)
                     .padding(.horizontal, 20)
                     .transition(.move(edge: .top).combined(with: .opacity))

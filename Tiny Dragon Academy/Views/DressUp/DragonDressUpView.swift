@@ -56,13 +56,17 @@ struct DragonDressUpView: View {
             VStack(spacing: 12) {
                 // Header: Back, Randomize, Save, Stars
                 headerView
-                
+
+                Spacer(minLength: 0)
+
                 // Central Live Dragon Preview
                 ZStack {
+                    ClayPlatform(top: Color.white.opacity(0.9), side: ClayColor.accent.opacity(0.45), width: 240)
+                        .offset(y: 95)
                     DragonView(
                         dragon: gameManager.activeDragon,
                         mood: previewMood,
-                        size: 210,
+                        size: 240,
                         allowInteractivePetting: true
                     ) {
                         previewMood = .happy
@@ -78,16 +82,18 @@ struct DragonDressUpView: View {
                                 .font(.system(size: 40))
                                 .foregroundColor(DragonPalette.mintGreen)
                             Text("Saved!")
-                                .font(.system(size: 16, weight: .bold, design: .rounded))
+                                .font(.clay(16, .bold))
                                 .foregroundColor(DragonPalette.textDark)
                         }
                         .padding(18)
-                        .background(RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.95)))
+                        .claySurface(cornerRadius: 20)
                         .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .frame(height: 220)
-                
+                .frame(height: 290)
+
+                Spacer(minLength: 0)
+
                 // Tab Selection Strip
                 tabStrip
                 
@@ -104,15 +110,8 @@ struct DragonDressUpView: View {
     
     private var headerView: some View {
         HStack {
-            Button(action: {
-                HapticsService.shared.medium()
-                AudioService.shared.playPop()
-                gameManager.navigate(to: .mainMenu)
-            }) {
-                Image(systemName: "chevron.left.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(DragonPalette.textDark)
-                    .background(Circle().fill(Color.white.opacity(0.85)))
+            ClayIconButton(systemName: "chevron.left", accessibilityLabel: "Back") {
+                gameManager.navigate(to: .foodInventoryShop)
             }
             
             Spacer()
@@ -123,12 +122,12 @@ struct DragonDressUpView: View {
                     Image(systemName: "wand.and.stars")
                         .font(.system(size: 16))
                     Text("Random")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(.clay(14, .bold))
                 }
                 .foregroundColor(DragonPalette.softPurple)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(Capsule().fill(Color.white.opacity(0.9)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
             }
             
             // Save Button
@@ -137,7 +136,7 @@ struct DragonDressUpView: View {
                     Image(systemName: "checkmark")
                         .font(.system(size: 14, weight: .heavy))
                     Text("Save")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(.clay(14, .bold))
                 }
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 14)
@@ -169,7 +168,7 @@ struct DragonDressUpView: View {
                             Image(systemName: tab.iconName)
                                 .font(.system(size: 14))
                             Text(tab.rawValue)
-                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .font(.clay(14, .bold))
                         }
                         .foregroundColor(isSelected ? .white : DragonPalette.textDark)
                         .padding(.horizontal, 14)
@@ -189,10 +188,8 @@ struct DragonDressUpView: View {
     
     private var optionsTray: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 24)
-                .fill(Color.white.opacity(0.85))
-                .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.white, lineWidth: 2))
-                .shadow(color: DragonPalette.softShadow, radius: 8)
+            Color.clear
+                .claySurface(cornerRadius: 28, elevation: 1.2)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
@@ -210,6 +207,7 @@ struct DragonDressUpView: View {
                     }
                 }
                 .padding(.horizontal, 16)
+                .padding(.vertical, 14)
             }
         }
     }
@@ -252,7 +250,7 @@ struct DragonDressUpView: View {
                         .font(.system(size: 24))
                         .foregroundColor(isSelected ? DragonPalette.softPurple : DragonPalette.textDark)
                     Text(style.rawValue)
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .font(.clay(11, .bold))
                         .foregroundColor(DragonPalette.textDark)
                 }
                 .frame(width: 80, height: 75)
@@ -278,7 +276,7 @@ struct DragonDressUpView: View {
                         .font(.system(size: 24))
                         .foregroundColor(isSelected ? DragonPalette.softPurple : DragonPalette.textDark)
                     Text(style.rawValue)
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .font(.clay(11, .bold))
                         .foregroundColor(DragonPalette.textDark)
                 }
                 .frame(width: 85, height: 75)
@@ -319,14 +317,14 @@ struct DragonDressUpView: View {
                     }
                     
                     Text(accessory.rawValue)
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .font(.clay(10, .bold))
                         .foregroundColor(DragonPalette.textDark)
                         .lineLimit(1)
                     
                     if !isUnlocked {
                         HStack(spacing: 2) {
                             Image(systemName: "star.fill").font(.system(size: 9)).foregroundColor(DragonPalette.buttercup)
-                            Text("\(accessory.unlockStars)").font(.system(size: 10, weight: .heavy, design: .rounded))
+                            Text("\(accessory.unlockStars)").font(.clay(10, .heavy))
                         }
                     }
                 }
@@ -355,7 +353,7 @@ struct DragonDressUpView: View {
                         .overlay(Circle().stroke(Color.white, lineWidth: 2))
                     
                     Text(backdrop.rawValue)
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .font(.clay(10, .bold))
                         .foregroundColor(DragonPalette.textDark)
                         .lineLimit(1)
                 }

@@ -42,12 +42,12 @@ struct EvolutionCeremonyView: View {
             VStack(spacing: 20) {
                 // Celebration Title
                 VStack(spacing: 6) {
-                    Text("✨ Time to Evolve! ✨")
-                        .font(.system(size: 26, weight: .heavy, design: .rounded))
+                    Label("Time to evolve!", systemImage: "sparkles")
+                        .font(.clay(26, .heavy))
                         .foregroundColor(DragonPalette.buttercup)
                     
                     Text("\(dragon.name) is ready to grow into a \(nextStage?.rawValue ?? "Legend")!")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(.clay(15, .semibold))
                         .foregroundColor(Color.white.opacity(0.9))
                         .multilineTextAlignment(.center)
                 }
@@ -88,10 +88,10 @@ struct EvolutionCeremonyView: View {
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("New Power: \(power.name)")
-                                    .font(.system(size: 14, weight: .heavy, design: .rounded))
+                                    .font(.clay(14, .heavy))
                                     .foregroundColor(DragonPalette.textDark)
                                 Text(power.description)
-                                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                                    .font(.clay(12, .medium))
                                     .foregroundColor(DragonPalette.textMuted)
                                     .lineLimit(2)
                             }
@@ -102,8 +102,8 @@ struct EvolutionCeremonyView: View {
                         Image(systemName: "star.fill")
                             .foregroundColor(DragonPalette.buttercup)
                         Text("+15 Celebration Stars Bonus!")
-                            .font(.system(size: 13, weight: .heavy, design: .rounded))
-                            .foregroundColor(DragonPalette.coral)
+                            .font(.clay(13, .heavy))
+                            .foregroundColor(ClayColor.coralShade)
                     }
                 }
                 .padding(14)
@@ -114,7 +114,7 @@ struct EvolutionCeremonyView: View {
                 .padding(.horizontal, 16)
                 
                 // Evolve Action Button
-                KidButton(title: "Evolve Now! 🌟", backgroundColor: DragonPalette.coral) {
+                KidButton(title: "Evolve now", icon: "arrow.up.circle.fill", backgroundColor: ClayColor.accent) {
                     onEvolveConfirmed()
                 }
                 .padding(.horizontal, 24)
@@ -122,7 +122,7 @@ struct EvolutionCeremonyView: View {
                 // Cancel
                 Button(action: onDismiss) {
                     Text("Not Yet")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(.clay(14, .bold))
                         .foregroundColor(Color.white.opacity(0.8))
                 }
             }

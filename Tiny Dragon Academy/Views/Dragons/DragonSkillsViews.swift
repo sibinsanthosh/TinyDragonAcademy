@@ -36,14 +36,14 @@ struct DragonSkillsStrip: View {
                         }
                     }
                 }
-                .font(.system(size: 11, weight: .heavy, design: .rounded))
+                .font(.clay(11, .heavy))
                 HStack(spacing: 4) {
                     if let talent = dragon.talent {
                         Label(talent.title, systemImage: "sparkles")
                     }
                     Image(systemName: "info.circle.fill").foregroundColor(DragonPalette.softPurple)
                 }
-                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .font(.clay(11, .bold))
                 .foregroundColor(DragonPalette.textMuted)
             }
             .padding(.vertical, 4)
@@ -63,7 +63,7 @@ struct DragonSkillsSheet: View {
             VStack(spacing: 16) {
                 DragonView(dragon: dragon, mood: .happy, size: 110, allowInteractivePetting: false)
                 Text("\(dragon.badgedName)'s Skills")
-                    .font(.system(size: 24, weight: .heavy, design: .rounded))
+                    .font(.clay(24, .heavy))
                     .foregroundColor(DragonPalette.textDark)
 
                 ForEach(DragonSkill.allCases) { skill in
@@ -76,12 +76,12 @@ struct DragonSkillsSheet: View {
                             Image(systemName: "sparkles").foregroundColor(talent.game.themeColor)
                             Text("Talent: \(talent.title)").foregroundColor(DragonPalette.textDark)
                         }
-                        .font(.system(size: 17, weight: .heavy, design: .rounded))
+                        .font(.clay(17, .heavy))
                         Text(talent.summary)
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.clay(15, .semibold))
                             .foregroundColor(DragonPalette.textDark)
                         Text("Works in \(talent.game.rawValue).")
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .font(.clay(13, .bold))
                             .foregroundColor(DragonPalette.textMuted)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -90,7 +90,7 @@ struct DragonSkillsSheet: View {
                 }
 
                 Text("Train in a game to grow its skill. Higher stars make that game easier.")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.clay(13, .semibold))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
 
@@ -98,7 +98,7 @@ struct DragonSkillsSheet: View {
             }
             .padding(24)
         }
-        .background(DragonPalette.skyGradient.ignoresSafeArea())
+        .background(ClayBackdrop())
     }
 
     private func skillRow(_ skill: DragonSkill) -> some View {
@@ -106,7 +106,7 @@ struct DragonSkillsSheet: View {
         return VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Label(skill.title, systemImage: skill.iconName)
-                    .font(.system(size: 16, weight: .heavy, design: .rounded))
+                    .font(.clay(16, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 Spacer()
                 Text(SkillStars.text(progress.stars))
@@ -117,15 +117,15 @@ struct DragonSkillsSheet: View {
                 ProgressView(value: Double(progress.into), total: Double(needed))
                     .tint(skill.game.themeColor)
                 Text("\(progress.into) / \(needed) points to the next star • \(skill.game.rawValue)")
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .font(.clay(12, .bold))
                     .foregroundColor(DragonPalette.textMuted)
             } else {
                 Text("Max stars! • \(skill.game.rawValue)")
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .font(.clay(12, .bold))
                     .foregroundColor(DragonPalette.textMuted)
             }
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.92)))
+        .claySurface(cornerRadius: 16)
     }
 }

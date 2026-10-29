@@ -20,9 +20,11 @@ struct DragonHabitatContainerView<Content: View>: View {
     
     var body: some View {
         ZStack {
-            // Background Theme Gradient
-            habitatGradient
+            // Clay backdrop, tinted by stage
+            ClayBackdrop()
+            habitatTint
                 .ignoresSafeArea()
+                .allowsHitTesting(false)
             
             // Ambient Elemental Sparkles / Mist
             FloatingParticlesView(particleCount: 18, themeColor: element.themeColor)
@@ -59,71 +61,32 @@ struct DragonHabitatContainerView<Content: View>: View {
         }
     }
     
-    private var habitatGradient: LinearGradient {
+    /// Older dragons get a light wash of their element; ancient ones a dusky glow.
+    @ViewBuilder
+    private var habitatTint: some View {
         switch stage {
-        case .baby:
-            return DragonPalette.skyGradient
-        case .young:
-            return DragonPalette.meadowGradient
+        case .baby, .young:
+            Color.clear
         case .adolescent, .adult:
-            return LinearGradient(
-                colors: [element.themeColor.opacity(0.4), DragonPalette.softPurple.opacity(0.3), Color.white],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            LinearGradient(colors: [element.themeColor.opacity(0.22), .clear], startPoint: .top, endPoint: .center)
         case .ancient:
-            return LinearGradient(
-                colors: [Color(red: 0.18, green: 0.12, blue: 0.35), element.themeColor.opacity(0.6), Color(red: 0.95, green: 0.88, blue: 0.70)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            LinearGradient(colors: [Color(red: 0.30, green: 0.22, blue: 0.50).opacity(0.35), .clear], startPoint: .top, endPoint: .center)
         }
     }
-    
+
     // MARK: - 1. Baby Nest Base
     
     private var babyNestBase: some View {
         ZStack {
-            // Woven Twig / Cloud Nest Shadow
-            Ellipse()
-                .fill(Color.black.opacity(0.08))
-                .frame(width: 330, height: 110)
-                .offset(y: 55)
-            
-            // Soft Woven Cradle
-            Ellipse()
-                .fill(
-                    LinearGradient(
-                        colors: [Color(red: 0.86, green: 0.74, blue: 0.60), Color(red: 0.72, green: 0.58, blue: 0.45)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(width: 320, height: 100)
+            ClayPlatform(top: Color(red: 0.93, green: 0.88, blue: 1.0), side: Color(red: 0.76, green: 0.68, blue: 0.96), width: 300)
                 .offset(y: 40)
-            
-            // Fluffy Cloud Cushion Inside Nest
-            Ellipse()
-                .fill(
-                    LinearGradient(
-                        colors: [Color.white, DragonPalette.cream],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(width: 280, height: 80)
-                .overlay(
-                    Ellipse().stroke(DragonPalette.softPurple.opacity(0.3), lineWidth: 2)
-                )
-                .offset(y: 30)
-            
-            // Little stars decorating nest edge
+            // Little stars decorating the cushion edge
             HStack(spacing: 80) {
-                StarShape().fill(DragonPalette.buttercup).frame(width: 22, height: 22)
-                StarShape().fill(DragonPalette.rosyPink).frame(width: 18, height: 18)
-                StarShape().fill(DragonPalette.skyBlue).frame(width: 20, height: 20)
+                StarShape().fill(ClayColor.sun).frame(width: 22, height: 22)
+                StarShape().fill(ClayColor.rose).frame(width: 18, height: 18)
+                StarShape().fill(ClayColor.sky).frame(width: 20, height: 20)
             }
-            .offset(y: 65)
+            .offset(y: 70)
         }
     }
     
@@ -131,26 +94,8 @@ struct DragonHabitatContainerView<Content: View>: View {
     
     private var youngGardenBase: some View {
         ZStack {
-            // Earth Base
-            Ellipse()
-                .fill(Color(red: 0.60, green: 0.48, blue: 0.38))
-                .frame(width: 340, height: 115)
-                .offset(y: 60)
-            
-            // Blooming Green Lawn
-            Ellipse()
-                .fill(
-                    LinearGradient(
-                        colors: [DragonPalette.mintGreen, Color(red: 0.50, green: 0.85, blue: 0.65)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(width: 330, height: 95)
-                .overlay(
-                    Ellipse().stroke(Color.white.opacity(0.8), lineWidth: 3)
-                )
-                .offset(y: 35)
+            ClayPlatform(top: Color(red: 0.62, green: 0.90, blue: 0.66), side: Color(red: 0.42, green: 0.79, blue: 0.48), width: 320)
+                .offset(y: 40)
             
             // Flower patches & cute mushroom
             MushroomHouseView(size: 46)
@@ -165,26 +110,8 @@ struct DragonHabitatContainerView<Content: View>: View {
     
     private var adultElementalBase: some View {
         ZStack {
-            // Stone Terraced Citadel
-            Ellipse()
-                .fill(Color(red: 0.45, green: 0.48, blue: 0.55))
-                .frame(width: 360, height: 125)
-                .offset(y: 65)
-            
-            // Elemental Glowing Plateau
-            Ellipse()
-                .fill(
-                    LinearGradient(
-                        colors: [element.themeColor.opacity(0.8), element.themeColor.opacity(0.5)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(width: 340, height: 100)
-                .overlay(
-                    Ellipse().stroke(Color.white, lineWidth: 3.5)
-                )
-                .offset(y: 35)
+            ClayPlatform(top: element.themeColor.opacity(0.75), side: element.themeColor, width: 330)
+                .offset(y: 40)
             
             // Elemental Spire Crystals Left & Right
             HStack(spacing: 230) {
@@ -218,27 +145,9 @@ struct DragonHabitatContainerView<Content: View>: View {
     
     private var ancientLairBase: some View {
         ZStack {
-            // Celestial Gold Base
-            Ellipse()
-                .fill(Color(red: 0.25, green: 0.20, blue: 0.40))
-                .frame(width: 380, height: 135)
-                .offset(y: 70)
-            
-            // Radiant Golden Obsidian Dais
-            Ellipse()
-                .fill(
-                    LinearGradient(
-                        colors: [DragonPalette.buttercup, Color(red: 0.95, green: 0.75, blue: 0.30)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(width: 360, height: 105)
-                .overlay(
-                    Ellipse().stroke(Color.white, lineWidth: 4)
-                )
-                .shadow(color: DragonPalette.buttercup.opacity(0.8), radius: 15)
-                .offset(y: 35)
+            ClayPlatform(top: ClayColor.sun, side: ClayColor.sunShade, width: 340)
+                .shadow(color: ClayColor.sun.opacity(0.6), radius: 14)
+                .offset(y: 40)
             
             // Ancient Runic Pillars
             HStack(spacing: 260) {
@@ -278,5 +187,33 @@ struct DragonHabitatContainerView<Content: View>: View {
                 )
         }
         .shadow(color: DragonPalette.buttercup, radius: 10)
+    }
+}
+
+/// A puffy clay disc: a light, softly shaded top over a darker side band.
+struct ClayPlatform: View {
+    let top: Color
+    let side: Color
+    var width: CGFloat = 300
+
+    var body: some View {
+        let height = width * 0.3
+        ZStack {
+            Ellipse()
+                .fill(ClayColor.shadow)
+                .frame(width: width * 1.02, height: height)
+                .offset(y: height * 0.42)
+            Ellipse()
+                .fill(side)
+                .frame(width: width, height: height)
+                .offset(y: height * 0.22)
+            Ellipse()
+                .fill(
+                    RadialGradient(colors: [Color.white.opacity(0.55), top], center: UnitPoint(x: 0.4, y: 0.25), startRadius: 4, endRadius: width * 0.55)
+                )
+                .background(Ellipse().fill(top))
+                .frame(width: width, height: height)
+        }
+        .allowsHitTesting(false)
     }
 }

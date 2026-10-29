@@ -23,8 +23,7 @@ struct HatchIntroView: View {
     var body: some View {
         ZStack {
             // Background
-            DragonPalette.skyGradient
-                .ignoresSafeArea()
+            ClayBackdrop()
             
             FloatingParticlesView(particleCount: 14, themeColor: DragonPalette.softPurple)
             
@@ -74,7 +73,7 @@ struct HatchIntroView: View {
     private var careModeStep: some View {
         VStack(spacing: 16) {
             Text("Who's raising \(finalName)?")
-                .font(.system(size: 26, weight: .heavy, design: .rounded))
+                .font(.clay(26, .heavy))
                 .foregroundColor(DragonPalette.textDark)
                 .multilineTextAlignment(.center)
             
@@ -93,7 +92,7 @@ struct HatchIntroView: View {
             ) { showParentGate = true }
             
             Text("A grown-up can change this later in Settings.")
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .font(.clay(13, .medium))
                 .foregroundColor(DragonPalette.textMuted)
         }
         .padding(24)
@@ -112,10 +111,10 @@ struct HatchIntroView: View {
                     .foregroundColor(color)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
-                        .font(.system(size: 19, weight: .heavy, design: .rounded))
+                        .font(.clay(19, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                     Text(subtitle)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .font(.clay(13, .medium))
                         .foregroundColor(DragonPalette.textMuted)
                         .multilineTextAlignment(.leading)
                 }
@@ -132,39 +131,33 @@ struct HatchIntroView: View {
     
     private var storyIntroStep: some View {
         VStack(spacing: 24) {
-            // Academy Crest
+            // The starter dragon waiting on its cushion
             ZStack {
-                Circle()
-                    .fill(Color.white.opacity(0.85))
-                    .frame(width: 130, height: 130)
-                    .shadow(color: DragonPalette.popShadow, radius: 10, x: 0, y: 5)
-                
-                Image(systemName: "wand.and.stars")
-                    .font(.system(size: 60))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [DragonPalette.softPurple, DragonPalette.rosyPink],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                ClayPlatform(top: Color(red: 0.93, green: 0.88, blue: 1.0), side: Color(red: 0.76, green: 0.68, blue: 0.96), width: 210)
+                    .offset(y: 62)
+                if let starter = DragonModel.defaultDragons().first {
+                    DragonView(dragon: starter, mood: .happy, size: 150, allowInteractivePetting: false)
+                }
             }
-            
+            .frame(height: 190)
+
             VStack(spacing: 8) {
                 Text("Tiny Dragon Academy")
-                    .font(.system(size: 32, weight: .heavy, design: .rounded))
+                    .font(.clay(32, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                     .multilineTextAlignment(.center)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
                 
-                Text("A magical island where friendly baby dragons play, learn, and grow!")
-                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                Text("Hatch, raise and train your own baby dragon.")
+                    .font(.clay(18, .semibold))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 16)
             }
             
             KidButton(
-                title: "Find My Dragon Egg!",
+                title: "Find my egg",
                 icon: "sparkles",
                 backgroundColor: DragonPalette.softPurple,
                 minWidth: 260
@@ -189,12 +182,12 @@ struct HatchIntroView: View {
                     .font(.system(size: 24))
                     .foregroundColor(DragonPalette.softPurple)
                 Text(eggPromptText)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.clay(24, .bold))
                     .foregroundColor(DragonPalette.textDark)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 10)
-            .background(Capsule().fill(Color.white.opacity(0.9)))
+            .claySurface(cornerRadius: 100, elevation: 0.7)
             
             // Nest and Egg
             ZStack {
@@ -284,7 +277,7 @@ struct HatchIntroView: View {
     private var namingAndWelcomeStep: some View {
         VStack(spacing: 20) {
             Text("Name Your Dragon!")
-                .font(.system(size: 28, weight: .heavy, design: .rounded))
+                .font(.clay(28, .heavy))
                 .foregroundColor(DragonPalette.textDark)
             
             DragonView(
@@ -310,7 +303,7 @@ struct HatchIntroView: View {
             
             // Optional custom name field
             TextField("Or type a name...", text: $chosenName)
-                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .font(.clay(18, .bold))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
                 .background(
@@ -346,7 +339,7 @@ struct HatchIntroView: View {
             chosenName = name
         }) {
             Text(name)
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.clay(16, .bold))
                 .foregroundColor(chosenName == name ? .white : DragonPalette.textDark)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)

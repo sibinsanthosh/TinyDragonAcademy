@@ -15,17 +15,17 @@ struct DenView: View {
 
     var body: some View {
         ZStack {
-            DragonPalette.meadowGradient.ignoresSafeArea()
+            ClayBackdrop()
 
             VStack(spacing: 12) {
-                ScreenTopBar(title: "Dragon Den")
+                ScreenTopBar(title: "Dragon Den", backTo: .dragonCollection)
 
                 if remindersDenied && gameManager.state.remindersEnabled {
                     Label("Reminders are off in Settings — your dragons could get sick without you noticing.", systemImage: "bell.slash.fill")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .font(.clay(13, .bold))
                         .foregroundColor(.white)
                         .padding(12)
-                        .background(RoundedRectangle(cornerRadius: 14).fill(DragonPalette.coral))
+                        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(ClayColor.coralShade))
                         .padding(.horizontal, 16)
                 }
 
@@ -41,13 +41,11 @@ struct DenView: View {
                     .padding(.horizontal, 16)
 
                     if let price = gameManager.nextDenSlotPrice {
-                        KidButton(title: "Add den slot • \(price)★", icon: "plus.circle.fill",
-                                  backgroundColor: DragonPalette.softPurple, fontSize: 16) {
+                        ClayUnlockRow(title: "Another den spot", detail: "Raise one more dragon at a time",
+                                      price: price, stars: gameManager.totalStars) {
                             _ = gameManager.purchaseDenSlot()
                         }
-                        .disabled(gameManager.totalStars < price)
-                        .opacity(gameManager.totalStars < price ? 0.5 : 1)
-                        .padding(.vertical, 12)
+                        .padding(16)
                     }
                 }
             }
@@ -69,25 +67,22 @@ struct DenView: View {
                     .opacity(dragon.stats.condition.isSpirit ? 0.4 : 1)
                     .frame(height: 96)
                 Text(dragon.badgedName)
-                    .font(.system(size: 17, weight: .heavy, design: .rounded))
+                    .font(.clay(17, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 if let status {
                     DragonStatusBadge(status: status)
                 } else {
                     Text("Happy & healthy")
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .font(.clay(12, .bold))
                         .foregroundColor(DragonPalette.textMuted)
                 }
                 DragonMetersView(stats: dragon.stats, compact: true)
             }
             .padding(12)
             .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: 22)
-                    .fill(Color.white.opacity(0.92))
-                    .overlay(RoundedRectangle(cornerRadius: 22)
-                        .stroke(dragon.id == gameManager.state.selectedDragonId ? dragon.primaryColor : .clear, lineWidth: 3))
-            )
+            .claySurface(cornerRadius: 24)
+            .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(dragon.id == gameManager.state.selectedDragonId ? ClayColor.accent : .clear, lineWidth: 3))
         }
         .buttonStyle(.plain)
     }
@@ -99,19 +94,19 @@ struct DenView: View {
             VStack(spacing: 10) {
                 Image(systemName: "oval.portrait.fill")
                     .font(.system(size: 40))
-                    .foregroundColor(DragonPalette.lavender)
+                    .foregroundColor(ClayColor.accent.opacity(0.35))
                 Text("Empty spot")
-                    .font(.system(size: 15, weight: .heavy, design: .rounded))
+                    .font(.clay(15, .heavy))
                     .foregroundColor(DragonPalette.textDark)
-                Text("Hatch an egg →")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                Label("Hatch an egg", systemImage: "arrow.right")
+                    .font(.clay(13, .bold))
                     .foregroundColor(DragonPalette.textMuted)
             }
             .frame(maxWidth: .infinity, minHeight: 200)
             .background(
                 RoundedRectangle(cornerRadius: 22)
                     .strokeBorder(style: StrokeStyle(lineWidth: 2.5, dash: [8]))
-                    .foregroundColor(Color.white.opacity(0.9))
+                    .foregroundColor(ClayColor.accent.opacity(0.35))
             )
         }
         .buttonStyle(.plain)

@@ -40,8 +40,7 @@ struct ColorGardenGameView: View {
     
     var body: some View {
         ZStack {
-            DragonPalette.meadowGradient
-                .ignoresSafeArea()
+            ClayBackdrop()
             
             VStack(spacing: 16) {
                 // Header: Back button, Round progress, Stars
@@ -74,7 +73,7 @@ struct ColorGardenGameView: View {
                         startNewGame()
                     },
                     onBackToMenu: {
-                        gameManager.navigate(to: .miniGamesHub)
+                        gameManager.navigate(to: .trainingHub)
                     }
                 )
                 .transition(.opacity)
@@ -89,26 +88,19 @@ struct ColorGardenGameView: View {
     
     private var headerView: some View {
         HStack {
-            Button(action: {
-                HapticsService.shared.medium()
-                AudioService.shared.playPop()
-                gameManager.navigate(to: .miniGamesHub)
-            }) {
-                Image(systemName: "chevron.left.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(DragonPalette.textDark)
-                    .background(Circle().fill(Color.white.opacity(0.85)))
+            ClayIconButton(systemName: "chevron.left", accessibilityLabel: "Back") {
+                gameManager.navigate(to: .trainingHub)
             }
             
             Spacer()
             
             // Round Badge
             Text("Round \(round) of 3")
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.clay(16, .bold))
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 6)
-                .background(Capsule().fill(Color.white.opacity(0.85)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
             
             Spacer()
             
@@ -123,12 +115,12 @@ struct ColorGardenGameView: View {
                 .font(.system(size: 20))
                 .foregroundColor(DragonPalette.softPurple)
             Text("Match the color to the basket!")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .font(.clay(18, .bold))
                 .foregroundColor(DragonPalette.textDark)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 8)
-        .background(Capsule().fill(Color.white.opacity(0.9)))
+        .claySurface(cornerRadius: 100, elevation: 0.7)
     }
     
     // MARK: - Draggable / Selectable Fruit Item
@@ -136,10 +128,10 @@ struct ColorGardenGameView: View {
     private func itemCard(_ item: ColorItem) -> some View {
         VStack(spacing: 8) {
             ZStack {
-                // Background aura
-                Circle()
-                    .fill(item.color.opacity(0.3))
+                // Clay token behind the item
+                Color.clear
                     .frame(width: 140, height: 140)
+                    .claySurface(cornerRadius: 70, elevation: 1.2)
                 
                 // Item Icon
                 Image(systemName: item.iconName)
@@ -168,7 +160,7 @@ struct ColorGardenGameView: View {
             }
             
             Text("Drag or tap me!")
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.clay(14, .semibold))
                 .foregroundColor(DragonPalette.textMuted)
         }
     }
@@ -212,7 +204,7 @@ struct ColorGardenGameView: View {
                 }
                 
                 Text(basket.name)
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .font(.clay(14, .bold))
                     .foregroundColor(DragonPalette.textDark)
             }
             .scaleEffect(isGlow ? 1.08 : 1.0)
@@ -300,7 +292,7 @@ struct ColorGardenGameView: View {
         let activeBaskets = Array(availableBaskets.prefix(min(availableBaskets.count, round + 1)))
         
         var generated: [ColorItem] = []
-        let icons = ["apple.logo", "leaf.fill", "star.fill", "heart.fill", "drop.fill"]
+        let icons = ["balloon.fill", "leaf.fill", "star.fill", "heart.fill", "drop.fill"]
         
         for i in 0..<count {
             let basket = activeBaskets[i % activeBaskets.count]

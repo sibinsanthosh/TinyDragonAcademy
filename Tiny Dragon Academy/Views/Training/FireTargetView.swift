@@ -49,23 +49,14 @@ private struct FireTargetPlayView: View {
                 }
             } content: {
                 ZStack(alignment: .topLeading) {
-                    Rectangle().fill(DragonPalette.mintGreen.opacity(0.7))
-                        .frame(width: w, height: geo.size.height - groundY)
-                        .offset(y: groundY)
+                    MeadowScene(size: geo.size, groundY: groundY)
 
                     if let aim = aimPoint {
                         aimGuide(aim: aim, color: color, toScreen: toScreen)
                     }
 
                     ForEach(Array(state.targets.enumerated()), id: \.offset) { _, target in
-                        ZStack {
-                            Text(emoji(for: target.kind)).font(.system(size: FireTargetGameState.targetRadius * w * 1.8))
-                            if target.kind == .shield && target.hitsRemaining > 1 {
-                                Text("×\(target.hitsRemaining)").font(.system(size: 13, weight: .heavy, design: .rounded))
-                                    .foregroundColor(.white).padding(3).background(Circle().fill(DragonPalette.coral))
-                                    .offset(x: 18, y: -18)
-                            }
-                        }
+                        targetView(target, size: FireTargetGameState.targetRadius * w * 2.1)
                         .scaleEffect(isAimed(at: target) ? 1.2 : 1)
                         .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isAimed(at: target))
                         .position(toScreen(target.position))
@@ -76,10 +67,10 @@ private struct FireTargetPlayView: View {
                         VStack(spacing: 0) {
                             if burst.points > 0 {
                                 Text("+\(burst.points)")
-                                    .font(.system(size: 22, weight: .heavy, design: .rounded))
-                                    .foregroundColor(DragonPalette.coral)
+                                    .font(.clay(22, .heavy))
+                                    .foregroundColor(ClayColor.coralShade)
                             }
-                            Text("💥").font(.system(size: 34))
+                            ClayBurst(size: 40)
                         }
                         .scaleEffect(0.7 + 0.6 * progress)
                         .opacity(1 - progress)
@@ -97,19 +88,11 @@ private struct FireTargetPlayView: View {
                     DragonView(dragon: gameManager.activeDragon, mood: .castingPower, size: w * 0.2, allowInteractivePetting: false)
                         .position(toScreen(CGPoint(x: FireTargetGameState.launchOrigin.x, y: FireTargetGameState.launchOrigin.y - 0.02)))
 
-                    HStack {
-                        Label("\(Int(state.timeRemaining.rounded(.up)))s", systemImage: "timer")
-                        Spacer()
-                        Text("Score \(state.score)")
-                        Spacer()
-                        Text(state.combo > 1 ? "Combo ×\(state.combo)" : " ")
-                            .foregroundColor(DragonPalette.coral)
-                    }
-                    .font(.system(size: 18, weight: .heavy, design: .rounded))
-                    .foregroundColor(DragonPalette.textDark)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-                    .frame(width: w)
+                    ClayGameHUD(seconds: Int(state.timeRemaining.rounded(.up)),
+                                score: "\(state.score)",
+                                scoreIcon: "scope",
+                                trailing: state.combo > 1 ? ("flame.fill", "×\(state.combo)", ClayColor.coral) : nil)
+                        .frame(width: w)
                 }
                 .frame(width: w, height: geo.size.height)
                 .overlay {
@@ -155,11 +138,12 @@ private struct FireTargetPlayView: View {
         return hypot(aim.x - target.position.x, aim.y - target.position.y) < state.hitRadius
     }
 
-    private func emoji(for kind: FireTarget.Kind) -> String {
-        switch kind {
-        case .dummy: return "🎯"
-        case .balloon: return "🎈"
-        case .shield: return "🛡️"
+    @ViewBuilder
+    private func targetView(_ target: FireTarget, size: CGFloat) -> some View {
+        switch target.kind {
+        case .dummy: ClayTargetBoard(size: size)
+        case .balloon: ClayBalloon(size: size, color: ClayColor.rose)
+        case .shield: ClayShieldDummy(size: size, hits: target.hitsRemaining)
         }
     }
 }

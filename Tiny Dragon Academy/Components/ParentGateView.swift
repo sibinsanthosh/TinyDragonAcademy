@@ -30,18 +30,18 @@ struct ParentGateView: View {
                         .font(.system(size: 28))
                         .foregroundStyle(DragonPalette.softPurple)
                     Text("Grown-Ups Only")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .font(.clay(24, .bold))
                         .foregroundColor(DragonPalette.textDark)
                 }
                 
                 Text("Please solve this math question to continue:")
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .font(.clay(16, .medium))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
                 
                 // Question Box
                 Text("What is \(num1) + \(num2) ?")
-                    .font(.system(size: 32, weight: .heavy, design: .rounded))
+                    .font(.clay(32, .heavy))
                     .foregroundColor(DragonPalette.softPurple)
                     .padding(.vertical, 8)
                 
@@ -52,7 +52,7 @@ struct ParentGateView: View {
                             checkAnswer(choice)
                         }) {
                             Text("\(choice)")
-                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .font(.clay(24, .bold))
                                 .foregroundColor(DragonPalette.textDark)
                                 .frame(width: 70, height: 60)
                                 .background(
@@ -72,8 +72,8 @@ struct ParentGateView: View {
                 // Cancel Button
                 Button(action: onCancel) {
                     Text("Go Back")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundColor(DragonPalette.coral)
+                        .font(.clay(16, .semibold))
+                        .foregroundColor(ClayColor.coralShade)
                         .padding(.top, 8)
                 }
             }

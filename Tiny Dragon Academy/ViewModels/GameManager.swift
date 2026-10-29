@@ -28,6 +28,7 @@ enum AppRoute: Equatable {
     case hallOfLegends
     case today
     case trainingGame(TrainingGameType)
+    case photoBooth
 }
 
 @MainActor
@@ -43,6 +44,8 @@ final class GameManager: ObservableObject {
     @Published var toasts: [String] = []
     /// Streak changes that happened at day rollover, for the away report.
     @Published var awayStreakNotes: [String] = []
+    /// A full-screen pop-up on Home (parent gate, evolution) hides the tab bar so it can't be tapped around.
+    @Published var isHomeModalPresented = false
     
     let persistence: PersistenceService
     var clock: GameClock
@@ -145,6 +148,7 @@ final class GameManager: ObservableObject {
     
     func save() {
         persistence.saveState(state)
+        WidgetBridge.publish(state: state, now: clock.now(), calendar: calendar)
     }
     
     // MARK: - Navigation
@@ -155,8 +159,8 @@ final class GameManager: ObservableObject {
     }
     
     func navigate(to route: AppRoute) {
-        // With no den dragon selected (e.g. all spirits moved on), care happens from the Den
-        let destination: AppRoute = (route == .dragonPlayground && !hasActiveDenDragon) ? .den : route
+        // With no den dragon selected (e.g. all spirits moved on), Home shows the hatch-an-egg welcome
+        let destination: AppRoute = (route == .dragonPlayground && !hasActiveDenDragon) ? .mainMenu : route
         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
             currentRoute = destination
         }

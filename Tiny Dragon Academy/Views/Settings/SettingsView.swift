@@ -15,43 +15,24 @@ struct SettingsView: View {
     
     var body: some View {
         ZStack {
-            DragonPalette.skyGradient
-                .ignoresSafeArea()
+            ClayBackdrop()
             
             VStack(spacing: 16) {
                 // Header
-                HStack {
-                    Button(action: {
-                        HapticsService.shared.medium()
-                        AudioService.shared.playPop()
-                        gameManager.navigate(to: .mainMenu)
-                    }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "chevron.left.circle.fill")
-                                .font(.system(size: 26))
-                            Text("Back")
-                                .font(.system(size: 16, weight: .bold, design: .rounded))
-                        }
-                        .foregroundColor(DragonPalette.textDark)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(Capsule().fill(Color.white.opacity(0.9)))
-                    }
-                    
-                    Spacer()
-                    
+                ZStack {
                     Text("Parent Zone")
-                        .font(.system(size: 20, weight: .heavy, design: .rounded))
-                        .foregroundColor(DragonPalette.textDark)
-                    
-                    Spacer()
-                    
-                    // Empty spacer to balance header
-                    Spacer().frame(width: 70)
+                        .font(.clay(24, .heavy))
+                        .foregroundColor(ClayColor.ink)
+                    HStack {
+                        ClayIconButton(systemName: "chevron.left", accessibilityLabel: "Back") {
+                            gameManager.navigate(to: .mainMenu)
+                        }
+                        Spacer()
+                    }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+
                 ScrollView {
                     VStack(spacing: 18) {
                         // Audio Section
@@ -60,13 +41,13 @@ struct SettingsView: View {
                                 get: { gameManager.state.settings.isSoundEnabled },
                                 set: { gameManager.updateSettings(sound: $0) }
                             ))
-                            .tint(DragonPalette.softPurple)
+                            .tint(ClayColor.accent)
                             
                             Toggle("Ambient Lullaby Music", isOn: Binding(
                                 get: { gameManager.state.settings.isMusicEnabled },
                                 set: { gameManager.updateSettings(music: $0) }
                             ))
-                            .tint(DragonPalette.softPurple)
+                            .tint(ClayColor.accent)
                         }
                         
                         // Care Reminders Section
@@ -86,7 +67,7 @@ struct SettingsView: View {
                                 get: { gameManager.state.remindersEnabled },
                                 set: { gameManager.setRemindersEnabled($0) }
                             ))
-                            .tint(DragonPalette.coral)
+                            .tint(ClayColor.accent)
                         }
                         
                         // Accessibility Section
@@ -95,13 +76,13 @@ struct SettingsView: View {
                                 get: { gameManager.state.settings.reduceMotion },
                                 set: { gameManager.updateSettings(reduceMotion: $0) }
                             ))
-                            .tint(DragonPalette.mintGreen)
+                            .tint(ClayColor.accent)
                             
                             Toggle("High Contrast Visual Hints", isOn: Binding(
                                 get: { gameManager.state.settings.highContrastHints },
                                 set: { gameManager.updateSettings(highContrast: $0) }
                             ))
-                            .tint(DragonPalette.mintGreen)
+                            .tint(ClayColor.accent)
                         }
                         
                         // Child Safety & Privacy Assurance Card
@@ -131,14 +112,14 @@ struct SettingsView: View {
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(DragonPalette.softPurple)
                 Text(title)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .font(.clay(17, .bold))
                     .foregroundColor(DragonPalette.textDark)
             }
             
             Divider()
             
             content()
-                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .font(.clay(16, .medium))
                 .foregroundColor(DragonPalette.textDark)
         }
         .padding(18)
@@ -154,7 +135,7 @@ struct SettingsView: View {
                     .font(.system(size: 20))
                     .foregroundColor(DragonPalette.mintGreen)
                 Text("Child Safety & Privacy")
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .font(.clay(17, .bold))
                     .foregroundColor(DragonPalette.textDark)
             }
             
@@ -179,7 +160,7 @@ struct SettingsView: View {
                 .foregroundColor(DragonPalette.softPurple)
                 .frame(width: 18)
             Text(text)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .font(.clay(13, .medium))
                 .foregroundColor(DragonPalette.textMuted)
         }
     }
@@ -195,13 +176,13 @@ struct SettingsView: View {
                     Image(systemName: "trash")
                     Text("Reset All Saved Progress")
                 }
-                .font(.system(size: 15, weight: .bold, design: .rounded))
-                .foregroundColor(DragonPalette.coral)
+                .font(.clay(15, .bold))
+                .foregroundColor(ClayColor.coralShade)
                 .padding(.vertical, 8)
             }
             
             Text("Erases unlocked dragons, island layout, and star balance.")
-                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .font(.clay(12, .medium))
                 .foregroundColor(DragonPalette.textMuted)
         }
         .padding(14)
@@ -217,14 +198,14 @@ struct SettingsView: View {
             VStack(spacing: 18) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 40))
-                    .foregroundColor(DragonPalette.coral)
+                    .foregroundColor(ClayColor.coralShade)
                 
                 Text("Reset Everything?")
-                    .font(.system(size: 22, weight: .heavy, design: .rounded))
+                    .font(.clay(22, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 
                 Text("This will restore the app to its fresh install state and hatch your first egg again.")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.clay(14, .medium))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
                 
@@ -232,17 +213,17 @@ struct SettingsView: View {
                     Button("Cancel") {
                         showResetConfirmation = false
                     }
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.clay(16, .bold))
                     .foregroundColor(DragonPalette.textDark)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
-                    .background(Capsule().fill(Color.white))
+                    .claySurface(cornerRadius: 100, elevation: 0.7)
                     
                     Button("Yes, Reset") {
                         showResetConfirmation = false
                         gameManager.resetAllProgress()
                     }
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.clay(16, .bold))
                     .foregroundColor(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
@@ -250,7 +231,7 @@ struct SettingsView: View {
                 }
             }
             .padding(26)
-            .background(RoundedRectangle(cornerRadius: 28).fill(Color.white))
+            .claySurface(cornerRadius: 28)
             .padding(.horizontal, 30)
         }
     }
