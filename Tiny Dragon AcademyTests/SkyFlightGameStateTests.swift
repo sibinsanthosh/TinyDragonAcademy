@@ -96,4 +96,64 @@ final class SkyFlightGameStateTests: XCTestCase {
         }
         XCTAssertGreaterThan(s.pillarsSpawned, 1)
     }
+
+    // MARK: - Skills & talents
+
+    private func openSky(_ style: DragonPlayStyle) -> SkyFlightGameState {
+        var s = SkyFlightGameState(seed: 4, style: style)
+        s.pillars = []
+        s.gems = []
+        s.distanceToNextPillar = 1_000
+        return s
+    }
+
+    func test_agility_widensGaps() {
+        var s = SkyFlightGameState(seed: 4, style: DragonPlayStyle(stars: [.agility: 5]))
+        s.step(dt: dt, input: FlapInput(flap: true))
+        while s.pillars.isEmpty && !s.isOver { s.step(dt: dt, input: FlapInput(flap: s.velocityY < -0.3)) }
+        XCTAssertEqual(s.pillars[0].gapHeight, SkyFlightGameState.gapHeight(forPillarIndex: 0) * 1.24, accuracy: 1e-9)
+    }
+
+    func test_tailwind_fallsSlower() {
+        var plain = openSky()
+        var wind = openSky(DragonPlayStyle(talent: .tailwind))
+        for frame in 0..<30 {
+            plain.step(dt: dt, input: FlapInput(flap: frame == 0))
+            wind.step(dt: dt, input: FlapInput(flap: frame == 0))
+        }
+        XCTAssertGreaterThan(wind.dragonY, plain.dragonY)
+        XCTAssertEqual(wind.gravity, SkyFlightGameState.gravity * 0.8, accuracy: 1e-9)
+    }
+
+    func test_bubbleShield_bouncesOffTheFirstPillarOnly() {
+        var s = openSky(DragonPlayStyle(talent: .bubbleShield))
+        s.step(dt: dt, input: FlapInput(flap: true))
+        s.pillars = [CloudPillar(x: SkyFlightGameState.dragonX, gapCenter: 0.9, gapHeight: 0.1)]
+        s.step(dt: dt, input: FlapInput(flap: false))
+        XCTAssertFalse(s.isOver)
+        XCTAssertEqual(s.talentTriggers, 1)
+        XCTAssertGreaterThan(s.velocityY, 0, "bounced upward")
+        s.step(dt: dt, input: FlapInput(flap: false))
+        XCTAssertFalse(s.isOver, "the bumped pillar can't hit again")
+        s.pillars.append(CloudPillar(x: SkyFlightGameState.dragonX, gapCenter: 0.1, gapHeight: 0.05))
+        s.step(dt: dt, input: FlapInput(flap: false))
+        XCTAssertTrue(s.isOver)
+    }
+
+    func test_moonFloat_scrollsSlower() {
+        var s = openSky(DragonPlayStyle(talent: .moonFloat))
+        s.step(dt: dt, input: FlapInput(flap: true))
+        s.pillars = [CloudPillar(x: 1.0, gapCenter: 0.5, gapHeight: 0.3)]
+        s.step(dt: dt, input: FlapInput(flap: false))
+        XCTAssertEqual(1.0 - s.pillars[0].x, SkyFlightGameState.scrollSpeed * 0.85 * dt, accuracy: 1e-9)
+    }
+
+    func test_starMagnet_pullsGemsFromFurther() {
+        for (style, expected) in [(DragonPlayStyle.neutral, 0), (DragonPlayStyle(talent: .starMagnet), 2)] {
+            var s = openSky(style)
+            s.gems = [CGPoint(x: SkyFlightGameState.dragonX, y: 0.5 + 0.09)]
+            s.step(dt: dt, input: FlapInput(flap: true))
+            XCTAssertEqual(s.score, expected, "\(String(describing: style.talent))")
+        }
+    }
 }

@@ -17,6 +17,8 @@ struct CloudPillar: Equatable {
     var gapCenter: Double
     var gapHeight: Double
     var passed = false
+    /// Bubble Shield bounced off this pillar; it can't end the run any more.
+    var bumped = false
 }
 
 struct SkyFlightGameState {
@@ -40,11 +42,28 @@ struct SkyFlightGameState {
     var hasStarted = false
     var distanceToNextPillar = 0.6
     private(set) var pillarsSpawned = 0
+    /// Counts Bubble Shield bounces so the view can pop a label.
+    var talentTriggers = 0
+    /// Talents don't change Sky Flight's points.
+    var baseScore: Int { score }
 
+    let style: DragonPlayStyle
+    let gravity: Double
+    let scrollSpeed: Double
+    let gemRadius: Double
+    /// Agility: gaps 6% taller per star above 1★.
+    let gapScale: Double
+
+    private var shieldUsed = false
     private var rng: SeededRNG
 
-    init(seed: UInt64) {
+    init(seed: UInt64, style: DragonPlayStyle = .neutral) {
         rng = SeededRNG(seed: seed)
+        self.style = style
+        gravity = Self.gravity * (style.has(.tailwind) ? 0.8 : 1)
+        scrollSpeed = Self.scrollSpeed * (style.has(.moonFloat) ? 0.85 : 1)
+        gemRadius = Self.gemRadius * (style.has(.starMagnet) ? 2 : 1)
+        gapScale = 1 + 0.06 * style.boost(.agility)
     }
 
     /// Gaps start roomy and tighten by 0.01 per pillar down to 0.24.
@@ -59,10 +78,10 @@ struct SkyFlightGameState {
         elapsed += dt
 
         if input.flap { velocityY = Self.flapVelocity }
-        velocityY -= Self.gravity * dt
+        velocityY -= gravity * dt
         dragonY += velocityY * dt
 
-        let shift = Self.scrollSpeed * dt
+        let shift = scrollSpeed * dt
         for i in pillars.indices {
             pillars[i].x -= shift
             if !pillars[i].passed && pillars[i].x + Self.pillarWidth / 2 < Self.dragonX - Self.dragonRadius {
@@ -81,13 +100,23 @@ struct SkyFlightGameState {
         distanceToNextPillar -= shift
         if distanceToNextPillar <= 0 { spawnPillar() }
 
-        if dragonY - Self.dragonRadius < 0 || dragonY + Self.dragonRadius > 1 || pillars.contains(where: hitsPillar) {
+        if dragonY - Self.dragonRadius < 0 || dragonY + Self.dragonRadius > 1 {
             isOver = true
+        } else if let hit = pillars.firstIndex(where: hitsPillar) {
+            if style.has(.bubbleShield) && !shieldUsed {
+                // Bubble Shield: bounce off the first pillar instead of crashing
+                shieldUsed = true
+                talentTriggers += 1
+                pillars[hit].bumped = true
+                velocityY = Self.flapVelocity
+            } else {
+                isOver = true
+            }
         }
     }
 
     private mutating func spawnPillar() {
-        let gap = Self.gapHeight(forPillarIndex: pillarsSpawned)
+        let gap = min(0.7, Self.gapHeight(forPillarIndex: pillarsSpawned) * gapScale)
         let margin = gap / 2 + 0.08
         let center = Double.random(in: margin...(1 - margin), using: &rng)
         let x = 1.15
@@ -103,11 +132,12 @@ struct SkyFlightGameState {
     private func touchesDragon(_ gem: CGPoint) -> Bool {
         let dx = gem.x - Self.dragonX
         let dy = gem.y - dragonY
-        let reach = Self.dragonRadius + Self.gemRadius
+        let reach = Self.dragonRadius + gemRadius
         return dx * dx + dy * dy < reach * reach
     }
 
     private func hitsPillar(_ p: CloudPillar) -> Bool {
+        guard !p.bumped else { return false }
         let overlapX = abs(p.x - Self.dragonX) < Self.pillarWidth / 2 + Self.dragonRadius
         let insideGap = dragonY - Self.dragonRadius > p.gapCenter - p.gapHeight / 2
             && dragonY + Self.dragonRadius < p.gapCenter + p.gapHeight / 2
