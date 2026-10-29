@@ -10,6 +10,12 @@ import SwiftUI
 struct PostcardView: View {
     static let size = CGSize(width: 360, height: 450)
 
+    /// DragonView scales itself up with the growth stage; cancel that so an
+    /// adult or ancient dragon fills the card like a baby instead of overflowing.
+    static func dragonSize(for stage: GrowthStage) -> CGFloat {
+        210 / stage.scaleMultiplier
+    }
+
     let dragon: DragonModel
     let frame: PostcardFrame
     let pose: PostcardPose
@@ -28,7 +34,8 @@ struct PostcardView: View {
                 ZStack {
                     ClayPlatform(top: Color.white.opacity(0.85), side: frame.accent.opacity(0.55), width: 230)
                         .offset(y: 92)
-                    DragonView(dragon: dragon, mood: pose.mood, size: 210, allowInteractivePetting: false)
+                    DragonView(dragon: dragon, mood: pose.mood, size: Self.dragonSize(for: dragon.stats.growthStage),
+                               allowInteractivePetting: false)
                 }
                 .frame(height: 250)
                 label

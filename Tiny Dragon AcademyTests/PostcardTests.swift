@@ -48,4 +48,11 @@ final class PostcardTests: XCTestCase {
         XCTAssertEqual(PostcardPose.power.mood, .castingPower)
         XCTAssertEqual(PostcardFrame.allCases.count, 4)
     }
+
+    /// DragonView grows with the stage; the postcard cancels that so an adult fits like a baby.
+    func test_dragonSize_fillsTheSameSpaceAtEveryStage() {
+        for stage in GrowthStage.allCases {
+            XCTAssertEqual(PostcardView.dragonSize(for: stage) * stage.scaleMultiplier, 210, accuracy: 0.01, "\(stage)")
+        }
+    }
 }
