@@ -53,6 +53,6 @@ enum EggHatcher {
            let pick = all[highest + 1].speciesIds.filter({ available.contains($0) }).randomElement(using: &rng) {
             return .dragon(id: pick)
         }
-        return .stars(EggTier.rare.duplicateStars)
+        return .stars(BreedingRules.price)
     }
 }

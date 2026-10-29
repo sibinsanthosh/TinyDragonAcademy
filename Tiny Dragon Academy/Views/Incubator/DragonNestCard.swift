@@ -121,11 +121,11 @@ struct DragonNestCard: View {
         var label = "\(d.name) · \(d.stats.growthStage.rawValue)"
         if d.stats.growthStage != .adult && d.stats.growthStage != .ancient {
             label += " (too young)"
+        } else if d.stats.condition != .healthy {
+            label += " (not well)"
         } else if let until = BreedingRules.restUntil(d, now: gameManager.clock.now()) {
             let hours = Int(ceil(until.timeIntervalSince(gameManager.clock.now()) / 3600))
             label += hours >= 24 ? " (resting \(hours / 24)d)" : " (resting \(hours)h)"
-        } else if d.stats.condition != .healthy {
-            label += " (not well)"
         }
         return label
     }

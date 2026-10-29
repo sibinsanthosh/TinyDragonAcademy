@@ -78,7 +78,37 @@ final class WidgetSnapshotBuilderTests: XCTestCase {
         let snap = build(state())
         XCTAssertEqual(snap.entry(at: noon.addingTimeInterval(45 * 60))?.date, noon.addingTimeInterval(30 * 60))
         XCTAssertEqual(snap.entry(at: noon.addingTimeInterval(-60))?.date, noon, "before the first entry: the first")
-        XCTAssertEqual(snap.entry(at: noon.addingTimeInterval(20 * 3600))?.date, noon.addingTimeInterval(12 * 3600))
+        XCTAssertEqual(snap.entry(at: noon.addingTimeInterval(12.5 * 3600))?.date, noon.addingTimeInterval(12 * 3600))
+    }
+
+    func test_entryForDate_pastTheTimeline_isStaleNotTheLastProjection() {
+        let snap = build(state())
+        let late = snap.entry(at: noon.addingTimeInterval(20 * 3600))
+        XCTAssertEqual(late?.mood, .stale)
+        XCTAssertEqual(late?.name, "Sparkle")
+    }
+
+    func test_entryForDate_emptyDenNeverGoesStale() {
+        var s = state()
+        s.dragons[s.dragons.firstIndex { $0.id == "sparkle" }!].residence = .sanctuary
+        XCTAssertEqual(build(s).entry(at: noon.addingTimeInterval(20 * 3600))?.mood, .empty)
+    }
+
+    func test_signature_changesEachHourSoTheTimelineIsRefreshed() {
+        let a = build(state())
+        var b = a
+        b.entries = a.entries.map { var e = $0; e.date += 3600; return e }
+        XCTAssertNotEqual(a.signature, b.signature)
+    }
+
+    func test_signature_seesFutureAndStageChanges() {
+        let a = build(state())
+        var future = a
+        future.entries[10].mood = .sick
+        XCTAssertNotEqual(a.signature, future.signature)
+        var grown = a
+        grown.entries[0].stageTitle = "Adult"
+        XCTAssertNotEqual(a.signature, grown.signature)
     }
 
     func test_snapshot_roundTripsAsJSON() throws {

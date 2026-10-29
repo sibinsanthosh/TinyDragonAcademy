@@ -37,9 +37,16 @@ struct DragonProvider: TimelineProvider {
             completion(Timeline(entries: [DragonEntry(date: now, dragon: empty)], policy: .after(now.addingTimeInterval(3600))))
             return
         }
-        // The current state now, then each future projection at its own time
+        // The current state now, then each future projection at its own time,
+        // then a "missing you" entry once the projections run out
         var entries = [DragonEntry(date: now, dragon: current)]
         entries += snapshot.entries.filter { $0.date > now }.map { DragonEntry(date: $0.date, dragon: $0) }
+        if let last = snapshot.entries.last {
+            let staleAt = last.date.addingTimeInterval(WidgetSnapshot.staleAfter + 1)
+            if staleAt > now, let stale = snapshot.entry(at: staleAt), stale.mood == .stale {
+                entries.append(DragonEntry(date: staleAt, dragon: stale))
+            }
+        }
         let refresh = snapshot.entries.last.map { max($0.date, now.addingTimeInterval(1800)) } ?? now.addingTimeInterval(3600)
         completion(Timeline(entries: entries, policy: .after(refresh)))
     }
@@ -142,6 +149,7 @@ struct DragonWidgetView: View {
         case .hungry: return "Feed me, please!"
         case .sick: return "I need some care"
         case .spirit: return "Come back for me"
+        case .stale: return "Open the app to check on me"
         case .asleep: return "Shh… see you at 7"
         case .tired: return "Time for a rest"
         default: return "\(dragon.stageTitle)"
@@ -248,7 +256,7 @@ enum WidgetInk {
     static func moodColor(_ mood: WidgetMood) -> Color {
         switch mood {
         case .happy: return Color(red: 0.25, green: 0.66, blue: 0.40)
-        case .hungry, .sick, .spirit: return Color(red: 0.90, green: 0.38, blue: 0.24)
+        case .hungry, .sick, .spirit, .stale: return Color(red: 0.90, green: 0.38, blue: 0.24)
         case .tired, .asleep: return Color(red: 0.42, green: 0.31, blue: 0.88)
         case .empty: return inkSoft
         }

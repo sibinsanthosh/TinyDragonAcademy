@@ -11,6 +11,8 @@ import Foundation
 
 enum WidgetMood: String, Codable, Equatable {
     case happy, hungry, tired, sick, asleep, spirit, empty
+    /// The app hasn't been opened since the timeline ran out.
+    case stale
 
     var title: String {
         switch self {
@@ -21,6 +23,7 @@ enum WidgetMood: String, Codable, Equatable {
         case .asleep: return "Asleep"
         case .spirit: return "Needs you"
         case .empty: return "Hatch an egg"
+        case .stale: return "Missing you"
         }
     }
 }
@@ -40,16 +43,31 @@ struct WidgetSnapshot: Codable, Equatable {
 
     var entries: [Entry]
 
+    /// How long past the last projection before the widget stops guessing.
+    static let staleAfter: TimeInterval = 3600
+
     /// The latest entry at or before `date` (the first one if `date` is earlier).
+    /// Well past the end of the timeline the dragon is shown as `.stale`.
     func entry(at date: Date) -> Entry? {
-        entries.last { $0.date <= date } ?? entries.first
+        guard let last = entries.last else { return nil }
+        if last.mood != .empty, date > last.date.addingTimeInterval(Self.staleAfter) {
+            var stale = last
+            stale.date = date
+            stale.mood = .stale
+            return stale
+        }
+        return entries.last { $0.date <= date } ?? entries.first
     }
 
-    /// Changes only when something visible changes: name, mood, or a meter by 10 points.
+    /// Changes when something the widget will show changes (any entry's mood,
+    /// stage, or a meter by 10 points), and at least every hour so the
+    /// timeline never runs out while the app is in use.
     var signature: String {
         guard let first = entries.first else { return "none" }
         func bucket(_ v: Double) -> Int { Int((v / 10).rounded()) }
-        return "\(first.name)|\(first.mood.rawValue)|\(first.colors.joined())|\(bucket(first.hunger))|\(bucket(first.energy))|\(bucket(first.health))|\(entries.count)"
+        let hour = Int(first.date.timeIntervalSinceReferenceDate / 3600)
+        let timeline = entries.map { "\($0.mood.rawValue)\($0.stageTitle)\(bucket($0.hunger)),\(bucket($0.energy)),\(bucket($0.health))" }
+        return "\(hour)|\(first.name)|\(first.colors.joined())|" + timeline.joined(separator: ";")
     }
 }
 
