@@ -32,6 +32,11 @@
 			path = "Tiny Dragon AcademyTests";
 			sourceTree = "<group>";
 		};
+		E1A000000000000000000001 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +61,7 @@
 			isa = PBXGroup;
 			children = (
 				C3C54A563087C0610056D5C6 /* Tiny Dragon Academy */,
+				E1A000000000000000000001 /* Shared */,
 				D1A000000000000000000001 /* Tiny Dragon AcademyTests */,
 				C3C54A553087C0610056D5C6 /* Products */,
 			);
@@ -87,6 +93,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				C3C54A563087C0610056D5C6 /* Tiny Dragon Academy */,
+				E1A000000000000000000001 /* Shared */,
 			);
 			name = "Tiny Dragon Academy";
 			packageProductDependencies = (

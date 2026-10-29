@@ -148,6 +148,7 @@ final class GameManager: ObservableObject {
     
     func save() {
         persistence.saveState(state)
+        WidgetBridge.publish(state: state, now: clock.now(), calendar: calendar)
     }
     
     // MARK: - Navigation
