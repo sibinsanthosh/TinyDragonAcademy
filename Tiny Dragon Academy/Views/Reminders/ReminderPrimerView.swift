@@ -28,7 +28,7 @@ struct ReminderPrimerView: View {
                     .font(.clay(14, .medium))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
-                KidButton(title: "Turn on reminders", icon: "bell.fill", backgroundColor: DragonPalette.coral) {
+                KidButton(title: "Turn on reminders", icon: "bell.fill", backgroundColor: ClayColor.accent) {
                     Task { await gameManager.enableReminders() }
                 }
                 Button("Not now") { gameManager.markReminderPrimerSeen() }

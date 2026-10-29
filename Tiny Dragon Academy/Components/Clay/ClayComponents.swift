@@ -209,3 +209,80 @@ struct ClayPanel<Content: View>: View {
             .claySurface(cornerRadius: cornerRadius, elevation: 1.4)
     }
 }
+
+/// Something to buy with stars: shows the price, or how many stars are still needed.
+struct ClayUnlockRow: View {
+    let title: String
+    let detail: String
+    let price: Int
+    let stars: Int
+    let action: () -> Void
+
+    private var affordable: Bool { stars >= price }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: affordable ? "plus.circle.fill" : "lock.fill")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundColor(affordable ? ClayColor.accent : ClayColor.inkSoft)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.clay(16, .heavy))
+                    .foregroundColor(ClayColor.ink)
+                Text(affordable ? detail : "\(price - stars)★ more to unlock")
+                    .font(.clay(13, .bold))
+                    .foregroundColor(ClayColor.inkSoft)
+            }
+            Spacer()
+            Button {
+                HapticsService.shared.medium()
+                action()
+            } label: {
+                Text("\(price)★")
+                    .font(.clay(16, .heavy))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16).padding(.vertical, 9)
+            }
+            .buttonStyle(ClayButtonStyle(color: ClayColor.accent, cornerRadius: 16))
+            .disabled(!affordable)
+        }
+        .padding(14)
+        .claySurface(cornerRadius: 22)
+    }
+}
+
+/// A row of clay tabs for switching sections within a screen.
+struct ClaySegmented<Option: Hashable>: View {
+    let options: [Option]
+    @Binding var selection: Option
+    let title: (Option) -> String
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(options, id: \.self) { option in
+                let isOn = option == selection
+                Button {
+                    HapticsService.shared.light()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { selection = option }
+                } label: {
+                    Text(title(option))
+                        .font(.clay(14, .heavy))
+                        .foregroundColor(isOn ? .white : ClayColor.inkSoft)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                        .frame(maxWidth: .infinity, minHeight: 36)
+                        .background(
+                            Capsule()
+                                .fill(ClayColor.accent.shadow(.inner(color: Color.black.opacity(0.15), radius: 0, x: 0, y: -3)))
+                                .opacity(isOn ? 1 : 0)
+                        )
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(isOn ? .isSelected : [])
+            }
+        }
+        .padding(5)
+        .claySurface(cornerRadius: 100, elevation: 0.7)
+    }
+}

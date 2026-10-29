@@ -105,6 +105,14 @@ struct ContentView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if AppTab.forRoute(gameManager.currentRoute) != nil {
                 ClayTabBar()
+                    .background(alignment: .bottom) {
+                        // Fade scrolling content out before it reaches the bar
+                        LinearGradient(colors: [ClayColor.backdropBottom.opacity(0), ClayColor.backdropBottom],
+                                       startPoint: .top, endPoint: .center)
+                            .frame(height: 110)
+                            .ignoresSafeArea(edges: .bottom)
+                            .allowsHitTesting(false)
+                    }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
@@ -120,13 +128,13 @@ struct ContentView: View {
         // Celebrations sit above every sheet and play one after another
         .overlay(alignment: .top) {
             if let toast = gameManager.toasts.first {
-                Text(toast)
-                    .font(.clay(15, .heavy))
-                    .foregroundColor(DragonPalette.textDark)
+                Label(toast, systemImage: "sparkles")
+                    .font(.clay(16, .heavy))
+                    .foregroundColor(ClayColor.ink)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 18)
                     .padding(.vertical, 12)
-                    .background(Capsule().fill(Color.white).shadow(color: DragonPalette.popShadow, radius: 10, y: 4))
+                    .claySurface(cornerRadius: 24, elevation: 1.3)
                     .padding(.top, 8)
                     .padding(.horizontal, 20)
                     .transition(.move(edge: .top).combined(with: .opacity))

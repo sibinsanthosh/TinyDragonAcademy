@@ -10,7 +10,8 @@ import SwiftUI
 struct HallOfLegendsView: View {
     var body: some View {
         ZStack {
-            DragonPalette.nightGradient.ignoresSafeArea()
+            ClayBackdrop()
+            Color(red: 0.35, green: 0.28, blue: 0.55).opacity(0.18).ignoresSafeArea()
             VStack(spacing: 12) {
                 ScreenTopBar(title: "Hall of Legends", backTo: .dragonCollection)
                 ScrollView { HallOfLegendsList().padding(.horizontal, 16) }
@@ -25,7 +26,7 @@ struct HallOfLegendsList: View {
     var body: some View {
         VStack(spacing: 12) {
             if gameManager.state.hallOfLegends.isEmpty {
-                Text("No legends yet. Every dragon here is still with you. 💜")
+                Label("No legends yet. Every dragon is still with you.", systemImage: "heart.fill")
                     .font(.clay(15, .semibold))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
@@ -51,7 +52,7 @@ struct HallOfLegendsList: View {
                     Spacer()
                     Image(systemName: "laurel.leading")
                         .font(.system(size: 22))
-                        .foregroundColor(DragonPalette.buttercup)
+                        .foregroundColor(ClayColor.sunShade)
                 }
                 .padding(12)
                 .claySurface(cornerRadius: 18)

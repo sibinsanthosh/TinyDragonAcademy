@@ -13,10 +13,10 @@ struct IncubatorView: View {
 
     var body: some View {
         ZStack {
-            DragonPalette.sunsetGradient.ignoresSafeArea()
+            ClayBackdrop()
 
             VStack(spacing: 12) {
-                ScreenTopBar(title: "Incubator")
+                ScreenTopBar(title: "Eggs")
 
                 ScrollView {
                     VStack(spacing: 16) {
@@ -25,12 +25,7 @@ struct IncubatorView: View {
                         }
 
                         if gameManager.state.incubatorCapacity < DenRules.maxIncubatorSlots {
-                            KidButton(title: "Second incubator • \(DenRules.incubatorSlotPrice)★", icon: "plus.circle.fill",
-                                      backgroundColor: DragonPalette.softPurple, fontSize: 16) {
-                                _ = gameManager.purchaseIncubatorSlot()
-                            }
-                            .disabled(gameManager.totalStars < DenRules.incubatorSlotPrice)
-                            .opacity(gameManager.totalStars < DenRules.incubatorSlotPrice ? 0.5 : 1)
+                            secondIncubatorOffer
                         }
 
                         basket
@@ -67,9 +62,11 @@ struct IncubatorView: View {
                     .font(.clay(17, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 if slot.isReady {
-                    Text("Ready! Tap to hatch 🐣")
-                        .font(.clay(15, .heavy))
-                        .foregroundColor(DragonPalette.coral)
+                    Label("Ready! Tap the egg to hatch", systemImage: "sparkles")
+                        .font(.clay(16, .heavy))
+                        .foregroundColor(ClayColor.ink)
+                        .padding(.horizontal, 14).padding(.vertical, 7)
+                        .background(Capsule().fill(ClayColor.sun))
                 } else {
                     progressRow(label: "Hatching", value: slot.progress, color: egg.tier.shellColor,
                                 trailing: timeLeft(slot, tier: egg.tier))
@@ -78,9 +75,14 @@ struct IncubatorView: View {
                                 trailing: slot.warmth >= LifeSimulator.eggWarmThreshold ? "Cozy" : "Cold — tap to warm!")
                 }
             } else {
-                Image(systemName: "flame")
-                    .font(.system(size: 36))
-                    .foregroundColor(DragonPalette.coral.opacity(0.6))
+                ZStack {
+                    ClayPlatform(top: Color(red: 1.0, green: 0.90, blue: 0.80), side: Color(red: 0.93, green: 0.72, blue: 0.56), width: 150)
+                        .offset(y: 30)
+                    Image(systemName: "oval.portrait")
+                        .font(.system(size: 54, weight: .light))
+                        .foregroundColor(ClayColor.inkSoft.opacity(0.5))
+                }
+                .frame(height: 100)
                 Text("Empty incubator")
                     .font(.clay(16, .heavy))
                     .foregroundColor(DragonPalette.textDark)
@@ -102,10 +104,9 @@ struct IncubatorView: View {
                 Spacer()
                 Text(trailing)
             }
-            .font(.clay(12, .bold))
-            .foregroundColor(DragonPalette.textMuted)
-            ProgressView(value: max(0, min(1, value)))
-                .tint(color)
+            .font(.clay(13, .bold))
+            .foregroundColor(ClayColor.inkSoft)
+            ClayMeter(value: max(0, min(1, value)) * 100, color: color, height: 10)
         }
     }
 
@@ -116,9 +117,16 @@ struct IncubatorView: View {
         return minutes >= 60 ? "\(minutes / 60)h \(minutes % 60)m left" : "\(max(1, minutes))m left"
     }
 
+    private var secondIncubatorOffer: some View {
+        ClayUnlockRow(title: "Second incubator", detail: "Hatch two eggs at once",
+                      price: DenRules.incubatorSlotPrice, stars: gameManager.totalStars) {
+            _ = gameManager.purchaseIncubatorSlot()
+        }
+    }
+
     private var basket: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Egg Basket (\(gameManager.state.eggBasket.count))", systemImage: "basket.fill")
+            Label("Egg basket · \(gameManager.state.eggBasket.count)", systemImage: "basket.fill")
                 .font(.clay(18, .heavy))
                 .foregroundColor(DragonPalette.textDark)
             if gameManager.state.eggBasket.isEmpty {
@@ -142,16 +150,19 @@ struct IncubatorView: View {
                     .foregroundColor(DragonPalette.textDark)
                     Spacer()
                     let free = gameManager.state.incubatorSlots.firstIndex { $0.egg == nil }
-                    Button("Place") {
+                    Button {
                         if let free { _ = gameManager.placeEgg(egg.id, slot: free) }
+                    } label: {
+                        Text("Place")
+                            .font(.clay(15, .heavy))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16).padding(.vertical, 8)
                     }
-                    .font(.clay(14, .heavy))
-                    .buttonStyle(.borderedProminent)
-                    .tint(DragonPalette.coral)
+                    .buttonStyle(ClayButtonStyle(color: ClayColor.coral, cornerRadius: 16))
                     .disabled(free == nil)
                 }
                 .padding(10)
-                .background(RoundedRectangle(cornerRadius: 14).fill(DragonPalette.cream))
+                .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(red: 1.0, green: 0.96, blue: 0.93)))
             }
         }
         .padding(16)

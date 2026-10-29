@@ -19,230 +19,218 @@ struct FoodInventoryView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                ClayBackdrop()
-                
+        ZStack {
+            ClayBackdrop()
+
+            VStack(spacing: 10) {
+                if closeRoute != nil {
+                    ScreenTopBar(title: "Shop")
+                } else {
+                    sheetHeader
+                }
+
                 ScrollView {
-                    VStack(spacing: 16) {
-                        // Top Star Balance & Favorite Hint
-                        topBanner
-                        
+                    VStack(spacing: 14) {
+                        favoriteHint
+
+                        sectionTitle("Treats", icon: "fork.knife")
+                        ForEach(FoodType.allCases) { food in
+                            foodCard(food)
+                        }
+
                         sectionTitle("Care", icon: "cross.case.fill")
                         ForEach(CareItem.allCases, id: \.self) { item in
                             shopRow(
                                 icon: item.iconName,
-                                color: item == .healingHerb ? DragonPalette.mintGreen : DragonPalette.coral,
+                                color: item == .healingHerb ? ClayColor.mint : ClayColor.coral,
                                 title: item.rawValue,
-                                subtitle: item == .healingHerb ? "Cures Hunger Fever or Sluggish Scales." : "Revives a spirit within 48 hours.",
-                                owned: "Owned: \(gameManager.state.itemCount(item))",
+                                subtitle: item == .healingHerb ? "Cures Hunger Fever or Sluggish Scales" : "Revives a spirit within 48 hours",
+                                owned: "×\(gameManager.state.itemCount(item))",
                                 price: item.price
                             ) { _ = gameManager.purchaseCareItem(item) }
                         }
-                        
-                        sectionTitle("Mystery Eggs", icon: "oval.portrait.fill")
+
+                        sectionTitle("Mystery eggs", icon: "oval.portrait.fill")
                         ForEach(EggTier.allCases.filter { $0.shopPrice != nil }, id: \.self) { tier in
                             shopRow(
                                 icon: "oval.portrait.fill",
                                 color: tier.shellColor,
                                 title: tier.displayName,
-                                subtitle: "Hatches in \(Int(tier.hatchDuration / 3600))h. Goes to your egg basket.",
+                                subtitle: "Hatches in \(Int(tier.hatchDuration / 3600))h",
                                 owned: nil,
                                 price: tier.shopPrice ?? 0
                             ) { _ = gameManager.purchaseEgg(tier) }
                         }
-                        
-                        sectionTitle("Upgrades", icon: "arrow.up.circle.fill")
+
+                        if gameManager.state.incubatorCapacity < DenRules.maxIncubatorSlots || gameManager.nextDenSlotPrice != nil {
+                            sectionTitle("Upgrades", icon: "arrow.up.circle.fill")
+                        }
                         if gameManager.state.incubatorCapacity < DenRules.maxIncubatorSlots {
-                            shopRow(icon: "flame.fill", color: DragonPalette.peach, title: "Second Incubator",
-                                    subtitle: "Warm two eggs at once.", owned: nil, price: DenRules.incubatorSlotPrice) {
+                            shopRow(icon: "flame.fill", color: ClayColor.coral, title: "Second incubator",
+                                    subtitle: "Warm two eggs at once", owned: nil, price: DenRules.incubatorSlotPrice) {
                                 _ = gameManager.purchaseIncubatorSlot()
                             }
                         }
                         if let price = gameManager.nextDenSlotPrice {
-                            shopRow(icon: "house.fill", color: DragonPalette.softPurple, title: "Den Slot \(gameManager.state.denCapacity + 1)",
-                                    subtitle: "Care for one more dragon at a time.", owned: nil, price: price) {
+                            shopRow(icon: "house.fill", color: ClayColor.accent, title: "Den spot \(gameManager.state.denCapacity + 1)",
+                                    subtitle: "Care for one more dragon", owned: nil, price: price) {
                                 _ = gameManager.purchaseDenSlot()
                             }
                         }
-                        
-                        sectionTitle("Treats", icon: "fork.knife")
-                        // Food Items Grid
-                        ForEach(FoodType.allCases) { food in
-                            foodCard(food)
+
+                        if closeRoute != nil {
+                            sectionTitle("Style", icon: "paintbrush.fill")
+                            HStack(spacing: 12) {
+                                styleTile("Dress-Up", icon: "tshirt.fill", color: ClayColor.rose) { gameManager.navigate(to: .dragonDressUp) }
+                                styleTile("Island", icon: "leaf.fill", color: ClayColor.mint) { gameManager.navigate(to: .islandBuilder) }
+                            }
                         }
                     }
-                    .padding(20)
-                }
-            }
-            .navigationTitle("Dragon Shop")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        if let closeRoute {
-                            gameManager.navigate(to: closeRoute)
-                        } else {
-                            dismiss()
-                        }
-                    }
-                    .font(.clay(16, .bold))
-                    .foregroundColor(DragonPalette.textDark)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 20)
                 }
             }
         }
     }
-    
-    private var topBanner: some View {
+
+    /// Sheet form (opened from Home): a title and a close button.
+    private var sheetHeader: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Treat Pantry")
-                    .font(.clay(18, .heavy))
-                    .foregroundColor(DragonPalette.textDark)
-                
-                Text(activeDragon.stats.favoriteFoodDiscovered ? "Favorite: \(activeDragon.favoriteFoodType.displayName) (2x Bonus!)" : "Tip: Discover \(activeDragon.name)'s favorite treat for 2x XP!")
-                    .font(.clay(13, .medium))
-                    .foregroundColor(DragonPalette.coral)
-            }
-            
+            Text("Shop")
+                .font(.clay(24, .heavy))
+                .foregroundColor(ClayColor.ink)
             Spacer()
-            
             StarCounterView(count: gameManager.totalStars)
+            ClayIconButton(systemName: "xmark", accessibilityLabel: "Close") { dismiss() }
         }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white.opacity(0.92))
-                .shadow(color: DragonPalette.softShadow, radius: 4, x: 0, y: 2)
-        )
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
     }
-    
+
+    private var favoriteHint: some View {
+        Label(activeDragon.stats.favoriteFoodDiscovered
+              ? "\(activeDragon.name) loves \(activeDragon.favoriteFoodType.displayName): 2× XP"
+              : "Find \(activeDragon.name)'s favorite treat for 2× XP",
+              systemImage: "heart.fill")
+            .font(.clay(14, .bold))
+            .foregroundColor(ClayColor.ink)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(ClayColor.rose.opacity(0.15)))
+    }
+
     private func sectionTitle(_ title: String, icon: String) -> some View {
         Label(title, systemImage: icon)
-            .font(.clay(18, .heavy))
-            .foregroundColor(DragonPalette.textDark)
+            .font(.clay(20, .heavy))
+            .foregroundColor(ClayColor.ink)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 4)
     }
-    
+
+    private func priceButton(_ price: Int, action: @escaping () -> Void) -> some View {
+        Button {
+            HapticsService.shared.light()
+            AudioService.shared.playPop()
+            action()
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "star.fill").font(.system(size: 12, weight: .bold))
+                Text("\(price)").font(.clay(15, .heavy))
+            }
+            .foregroundColor(ClayColor.ink)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+        }
+        .buttonStyle(ClayButtonStyle(color: ClayColor.sun, cornerRadius: 16))
+        .disabled(gameManager.totalStars < price)
+    }
+
+    private func iconBadge(_ icon: String, color: Color) -> some View {
+        Image(systemName: icon)
+            .font(.system(size: 22, weight: .bold))
+            .foregroundColor(.white)
+            .frame(width: 50, height: 50)
+            .background(Circle().fill(color.shadow(.inner(color: Color.black.opacity(0.15), radius: 0, x: 0, y: -4))))
+    }
+
+    private func styleTile(_ title: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button {
+            HapticsService.shared.medium()
+            action()
+        } label: {
+            VStack(spacing: 8) {
+                iconBadge(icon, color: color)
+                Text(title)
+                    .font(.clay(16, .heavy))
+                    .foregroundColor(ClayColor.ink)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+        }
+        .buttonStyle(ClaySecondaryButtonStyle(cornerRadius: 24))
+    }
+
     private func shopRow(icon: String, color: Color, title: String, subtitle: String, owned: String?, price: Int,
                          action: @escaping () -> Void) -> some View {
-        let canAfford = gameManager.totalStars >= price
-        return HStack(spacing: 14) {
-            Circle()
-                .fill(color.opacity(0.25))
-                .frame(width: 52, height: 52)
-                .overlay(Image(systemName: icon).font(.system(size: 24)).foregroundColor(color))
-            VStack(alignment: .leading, spacing: 3) {
-                HStack {
+        HStack(spacing: 12) {
+            iconBadge(icon, color: color)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
                     Text(title)
                         .font(.clay(16, .heavy))
-                        .foregroundColor(DragonPalette.textDark)
-                    Spacer()
+                        .foregroundColor(ClayColor.ink)
                     if let owned {
                         Text(owned)
-                            .font(.clay(13, .bold))
-                            .foregroundColor(DragonPalette.textMuted)
+                            .font(.clay(13, .heavy))
+                            .foregroundColor(ClayColor.inkSoft)
                     }
                 }
                 Text(subtitle)
-                    .font(.clay(12, .medium))
-                    .foregroundColor(DragonPalette.textMuted)
+                    .font(.clay(13, .bold))
+                    .foregroundColor(ClayColor.inkSoft)
+                    .lineLimit(2)
             }
-            Button(action: action) {
-                HStack(spacing: 4) {
-                    Image(systemName: "star.fill").font(.system(size: 11)).foregroundColor(DragonPalette.buttercup)
-                    Text("\(price)").font(.clay(13, .heavy)).foregroundColor(DragonPalette.textDark)
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .background(Capsule().fill(canAfford ? DragonPalette.cream : Color.gray.opacity(0.15)))
-            }
-            .disabled(!canAfford)
+            Spacer(minLength: 4)
+            priceButton(price, action: action)
         }
-        .padding(14)
-        .claySurface(cornerRadius: 18)
+        .padding(12)
+        .claySurface(cornerRadius: 22)
     }
-    
+
     private func foodCard(_ food: FoodType) -> some View {
         let count = gameManager.state.foodInventory[food.rawValue] ?? 0
-        let isFavorite = (food == activeDragon.favoriteFoodType)
-        let canAfford = gameManager.totalStars >= food.purchaseStarCost
-        
-        return HStack(spacing: 14) {
-            // Food Icon
-            Circle()
-                .fill(food.primaryColor.opacity(0.2))
-                .frame(width: 52, height: 52)
-                .overlay(
-                    Image(systemName: food.icon)
-                        .font(.system(size: 24))
-                        .foregroundColor(food.primaryColor)
-                )
-            
-            VStack(alignment: .leading, spacing: 3) {
-                HStack {
+        let isFavorite = food == activeDragon.favoriteFoodType && activeDragon.stats.favoriteFoodDiscovered
+        return HStack(spacing: 12) {
+            iconBadge(food.icon, color: food.primaryColor)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
                     Text(food.displayName)
                         .font(.clay(16, .heavy))
-                        .foregroundColor(DragonPalette.textDark)
-                    
-                    if isFavorite && activeDragon.stats.favoriteFoodDiscovered {
-                        Text("❤️ Fav")
-                            .font(.clay(10, .heavy))
-                            .foregroundColor(DragonPalette.rosyPink)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Capsule().fill(DragonPalette.rosyPink.opacity(0.2)))
-                    }
-                    
-                    Spacer()
-                    
-                    Text("In Stock: \(count)")
-                        .font(.clay(13, .bold))
-                        .foregroundColor(DragonPalette.textMuted)
-                }
-                
-                Text(food.description)
-                    .font(.clay(12, .medium))
-                    .foregroundColor(DragonPalette.textMuted)
-                    .lineLimit(1)
-                
-                HStack(spacing: 10) {
-                    Text("+\(Int(food.hungerRestored)) Hunger")
-                    Text("+\(Int(food.energyRestored)) Energy")
-                    Text("+\(food.baseXP) XP")
-                }
-                .font(.clay(11, .bold))
-                .foregroundColor(food.primaryColor)
-            }
-            
-            // Buy Button
-            Button(action: {
-                _ = gameManager.purchaseFood(food: food, count: 1)
-            }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 11))
-                        .foregroundColor(DragonPalette.buttercup)
-                    Text("\(food.purchaseStarCost)")
+                        .foregroundColor(ClayColor.ink)
+                    Text("×\(count)")
                         .font(.clay(13, .heavy))
-                        .foregroundColor(DragonPalette.textDark)
+                        .foregroundColor(ClayColor.inkSoft)
+                    if isFavorite {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(ClayColor.rose)
+                            .accessibilityLabel("Favorite")
+                    }
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(canAfford ? DragonPalette.cream : Color.gray.opacity(0.15))
-                        .shadow(color: DragonPalette.softShadow, radius: 3, x: 0, y: 1)
-                )
+                HStack(spacing: 8) {
+                    Label("\(Int(food.hungerRestored))", systemImage: "fork.knife")
+                    Label("\(Int(food.energyRestored))", systemImage: "bolt.fill")
+                    Label("\(food.baseXP) XP", systemImage: "sparkles")
+                }
+                .font(.clay(12, .heavy))
+                .foregroundColor(ClayColor.inkSoft)
             }
-            .disabled(!canAfford)
+            Spacer(minLength: 4)
+            priceButton(food.purchaseStarCost) {
+                _ = gameManager.purchaseFood(food: food, count: 1)
+            }
         }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white.opacity(0.95))
-                .shadow(color: DragonPalette.softShadow, radius: 4, x: 0, y: 2)
-        )
+        .padding(12)
+        .claySurface(cornerRadius: 22)
     }
 }

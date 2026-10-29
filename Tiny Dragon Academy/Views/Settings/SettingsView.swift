@@ -19,38 +19,20 @@ struct SettingsView: View {
             
             VStack(spacing: 16) {
                 // Header
-                HStack {
-                    Button(action: {
-                        HapticsService.shared.medium()
-                        AudioService.shared.playPop()
-                        gameManager.navigate(to: .mainMenu)
-                    }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "chevron.left.circle.fill")
-                                .font(.system(size: 26))
-                            Text("Back")
-                                .font(.clay(16, .bold))
-                        }
-                        .foregroundColor(DragonPalette.textDark)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .claySurface(cornerRadius: 100, elevation: 0.7)
-                    }
-                    
-                    Spacer()
-                    
+                ZStack {
                     Text("Parent Zone")
-                        .font(.clay(20, .heavy))
-                        .foregroundColor(DragonPalette.textDark)
-                    
-                    Spacer()
-                    
-                    // Empty spacer to balance header
-                    Spacer().frame(width: 70)
+                        .font(.clay(24, .heavy))
+                        .foregroundColor(ClayColor.ink)
+                    HStack {
+                        ClayIconButton(systemName: "chevron.left", accessibilityLabel: "Back") {
+                            gameManager.navigate(to: .mainMenu)
+                        }
+                        Spacer()
+                    }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+
                 ScrollView {
                     VStack(spacing: 18) {
                         // Audio Section
@@ -59,13 +41,13 @@ struct SettingsView: View {
                                 get: { gameManager.state.settings.isSoundEnabled },
                                 set: { gameManager.updateSettings(sound: $0) }
                             ))
-                            .tint(DragonPalette.softPurple)
+                            .tint(ClayColor.accent)
                             
                             Toggle("Ambient Lullaby Music", isOn: Binding(
                                 get: { gameManager.state.settings.isMusicEnabled },
                                 set: { gameManager.updateSettings(music: $0) }
                             ))
-                            .tint(DragonPalette.softPurple)
+                            .tint(ClayColor.accent)
                         }
                         
                         // Care Reminders Section
@@ -85,7 +67,7 @@ struct SettingsView: View {
                                 get: { gameManager.state.remindersEnabled },
                                 set: { gameManager.setRemindersEnabled($0) }
                             ))
-                            .tint(DragonPalette.coral)
+                            .tint(ClayColor.accent)
                         }
                         
                         // Accessibility Section
@@ -94,13 +76,13 @@ struct SettingsView: View {
                                 get: { gameManager.state.settings.reduceMotion },
                                 set: { gameManager.updateSettings(reduceMotion: $0) }
                             ))
-                            .tint(DragonPalette.mintGreen)
+                            .tint(ClayColor.accent)
                             
                             Toggle("High Contrast Visual Hints", isOn: Binding(
                                 get: { gameManager.state.settings.highContrastHints },
                                 set: { gameManager.updateSettings(highContrast: $0) }
                             ))
-                            .tint(DragonPalette.mintGreen)
+                            .tint(ClayColor.accent)
                         }
                         
                         // Child Safety & Privacy Assurance Card

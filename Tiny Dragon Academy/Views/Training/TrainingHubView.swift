@@ -14,34 +14,33 @@ struct TrainingHubView: View {
         ZStack {
             ClayBackdrop()
 
-            VStack(spacing: 12) {
-                ScreenTopBar(title: "Training")
-
-                HStack(spacing: 12) {
-                    DragonView(dragon: gameManager.activeDragon, mood: .happy, size: 70, allowInteractivePetting: false)
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("\(gameManager.activeDragon.name)'s fitness")
-                            .font(.clay(15, .heavy))
-                            .foregroundColor(DragonPalette.textDark)
-                        DragonMetersView(stats: gameManager.activeDragon.stats)
-                    }
-                }
-                .padding(14)
-                .claySurface(cornerRadius: 20)
-                .padding(.horizontal, 16)
-
-                if !gameManager.canTrainActiveDragon {
-                    Text(blockedReason)
-                        .font(.clay(14, .bold))
-                        .foregroundColor(DragonPalette.coral)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                }
+            VStack(spacing: 10) {
+                ScreenTopBar(title: "Train")
 
                 ScrollView {
-                    VStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        if gameManager.hasActiveDenDragon {
+                            fitnessStrip
+                        }
+
+                        if !gameManager.canTrainActiveDragon {
+                            Label(blockedReason, systemImage: "info.circle.fill")
+                                .font(.clay(14, .bold))
+                                .foregroundColor(ClayColor.coralShade)
+                                .padding(.horizontal, 4)
+                        }
+
+                        sectionTitle("Training games", icon: "figure.run")
                         ForEach(TrainingGameType.allCases) { game in
                             gameCard(game)
+                        }
+
+                        sectionTitle("Learn", icon: "book.fill")
+                            .padding(.top, 6)
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                            ForEach(MiniGameType.allCases) { learning in
+                                learnTile(learning)
+                            }
                         }
                     }
                     .padding(.horizontal, 16)
@@ -60,47 +59,122 @@ struct TrainingHubView: View {
         return "\(dragon.name) needs at least \(Int(LifeRules.trainingEnergyCost)) energy to train."
     }
 
-    /// "Best 12 • Aim ★★★ ✨" — the active dragon's skill here, ✨ where its talent works.
-    private func skillLine(for game: TrainingGameType) -> String {
-        let best = "Best \(gameManager.state.trainingBests[game.rawValue] ?? 0)"
-        guard gameManager.hasActiveDenDragon else { return "\(best) • Trains \(game.trainsLabel)" }
+    private func sectionTitle(_ title: String, icon: String) -> some View {
+        Label(title, systemImage: icon)
+            .font(.clay(20, .heavy))
+            .foregroundColor(ClayColor.ink)
+            .padding(.horizontal, 4)
+    }
+
+    /// The active dragon with its energy and fitness, the two things training uses.
+    private var fitnessStrip: some View {
         let dragon = gameManager.activeDragon
-        let skill = DragonSkill.forGame(game)
-        let sparkle = dragon.talent?.game == game ? " ✨" : ""
-        return "\(best) • \(skill.title) \(SkillStars.text(dragon.skillStars(skill)))\(sparkle)"
+        return HStack(spacing: 12) {
+            DragonView(dragon: dragon, mood: .happy, size: 56, allowInteractivePetting: false)
+                .frame(width: 60, height: 60)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(dragon.badgedName)
+                    .font(.clay(17, .heavy))
+                    .foregroundColor(ClayColor.ink)
+                meterRow(icon: "bolt.fill", value: dragon.stats.energy, color: ClayColor.sun)
+                meterRow(icon: "figure.run", value: dragon.stats.fitness, color: ClayColor.sky)
+            }
+        }
+        .padding(12)
+        .claySurface(cornerRadius: 22)
+    }
+
+    private func meterRow(icon: String, value: Double, color: Color) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(color)
+                .frame(width: 16)
+            ClayMeter(value: value, color: color, height: 9)
+            Text("\(Int(value))")
+                .font(.clay(13, .heavy))
+                .foregroundColor(ClayColor.inkSoft)
+                .frame(width: 30, alignment: .trailing)
+        }
     }
 
     private func gameCard(_ game: TrainingGameType) -> some View {
-        Button {
+        let dragon = gameManager.activeDragon
+        let skill = DragonSkill.forGame(game)
+        let hasTalent = gameManager.hasActiveDenDragon && dragon.talent?.game == game
+        return Button {
             HapticsService.shared.medium()
             AudioService.shared.playPop()
             gameManager.navigate(to: .trainingGame(game))
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: game.iconName)
-                    .font(.system(size: 28, weight: .bold))
+                    .font(.system(size: 26, weight: .bold))
                     .foregroundColor(.white)
-                    .frame(width: 58, height: 58)
-                    .background(RoundedRectangle(cornerRadius: 16).fill(game.themeColor))
+                    .frame(width: 56, height: 56)
+                    .background(RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(game.themeColor.shadow(.inner(color: Color.black.opacity(0.15), radius: 0, x: 0, y: -4))))
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(game.rawValue)
-                        .font(.clay(18, .heavy))
-                        .foregroundColor(DragonPalette.textDark)
-                    Text(game.subtitle)
-                        .font(.clay(13, .medium))
-                        .foregroundColor(DragonPalette.textMuted)
-                    Text(skillLine(for: game))
+                    HStack(spacing: 6) {
+                        Text(game.rawValue)
+                            .font(.clay(18, .heavy))
+                            .foregroundColor(ClayColor.ink)
+                        if hasTalent {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(ClayColor.accent)
+                                .accessibilityLabel("Talent works here")
+                        }
+                    }
+                    HStack(spacing: 6) {
+                        Text(skill.title)
+                            .foregroundColor(ClayColor.inkSoft)
+                        if gameManager.hasActiveDenDragon {
+                            Text(SkillStars.text(dragon.skillStars(skill)))
+                                .foregroundColor(DragonPalette.starGold)
+                        }
+                    }
+                    .font(.clay(13, .heavy))
+                    Label("Best \(gameManager.state.trainingBests[game.rawValue] ?? 0)", systemImage: "trophy.fill")
                         .font(.clay(12, .bold))
-                        .foregroundColor(game.themeColor)
+                        .foregroundColor(ClayColor.inkSoft)
                 }
                 Spacer()
-                Image(systemName: "chevron.right.circle.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(game.themeColor)
+                Image(systemName: "play.fill")
+                    .font(.system(size: 15, weight: .heavy))
+                    .foregroundColor(.white)
+                    .frame(width: 38, height: 38)
+                    .background(Circle().fill(ClayColor.accent))
             }
-            .padding(14)
-            .claySurface(cornerRadius: 20)
+            .padding(12)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(ClaySecondaryButtonStyle(cornerRadius: 24))
+    }
+
+    private func learnTile(_ learning: MiniGameType) -> some View {
+        Button {
+            HapticsService.shared.medium()
+            AudioService.shared.playPop()
+            gameManager.navigate(to: .miniGame(learning))
+        } label: {
+            VStack(spacing: 8) {
+                Image(systemName: learning.iconName)
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(width: 54, height: 54)
+                    .background(Circle().fill(learning.themeColor.shadow(.inner(color: Color.black.opacity(0.15), radius: 0, x: 0, y: -4))))
+                Text(learning.rawValue)
+                    .font(.clay(15, .heavy))
+                    .foregroundColor(ClayColor.ink)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Text(learning.ageRecommendation)
+                    .font(.clay(12, .bold))
+                    .foregroundColor(ClayColor.inkSoft)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+        }
+        .buttonStyle(ClaySecondaryButtonStyle(cornerRadius: 24))
     }
 }

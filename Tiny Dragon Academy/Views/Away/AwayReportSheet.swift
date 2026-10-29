@@ -51,9 +51,9 @@ struct AwayReportSheet: View {
                     }
                     if !gameManager.awayStreakNotes.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("🔥 Care streak")
+                    Label("Care streak", systemImage: "flame.fill")
                         .font(.clay(16, .heavy))
-                        .foregroundColor(DragonPalette.textDark)
+                        .foregroundColor(ClayColor.ink)
                     ForEach(gameManager.awayStreakNotes, id: \.self) { note in
                         Text("• \(note)")
                             .font(.clay(14, .medium))
@@ -63,9 +63,9 @@ struct AwayReportSheet: View {
             }
             if let bonus = gameManager.dailyBonus {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("✨ Daily care bonus")
+                            Label("Daily care bonus", systemImage: "gift.fill")
                                 .font(.clay(16, .heavy))
-                                .foregroundColor(DragonPalette.coral)
+                                .foregroundColor(ClayColor.ink)
                             Text("+\(bonus.stars) stars and \(TimeProgressionService.bonusFoodCount) \(bonus.food.displayName)")
                                 .font(.clay(14, .medium))
                                 .foregroundColor(DragonPalette.textMuted)
@@ -90,13 +90,14 @@ struct AwayReportSheet: View {
                     ScrollView { reportList }.frame(height: 320)
                 }
 
-                KidButton(title: "Let's go!", backgroundColor: DragonPalette.softPurple) {
+                KidButton(title: "Let's go", icon: "arrow.right", backgroundColor: ClayColor.accent) {
                     gameManager.dismissAwayReport()
                 }
             }
             .padding(24)
-            .claySurface(cornerRadius: 24)
-            .padding(.horizontal, 28)
+            .claySurface(cornerRadius: 30, elevation: 1.4)
+            .padding(.horizontal, 24)
+            .transition(.scale(scale: 0.9).combined(with: .opacity))
         }
     }
 }

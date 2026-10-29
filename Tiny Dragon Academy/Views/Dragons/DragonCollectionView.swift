@@ -27,13 +27,10 @@ struct DragonCollectionView: View {
             ClayBackdrop()
 
             VStack(spacing: 12) {
-                ScreenTopBar(title: "My Dragons")
+                ScreenTopBar(title: "Dragons")
 
-                Picker("Section", selection: $tab) {
-                    ForEach(Tab.allCases, id: \.self) { Text($0.rawValue).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, 16)
+                ClaySegmented(options: Tab.allCases, selection: $tab) { $0.rawValue }
+                    .padding(.horizontal, 16)
 
                 ScrollView {
                     VStack(spacing: 12) {
@@ -123,10 +120,10 @@ struct DragonCollectionView: View {
         }) {
             Label(title, systemImage: icon)
                 .font(.clay(13, .heavy))
-                .foregroundColor(DragonPalette.textDark)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .background(Capsule().fill(DragonPalette.lavender))
+                .foregroundColor(ClayColor.accentShade)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Capsule().fill(ClayColor.accent.opacity(0.14)))
         }
         .buttonStyle(.plain)
     }
