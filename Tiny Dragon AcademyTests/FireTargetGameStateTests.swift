@@ -9,7 +9,8 @@ import XCTest
 @MainActor
 final class FireTargetGameStateTests: XCTestCase {
     private let dt = 1.0 / 60.0
-    private let pull = CGVector(dx: -0.25, dy: -0.2)
+    private let aim = CGPoint(x: 0.7, y: 0.6)
+    private let origin = FireTargetGameState.launchOrigin
 
     private func quietState() -> FireTargetGameState {
         var s = FireTargetGameState(seed: 5)
@@ -22,12 +23,11 @@ final class FireTargetGameStateTests: XCTestCase {
         for _ in 0..<frames { s.step(dt: dt, input: FireInput(release: nil)) }
     }
 
-    /// Fires and places a target where the fireball will be after `frames` steps.
-    private func fireAt(_ s: inout FireTargetGameState, kind: FireTarget.Kind, frames: Int = 20) {
-        let path = FireTargetGameState.trajectory(origin: FireTargetGameState.launchOrigin, pull: pull, steps: frames)
-        s.targets.append(FireTarget(kind: kind, position: path[frames - 1]))
-        s.step(dt: dt, input: FireInput(release: pull))
-        idle(&s, frames: frames + 5)
+    /// Places a target at the aim point, fires at it and lets the shot land.
+    private func fireAt(_ s: inout FireTargetGameState, kind: FireTarget.Kind) {
+        s.targets.append(FireTarget(kind: kind, position: aim))
+        s.step(dt: dt, input: FireInput(release: aim))
+        idle(&s, frames: 60)
     }
 
     func test_roundEndsAt45Seconds() {
@@ -39,21 +39,50 @@ final class FireTargetGameStateTests: XCTestCase {
         XCTAssertEqual(s.timeRemaining, 0)
     }
 
-    func test_fireball_followsTrajectoryPreview() throws {
-        var s = quietState()
-        let path = FireTargetGameState.trajectory(origin: FireTargetGameState.launchOrigin, pull: pull, steps: 30)
-        s.step(dt: dt, input: FireInput(release: pull))
-        idle(&s, frames: 29)
-        let ball = try XCTUnwrap(s.fireballs.first)
-        XCTAssertEqual(ball.position.x, path[29].x, accuracy: 1e-6)
-        XCTAssertEqual(ball.position.y, path[29].y, accuracy: 1e-6)
+    func test_shot_passesExactlyThroughAimPoint() {
+        for target in [CGPoint(x: 0.9, y: 0.25), CGPoint(x: 0.5, y: 1.0), CGPoint(x: 0.92, y: 1.3), CGPoint(x: 0.3, y: 0.1)] {
+            let steps = FireTargetGameState.flightSteps(from: origin, to: target)
+            let path = FireTargetGameState.trajectory(origin: origin, aim: target, steps: steps)
+            XCTAssertEqual(path[steps - 1].x, target.x, accuracy: 1e-6, "\(target)")
+            XCTAssertEqual(path[steps - 1].y, target.y, accuracy: 1e-6, "\(target)")
+        }
     }
 
-    func test_dummyDestroyedByOneHit() {
+    func test_flightTime_fasterWhenCloser() {
+        let near = FireTargetGameState.flightSteps(from: origin, to: CGPoint(x: 0.3, y: 0.25))
+        let far = FireTargetGameState.flightSteps(from: origin, to: CGPoint(x: 0.92, y: 1.1))
+        XCTAssertLessThan(near, far)
+        XCTAssertGreaterThanOrEqual(near, 21, "at least 0.35 s")
+        XCTAssertLessThanOrEqual(far, 48, "at most 0.8 s")
+    }
+
+    func test_fireball_followsTrajectoryPreview() throws {
         var s = quietState()
-        fireAt(&s, kind: .dummy)
+        let path = FireTargetGameState.trajectory(origin: origin, aim: aim, steps: 15)
+        s.step(dt: dt, input: FireInput(release: aim))
+        idle(&s, frames: 14)
+        let ball = try XCTUnwrap(s.fireballs.first)
+        XCTAssertEqual(ball.position.x, path[14].x, accuracy: 1e-6)
+        XCTAssertEqual(ball.position.y, path[14].y, accuracy: 1e-6)
+    }
+
+    func test_aimBelowGroundOrBehindDragon_isClamped() {
+        let clamped = FireTargetGameState.clampAim(CGPoint(x: -0.2, y: -0.5))
+        XCTAssertGreaterThanOrEqual(clamped.x, FireTargetGameState.minAimX)
+        XCTAssertGreaterThanOrEqual(clamped.y, FireTargetGameState.minAimY)
+    }
+
+    func test_dummyDestroyedByOneHit_leavesBurst() {
+        var s = quietState()
+        s.targets.append(FireTarget(kind: .dummy, position: aim))
+        s.step(dt: dt, input: FireInput(release: aim))
+        idle(&s, frames: FireTargetGameState.flightSteps(from: origin, to: aim))
         XCTAssertTrue(s.targets.isEmpty)
         XCTAssertEqual(s.score, 1)
+        XCTAssertEqual(s.bursts.count, 1)
+        XCTAssertEqual(s.bursts.first?.points, 1)
+        idle(&s, frames: 60)
+        XCTAssertTrue(s.bursts.isEmpty, "bursts fade away")
     }
 
     func test_shieldNeedsTwoHits() {
@@ -62,14 +91,11 @@ final class FireTargetGameStateTests: XCTestCase {
         XCTAssertEqual(s.targets.count, 1)
         XCTAssertEqual(s.targets.first?.hitsRemaining, 1)
         XCTAssertEqual(s.score, 0)
-        // Shields move; aim at its current spot again
-        let shield = s.targets[0]
-        s.targets = [FireTarget(kind: .shield, position: shield.position, hitsRemaining: 1)]
-        let path = FireTargetGameState.trajectory(origin: FireTargetGameState.launchOrigin, pull: pull, steps: 20)
-        s.targets[0].position = path[19]
+        // Shields move; pin it back on the aim point for the second shot
+        s.targets[0].position = aim
         s.targets[0].velocity = .zero
-        s.step(dt: dt, input: FireInput(release: pull))
-        idle(&s, frames: 25)
+        s.step(dt: dt, input: FireInput(release: aim))
+        idle(&s, frames: 60)
         XCTAssertTrue(s.targets.isEmpty)
     }
 
@@ -79,7 +105,7 @@ final class FireTargetGameStateTests: XCTestCase {
         fireAt(&s, kind: .dummy)
         XCTAssertEqual(s.score, 3, "second consecutive hit is worth 2")
         XCTAssertEqual(s.combo, 2)
-        s.step(dt: dt, input: FireInput(release: pull))
+        s.step(dt: dt, input: FireInput(release: aim))
         idle(&s, frames: 400)
         XCTAssertEqual(s.combo, 0)
         XCTAssertTrue(s.fireballs.isEmpty)
@@ -97,10 +123,39 @@ final class FireTargetGameStateTests: XCTestCase {
         XCTAssertEqual(s.targets.count, FireTargetGameState.maxTargets)
     }
 
+    func test_targets_stayInReachableArea() {
+        for seed in UInt64(1)...30 {
+            for start in [45.0, 28.0, 12.0] { // dummies, balloons, shields
+                var s = FireTargetGameState(seed: seed)
+                s.timeRemaining = start
+                for _ in 0..<(10 * 60) {
+                    s.step(dt: dt, input: FireInput(release: nil))
+                    for t in s.targets {
+                        XCTAssertTrue((0.4...0.95).contains(t.position.x), "seed \(seed): x \(t.position.x)")
+                        XCTAssertTrue((0.25...FireTargetGameState.maxTargetY).contains(t.position.y), "seed \(seed): y \(t.position.y)")
+                    }
+                }
+            }
+        }
+    }
+
     func test_cooldownLimitsFireRate() {
         var s = quietState()
-        s.step(dt: dt, input: FireInput(release: pull))
-        s.step(dt: dt, input: FireInput(release: pull))
+        s.step(dt: dt, input: FireInput(release: aim))
+        s.step(dt: dt, input: FireInput(release: aim))
         XCTAssertEqual(s.fireballs.count, 1)
+        XCTAssertEqual(FireTargetGameState.fireCooldown, 0.25)
+    }
+
+    func test_tapDuringCooldown_firesWhenReady() {
+        var s = quietState()
+        let second = CGPoint(x: 0.5, y: 0.9)
+        s.step(dt: dt, input: FireInput(release: aim))
+        s.step(dt: dt, input: FireInput(release: second))
+        XCTAssertEqual(s.fireballs.count, 1, "still cooling down")
+        idle(&s, frames: Int(FireTargetGameState.fireCooldown * 60))
+        XCTAssertEqual(s.fireballs.count, 2, "queued shot goes off without another tap")
+        idle(&s, frames: 30)
+        XCTAssertEqual(s.fireballs.count, 2, "fires only once")
     }
 }

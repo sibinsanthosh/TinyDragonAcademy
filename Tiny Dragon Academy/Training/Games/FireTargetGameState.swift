@@ -2,15 +2,16 @@
 //  FireTargetGameState.swift
 //  Tiny Dragon Academy
 //
-//  Fire Target: pull back to aim, release to launch an arcing fireball.
-//  World units: x 0…1 across the screen width, y up from the ground.
+//  Fire Target: point at a spot, release to launch a fireball that arcs
+//  through exactly that spot. World units: x 0…1 across the screen width,
+//  y up from the ground.
 //
 
 import CoreGraphics
 
 struct FireInput {
-    /// The pull vector (from the dragon toward the finger) when the drag is released.
-    var release: CGVector?
+    /// The world point the player let go on; the fireball passes through it.
+    var release: CGPoint?
 }
 
 struct FireTarget: Equatable {
@@ -34,17 +35,30 @@ struct Fireball: Equatable {
     var velocity: CGVector
 }
 
+/// A short-lived 💥 where a fireball struck; `points` is 0 for a shield that survived.
+struct HitBurst: Equatable {
+    var position: CGPoint
+    var points: Int
+    var age = 0.0
+}
+
 struct FireTargetGameState {
     static let roundDuration = 45.0
     static let launchOrigin = CGPoint(x: 0.15, y: 0.2)
-    static let launchPower = 3.0
-    static let gravity = 1.2
-    static let targetRadius = 0.06
-    static let fireballRadius = 0.025
+    static let gravity = 2.0
+    static let targetRadius = 0.075
+    static let fireballRadius = 0.03
     static let maxTargets = 3
     static let spawnInterval = 1.5
-    static let fireCooldown = 0.35
-    static let worldHeight = 1.5
+    static let fireCooldown = 0.25
+    static let burstLifetime = 0.6
+    /// Balloons that drift above this float away.
+    static let maxTargetY = 1.2
+    static let minAimX = 0.2
+    static let minAimY = 0.05
+    static let minFlightTime = 0.35
+    static let maxFlightTime = 0.8
+    private static let stepDuration = 1.0 / 60.0
 
     var timeRemaining = roundDuration
     var elapsed: Double { Self.roundDuration - timeRemaining }
@@ -52,10 +66,13 @@ struct FireTargetGameState {
     var combo = 0
     var targets: [FireTarget] = []
     var fireballs: [Fireball] = []
+    var bursts: [HitBurst] = []
     var isOver = false
     var spawnTimer = 0.5
 
     private var cooldown = 0.0
+    /// A release that came in while cooling down; it fires as soon as the dragon is ready.
+    private var pendingAim: CGPoint?
     private var rng: SeededRNG
 
     init(seed: UInt64) {
@@ -70,14 +87,33 @@ struct FireTargetGameState {
         }
     }
 
-    static func launchVelocity(pull: CGVector) -> CGVector {
-        CGVector(dx: -pull.dx * launchPower, dy: -pull.dy * launchPower)
+    /// Keeps the aim above the ground and in front of the dragon.
+    static func clampAim(_ aim: CGPoint) -> CGPoint {
+        CGPoint(x: max(aim.x, minAimX), y: max(aim.y, minAimY))
+    }
+
+    /// Whole 60 Hz steps to reach `aim`: short hops are quick, long lobs take a little longer.
+    static func flightSteps(from origin: CGPoint, to aim: CGPoint) -> Int {
+        let distance = hypot(aim.x - origin.x, aim.y - origin.y)
+        let time = min(maxFlightTime, max(minFlightTime, minFlightTime + 0.45 * distance))
+        return max(1, Int((time / stepDuration).rounded()))
+    }
+
+    /// The launch velocity whose stepped flight lands exactly on `aim` after `flightSteps`.
+    static func launchVelocity(from origin: CGPoint, to aim: CGPoint) -> CGVector {
+        let n = Double(flightSteps(from: origin, to: aim))
+        let h = stepDuration
+        // Semi-implicit Euler: after n steps, y = y0 + vy·n·h − g·h²·n(n+1)/2
+        return CGVector(
+            dx: (aim.x - origin.x) / (n * h),
+            dy: (aim.y - origin.y + gravity * h * h * n * (n + 1) / 2) / (n * h)
+        )
     }
 
     /// Positions after each of `steps` fixed 60 Hz steps — the same integration the fireball uses.
-    static func trajectory(origin: CGPoint, pull: CGVector, steps: Int) -> [CGPoint] {
+    static func trajectory(origin: CGPoint, aim: CGPoint, steps: Int) -> [CGPoint] {
         var p = origin
-        var v = launchVelocity(pull: pull)
+        var v = launchVelocity(from: origin, to: aim)
         var points: [CGPoint] = []
         for _ in 0..<steps {
             integrate(&p, &v, dt: 1.0 / 60.0)
@@ -97,10 +133,16 @@ struct FireTargetGameState {
         timeRemaining = max(0, timeRemaining - dt)
         cooldown = max(0, cooldown - dt)
 
-        if let pull = input.release, cooldown == 0 {
-            fireballs.append(Fireball(position: Self.launchOrigin, velocity: Self.launchVelocity(pull: pull)))
+        if let aim = input.release { pendingAim = aim }
+        if let aim = pendingAim, cooldown == 0 {
+            let velocity = Self.launchVelocity(from: Self.launchOrigin, to: Self.clampAim(aim))
+            fireballs.append(Fireball(position: Self.launchOrigin, velocity: velocity))
             cooldown = Self.fireCooldown
+            pendingAim = nil
         }
+
+        for i in bursts.indices { bursts[i].age += dt }
+        bursts.removeAll { $0.age >= Self.burstLifetime }
 
         moveTargets(dt: dt)
         moveFireballs(dt: dt)
@@ -121,10 +163,13 @@ struct FireTargetGameState {
             if let hit = targets.firstIndex(where: { hits(ball, $0) }) {
                 combo += 1
                 targets[hit].hitsRemaining -= 1
+                var points = 0
                 if targets[hit].hitsRemaining <= 0 {
                     targets.remove(at: hit)
-                    score += combo
+                    points = combo
+                    score += points
                 }
+                bursts.append(HitBurst(position: ball.position, points: points))
                 continue
             }
             let offScreen = ball.position.x > 1.1 || ball.position.x < -0.1 || ball.position.y < -0.1
@@ -143,15 +188,16 @@ struct FireTargetGameState {
             targets[i].position.y += targets[i].velocity.dy * dt
             // Shields patrol the right side of the field
             if targets[i].kind == .shield, targets[i].position.x < 0.45 || targets[i].position.x > 0.95 {
+                targets[i].position.x = min(0.95, max(0.45, targets[i].position.x))
                 targets[i].velocity.dx = -targets[i].velocity.dx
             }
         }
-        targets.removeAll { $0.position.y > Self.worldHeight }
+        targets.removeAll { $0.position.y > Self.maxTargetY }
     }
 
     private mutating func spawnTarget() {
         let kind = Self.kind(forElapsed: elapsed)
-        let position = CGPoint(x: Double.random(in: 0.5...0.92, using: &rng), y: Double.random(in: 0.3...1.15, using: &rng))
+        let position = CGPoint(x: Double.random(in: 0.5...0.9, using: &rng), y: Double.random(in: 0.3...0.95, using: &rng))
         let velocity: CGVector
         switch kind {
         case .dummy: velocity = .zero

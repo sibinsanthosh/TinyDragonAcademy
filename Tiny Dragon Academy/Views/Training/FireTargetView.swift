@@ -2,8 +2,8 @@
 //  FireTargetView.swift
 //  Tiny Dragon Academy
 //
-//  Renders Fire Target: drag back from anywhere to aim (dotted arc),
-//  release to launch an element-colored fireball.
+//  Renders Fire Target: touch where the fireball should go (a dotted arc
+//  runs from the dragon to the finger), release to launch it there.
 //
 
 import SwiftUI
@@ -21,17 +21,18 @@ private struct FireTargetPlayView: View {
     let onFinish: (TrainingSessionSummary) -> Void
 
     @State private var state = FireTargetGameState(seed: UInt64.random(in: 1...UInt64.max))
-    @State private var aimPull: CGVector?
-    @State private var queuedRelease: CGVector?
+    @State private var aimPoint: CGPoint?
+    @State private var queuedRelease: CGPoint?
     @State private var reported = false
-
-    private let maxPull = 0.4
 
     var body: some View {
         GeometryReader { geo in
             let w = geo.size.width
             let groundY = geo.size.height * 0.9
             let toScreen: (CGPoint) -> CGPoint = { p in CGPoint(x: p.x * w, y: groundY - p.y * w) }
+            let toWorld: (CGPoint) -> CGPoint = { p in
+                FireTargetGameState.clampAim(CGPoint(x: p.x / w, y: (groundY - p.y) / w))
+            }
             let color = gameManager.activeDragon.element.themeColor
 
             GameLoop(isRunning: !state.isOver) { dt in
@@ -47,12 +48,8 @@ private struct FireTargetPlayView: View {
                         .frame(width: w, height: geo.size.height - groundY)
                         .offset(y: groundY)
 
-                    if let pull = aimPull {
-                        ForEach(Array(FireTargetGameState.trajectory(origin: FireTargetGameState.launchOrigin, pull: pull, steps: 60).enumerated()), id: \.offset) { index, point in
-                            if index % 4 == 3 {
-                                Circle().fill(color.opacity(0.6)).frame(width: 6, height: 6).position(toScreen(point))
-                            }
-                        }
+                    if let aim = aimPoint {
+                        aimGuide(aim: aim, color: color, toScreen: toScreen)
                     }
 
                     ForEach(Array(state.targets.enumerated()), id: \.offset) { _, target in
@@ -64,7 +61,25 @@ private struct FireTargetPlayView: View {
                                     .offset(x: 18, y: -18)
                             }
                         }
+                        .scaleEffect(isAimed(at: target) ? 1.2 : 1)
+                        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isAimed(at: target))
                         .position(toScreen(target.position))
+                    }
+
+                    ForEach(Array(state.bursts.enumerated()), id: \.offset) { _, burst in
+                        let progress = burst.age / FireTargetGameState.burstLifetime
+                        VStack(spacing: 0) {
+                            if burst.points > 0 {
+                                Text("+\(burst.points)")
+                                    .font(.system(size: 22, weight: .heavy, design: .rounded))
+                                    .foregroundColor(DragonPalette.coral)
+                            }
+                            Text("💥").font(.system(size: 34))
+                        }
+                        .scaleEffect(0.7 + 0.6 * progress)
+                        .opacity(1 - progress)
+                        .position(toScreen(burst.position))
+                        .offset(y: -30 * progress)
                     }
 
                     ForEach(Array(state.fireballs.enumerated()), id: \.offset) { _, ball in
@@ -95,27 +110,40 @@ private struct FireTargetPlayView: View {
             }
             .contentShape(Rectangle())
             .gesture(
-                DragGesture(minimumDistance: 4)
-                    .onChanged { value in aimPull = clampedPull(value.translation, width: w) }
+                // Touch anywhere to aim; a plain tap fires straight at that spot
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in aimPoint = toWorld(value.location) }
                     .onEnded { value in
-                        queuedRelease = clampedPull(value.translation, width: w)
-                        aimPull = nil
+                        queuedRelease = toWorld(value.location)
+                        aimPoint = nil
                         HapticsService.shared.light()
                     }
             )
         }
     }
 
-    /// Screen drag → world pull vector (y up), limited in length.
-    private func clampedPull(_ translation: CGSize, width: CGFloat) -> CGVector {
-        var dx = translation.width / width
-        var dy = -translation.height / width
-        let length = (dx * dx + dy * dy).squareRoot()
-        if length > maxPull {
-            dx *= maxPull / length
-            dy *= maxPull / length
+    /// Dotted arc from the dragon to the finger, ending in an aim ring.
+    @ViewBuilder
+    private func aimGuide(aim: CGPoint, color: Color, toScreen: @escaping (CGPoint) -> CGPoint) -> some View {
+        let origin = FireTargetGameState.launchOrigin
+        let steps = FireTargetGameState.flightSteps(from: origin, to: aim)
+        let path = FireTargetGameState.trajectory(origin: origin, aim: aim, steps: steps)
+        ForEach(Array(path.enumerated()), id: \.offset) { index, point in
+            if index % 3 == 2 && index < steps - 2 {
+                Circle().fill(color.opacity(0.7)).frame(width: 7, height: 7).position(toScreen(point))
+            }
         }
-        return CGVector(dx: dx, dy: dy)
+        Circle()
+            .stroke(color, lineWidth: 3)
+            .background(Circle().fill(color.opacity(0.15)))
+            .frame(width: 34, height: 34)
+            .overlay(Circle().fill(color).frame(width: 6, height: 6))
+            .position(toScreen(aim))
+    }
+
+    private func isAimed(at target: FireTarget) -> Bool {
+        guard let aim = aimPoint else { return false }
+        return hypot(aim.x - target.position.x, aim.y - target.position.y) < FireTargetGameState.targetRadius
     }
 
     private func emoji(for kind: FireTarget.Kind) -> String {
