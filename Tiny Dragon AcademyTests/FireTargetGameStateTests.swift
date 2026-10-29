@@ -158,4 +158,100 @@ final class FireTargetGameStateTests: XCTestCase {
         idle(&s, frames: 30)
         XCTAssertEqual(s.fireballs.count, 2, "fires only once")
     }
+
+    // MARK: - Skills & talents
+
+    private func styled(_ talent: DragonTalent? = nil, aim: Int = 1) -> FireTargetGameState {
+        var s = FireTargetGameState(seed: 5, style: DragonPlayStyle(stars: [.aim: aim], talent: talent))
+        s.targets = []
+        s.spawnTimer = 1_000
+        return s
+    }
+
+    func test_aimSkill_widensHitRadius() {
+        XCTAssertEqual(quietState().hitRadius, FireTargetGameState.targetRadius, accuracy: 1e-9)
+        XCTAssertEqual(styled(aim: 5).hitRadius, FireTargetGameState.targetRadius * 1.4, accuracy: 1e-9)
+    }
+
+    func test_aimSkill_hitsAShotThatWouldMiss() {
+        let offset = CGPoint(x: aim.x, y: aim.y + FireTargetGameState.targetRadius + FireTargetGameState.fireballRadius + 0.01)
+        for (stars, expectHit) in [(1, false), (5, true)] {
+            var s = styled(aim: stars)
+            s.targets = [FireTarget(kind: .dummy, position: offset)]
+            s.step(dt: dt, input: FireInput(release: aim))
+            idle(&s, frames: 60)
+            XCTAssertEqual(s.targets.isEmpty, expectHit, "Aim \(stars)★")
+        }
+    }
+
+    func test_splashBlast_hitsNearbyTargetsOnly() {
+        var s = styled(.splashBlast)
+        s.targets = [FireTarget(kind: .dummy, position: aim),
+                     FireTarget(kind: .dummy, position: CGPoint(x: aim.x + 0.1, y: aim.y)),
+                     FireTarget(kind: .dummy, position: CGPoint(x: aim.x, y: aim.y + 0.3))]
+        s.step(dt: dt, input: FireInput(release: aim))
+        idle(&s, frames: 60)
+        XCTAssertEqual(s.targets.count, 1)
+        XCTAssertEqual(s.targets.first?.position.y ?? 0, aim.y + 0.3, accuracy: 1e-9, "the far target survives")
+        XCTAssertEqual(s.score, 3, "two hits in a row: 1 + 2")
+        XCTAssertEqual(s.talentTriggers, 1)
+    }
+
+    func test_chainBolt_zapsTheNearestOtherTarget() {
+        var s = styled(.chainBolt)
+        let near = CGPoint(x: 0.75, y: 0.95)
+        let far = CGPoint(x: 0.95, y: 0.3)
+        s.targets = [FireTarget(kind: .dummy, position: aim),
+                     FireTarget(kind: .dummy, position: far),
+                     FireTarget(kind: .dummy, position: near)]
+        s.step(dt: dt, input: FireInput(release: aim))
+        idle(&s, frames: 60)
+        XCTAssertEqual(s.targets.map(\.position), [far])
+        XCTAssertEqual(s.talentTriggers, 1)
+    }
+
+    func test_chainBolt_withNoOtherTarget_isJustAHit() {
+        var s = styled(.chainBolt)
+        s.targets = [FireTarget(kind: .dummy, position: aim)]
+        s.step(dt: dt, input: FireInput(release: aim))
+        idle(&s, frames: 60)
+        XCTAssertEqual(s.score, 1)
+        XCTAssertEqual(s.talentTriggers, 0)
+    }
+
+    func test_frozenField_slowsTargetMovement() {
+        var normal = quietState()
+        var frozen = styled(.frozenField)
+        let balloon = FireTarget(kind: .balloon, position: CGPoint(x: 0.7, y: 0.5), velocity: CGVector(dx: 0, dy: 0.04))
+        normal.targets = [balloon]
+        frozen.targets = [balloon]
+        idle(&normal, frames: 60)
+        idle(&frozen, frames: 60)
+        XCTAssertEqual(normal.targets[0].position.y - 0.5, 0.04, accuracy: 1e-6)
+        XCTAssertEqual(frozen.targets[0].position.y - 0.5, 0.02, accuracy: 1e-6)
+    }
+
+    func test_laserShot_fliesStraight() {
+        let target = CGPoint(x: 0.75, y: 0.5)
+        let steps = FireTargetGameState.flightSteps(from: origin, to: target)
+        let path = FireTargetGameState.trajectory(origin: origin, aim: target, steps: steps, straight: true)
+        XCTAssertEqual(path[steps - 1].x, target.x, accuracy: 1e-6)
+        XCTAssertEqual(path[steps - 1].y, target.y, accuracy: 1e-6)
+        let mid = path[steps / 2 - 1]
+        let t = (mid.x - origin.x) / (target.x - origin.x)
+        XCTAssertEqual(mid.y, origin.y + t * (target.y - origin.y), accuracy: 1e-6, "on the straight line")
+    }
+
+    func test_laserShot_piercesEachTargetOnce() {
+        var s = styled(.laserShot)
+        let target = CGPoint(x: 0.75, y: 0.5)
+        let between = CGPoint(x: origin.x + 0.6 * (target.x - origin.x), y: origin.y + 0.6 * (target.y - origin.y))
+        s.targets = [FireTarget(kind: .shield, position: between), FireTarget(kind: .dummy, position: target)]
+        s.step(dt: dt, input: FireInput(release: target))
+        idle(&s, frames: 90)
+        XCTAssertEqual(s.targets.count, 1, "the dummy behind the shield is destroyed")
+        XCTAssertEqual(s.targets.first?.hitsRemaining, 1, "the shield is hit only once by one ball")
+        XCTAssertEqual(s.talentTriggers, 1)
+        XCTAssertGreaterThan(s.combo, 0, "a piercing ball that hit something isn't a miss")
+    }
 }

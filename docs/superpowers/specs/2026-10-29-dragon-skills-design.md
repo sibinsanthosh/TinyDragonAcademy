@@ -78,7 +78,7 @@ Each talent works only in its own game and is active from hatching.
 
 | Dragon | Talent | Game | Rule |
 |---|---|---|---|
-| Ember | Splash Blast | Fire Target | on a hit, every other target within 0.15 of the impact also takes a hit |
+| Ember | Splash Blast | Fire Target | on a hit, every other target within 0.15 of the struck target also takes a hit |
 | Volt | Chain Bolt | Fire Target | on a hit, the nearest other target (any distance) also takes a hit |
 | Frosty | Frozen Field | Fire Target | all target movement (balloon rise, shield patrol) at 0.5× speed |
 | Nova | Laser Shot | Fire Target | fireballs ignore gravity (straight line to the aim point, same flight time) and pierce: a ball hits each target at most once and keeps flying |
