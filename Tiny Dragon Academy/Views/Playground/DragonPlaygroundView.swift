@@ -412,6 +412,9 @@ struct DragonPlaygroundView: View {
                     .minimumScaleFactor(0.8)
                 }
                 Spacer(minLength: 4)
+                ClayIconButton(systemName: "camera.fill", size: 40, tint: ClayColor.rose, accessibilityLabel: "Photo booth") {
+                    gameManager.navigate(to: .photoBooth)
+                }
                 ClayIconButton(systemName: "sparkles", size: 40, tint: ClayColor.accent, badge: availablePowers.count, accessibilityLabel: "Powers") {
                     showPowersBook = true
                 }

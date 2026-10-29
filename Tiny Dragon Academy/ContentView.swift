@@ -88,6 +88,9 @@ struct ContentView: View {
             case .today:
                 TodayView()
                     .transition(.opacity)
+            case .photoBooth:
+                PhotoBoothView()
+                    .transition(.opacity)
             case .den:
                 DenView()
                     .transition(.opacity)

@@ -28,6 +28,7 @@ enum AppRoute: Equatable {
     case hallOfLegends
     case today
     case trainingGame(TrainingGameType)
+    case photoBooth
 }
 
 @MainActor
