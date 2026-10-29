@@ -74,7 +74,7 @@ struct IslandBuilderView: View {
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
-                .background(Capsule().fill(Color.white.opacity(0.9)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
             }
             
             Spacer()
@@ -95,7 +95,7 @@ struct IslandBuilderView: View {
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
-                .background(Capsule().fill(Color.white.opacity(0.9)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
             }
             
             // Reset Button

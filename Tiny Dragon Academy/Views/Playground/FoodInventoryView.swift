@@ -21,8 +21,7 @@ struct FoodInventoryView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                DragonPalette.skyGradient
-                    .ignoresSafeArea()
+                ClayBackdrop()
                 
                 ScrollView {
                     VStack(spacing: 16) {
@@ -162,7 +161,7 @@ struct FoodInventoryView: View {
             .disabled(!canAfford)
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.95)))
+        .claySurface(cornerRadius: 18)
     }
     
     private func foodCard(_ food: FoodType) -> some View {

@@ -61,7 +61,7 @@ struct HatchRevealView: View {
                 }
             }
             .padding(24)
-            .background(RoundedRectangle(cornerRadius: 26).fill(Color.white))
+            .claySurface(cornerRadius: 26)
             .padding(.horizontal, 28)
         }
     }

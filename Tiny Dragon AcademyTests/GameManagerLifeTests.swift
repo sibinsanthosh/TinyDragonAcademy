@@ -280,12 +280,12 @@ final class GameManagerLifeTests: XCTestCase {
         XCTAssertNil(gm.dailyBonus)
     }
 
-    func test_playgroundRedirectsToDen_whenActiveDragonNotInDen() {
+    func test_playgroundRedirectsToHome_whenActiveDragonNotInDen() {
         let gm = manager { s in
             s.dragons[s.dragons.firstIndex { $0.id == "sparkle" }!].residence = .legend
         }
         gm.navigate(to: .dragonPlayground)
-        XCTAssertEqual(gm.currentRoute, .den)
+        XCTAssertEqual(gm.currentRoute, .mainMenu, "Home shows the hatch-an-egg welcome")
         XCTAssertFalse(gm.hasActiveDenDragon)
     }
 

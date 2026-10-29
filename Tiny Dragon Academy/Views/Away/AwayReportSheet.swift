@@ -95,7 +95,7 @@ struct AwayReportSheet: View {
                 }
             }
             .padding(24)
-            .background(RoundedRectangle(cornerRadius: 24).fill(Color.white))
+            .claySurface(cornerRadius: 24)
             .padding(.horizontal, 28)
         }
     }

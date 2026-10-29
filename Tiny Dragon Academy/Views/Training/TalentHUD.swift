@@ -49,7 +49,7 @@ struct TalentHUD: View {
             .foregroundColor(DragonPalette.textDark)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background(Capsule().fill(Color.white.opacity(0.85)))
+            .claySurface(cornerRadius: 100, elevation: 0.7)
     }
 
     private func pop() {

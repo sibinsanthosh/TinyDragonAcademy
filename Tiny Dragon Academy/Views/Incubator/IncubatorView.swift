@@ -92,7 +92,7 @@ struct IncubatorView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity)
-        .background(RoundedRectangle(cornerRadius: 22).fill(Color.white.opacity(0.92)))
+        .claySurface(cornerRadius: 22)
     }
 
     private func progressRow(label: String, value: Double, color: Color, trailing: String) -> some View {
@@ -156,6 +156,6 @@ struct IncubatorView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 22).fill(Color.white.opacity(0.92)))
+        .claySurface(cornerRadius: 22)
     }
 }

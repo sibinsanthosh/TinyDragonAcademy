@@ -23,8 +23,7 @@ struct HatchIntroView: View {
     var body: some View {
         ZStack {
             // Background
-            DragonPalette.skyGradient
-                .ignoresSafeArea()
+            ClayBackdrop()
             
             FloatingParticlesView(particleCount: 14, themeColor: DragonPalette.softPurple)
             
@@ -194,7 +193,7 @@ struct HatchIntroView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 10)
-            .background(Capsule().fill(Color.white.opacity(0.9)))
+            .claySurface(cornerRadius: 100, elevation: 0.7)
             
             // Nest and Egg
             ZStack {

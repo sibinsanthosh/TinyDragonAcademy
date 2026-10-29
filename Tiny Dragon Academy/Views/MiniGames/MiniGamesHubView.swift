@@ -38,7 +38,7 @@ struct MiniGamesHubView: View {
                         .foregroundColor(DragonPalette.textDark)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
-                        .background(Capsule().fill(Color.white.opacity(0.9)))
+                        .claySurface(cornerRadius: 100, elevation: 0.7)
                     }
                     
                     Spacer()
@@ -122,7 +122,7 @@ struct MiniGamesHubView: View {
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
-                .background(Capsule().fill(Color.white.opacity(0.85)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
             }
             .padding(18)
             .frame(maxWidth: .infinity)

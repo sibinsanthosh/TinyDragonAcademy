@@ -21,9 +21,16 @@ struct ContentView: View {
             case .onboarding:
                 HatchIntroView()
                     .transition(.opacity)
-            case .mainMenu:
-                MainMenuView()
-                    .transition(.opacity)
+            case .mainMenu, .dragonPlayground:
+                // Home: the den dragon front and centre, or the hatch-an-egg welcome
+                Group {
+                    if gameManager.hasActiveDenDragon {
+                        DragonPlaygroundView()
+                    } else {
+                        MainMenuView()
+                    }
+                }
+                .transition(.opacity)
             case .miniGamesHub:
                 MiniGamesHubView()
                     .transition(.opacity)
@@ -53,9 +60,6 @@ struct ContentView: View {
                     .transition(.opacity)
             case .settings:
                 SettingsView()
-                    .transition(.opacity)
-            case .dragonPlayground:
-                DragonPlaygroundView()
                     .transition(.opacity)
             case .powerEncyclopedia:
                 PowerEncyclopediaView(dragon: gameManager.activeDragon)
@@ -96,6 +100,12 @@ struct ContentView: View {
             case .hallOfLegends:
                 HallOfLegendsView()
                     .transition(.opacity)
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if AppTab.forRoute(gameManager.currentRoute) != nil {
+                ClayTabBar()
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .overlay {

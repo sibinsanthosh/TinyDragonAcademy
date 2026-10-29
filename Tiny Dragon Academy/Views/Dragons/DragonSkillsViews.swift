@@ -98,7 +98,7 @@ struct DragonSkillsSheet: View {
             }
             .padding(24)
         }
-        .background(DragonPalette.skyGradient.ignoresSafeArea())
+        .background(ClayBackdrop())
     }
 
     private func skillRow(_ skill: DragonSkill) -> some View {
@@ -126,6 +126,6 @@ struct DragonSkillsSheet: View {
             }
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.92)))
+        .claySurface(cornerRadius: 16)
     }
 }

@@ -2,8 +2,8 @@
 //  KidButton.swift
 //  Tiny Dragon Academy
 //
-//  Large, tactile, friendly buttons designed specifically for toddlers and young children.
-//  Features 3D push-down feel, high-contrast icons, and accessibility.
+//  The main call-to-action button: a big puffy clay button that squishes
+//  when pressed. Light backgrounds get plum text so the label stays readable.
 //
 
 import SwiftUI
@@ -17,9 +17,7 @@ struct KidButton: View {
     var minHeight: CGFloat = 58
     var fontSize: CGFloat = 20
     let action: () -> Void
-    
-    @State private var isPressed: Bool = false
-    
+
     var body: some View {
         Button(action: {
             HapticsService.shared.medium()
@@ -29,53 +27,33 @@ struct KidButton: View {
             HStack(spacing: 10) {
                 if let icon = icon {
                     Image(systemName: icon)
-                        .font(.system(size: fontSize + 2, weight: .bold))
+                        .font(.system(size: fontSize, weight: .heavy))
                 }
                 Text(title)
-                    .font(.clay(fontSize, .bold))
+                    .font(.clay(fontSize + 2, .heavy))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
             }
-            .foregroundColor(foregroundColor)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 14)
+            .foregroundColor(labelColor)
+            .padding(.horizontal, 26)
+            .padding(.vertical, 12)
             .frame(minWidth: minWidth, minHeight: minHeight)
-            .background(
-                ZStack {
-                    // Deep bottom shadow for 3D pressable depth
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .fill(backgroundColor.opacity(0.8))
-                        .offset(y: isPressed ? 1 : 5)
-                    
-                    // Main button pill
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [backgroundColor, backgroundColor.opacity(0.92)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                                .stroke(Color.white.opacity(0.5), lineWidth: 2)
-                        )
-                        .offset(y: isPressed ? 4 : 0)
-                }
-            )
-            .scaleEffect(isPressed ? 0.96 : 1.0)
-            .animation(.spring(response: 0.25, dampingFraction: 0.5), value: isPressed)
+            .contentShape(Rectangle())
         }
-        .buttonStyle(KidPressButtonStyle(isPressed: $isPressed))
+        .buttonStyle(ClayButtonStyle(color: backgroundColor, cornerRadius: minHeight * 0.42))
         .accessibilityLabel(title)
+    }
+
+    private var labelColor: Color {
+        foregroundColor == .white && backgroundColor.isLightClay ? ClayColor.ink : foregroundColor
     }
 }
 
-private struct KidPressButtonStyle: ButtonStyle {
-    @Binding var isPressed: Bool
-    
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .onChange(of: configuration.isPressed) { _, newValue in
-                isPressed = newValue
-            }
+extension Color {
+    /// True for light fills (sun, mint, sky) where white text would be hard to read.
+    var isLightClay: Bool {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        guard UIColor(self).getRed(&r, green: &g, blue: &b, alpha: &a) else { return false }
+        return 0.299 * r + 0.587 * g + 0.114 * b > 0.72
     }
 }

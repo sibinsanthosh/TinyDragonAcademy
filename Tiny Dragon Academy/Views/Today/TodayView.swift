@@ -74,7 +74,7 @@ struct TodayView: View {
             }
         }
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: 22).fill(Color.white.opacity(0.94)))
+        .claySurface(cornerRadius: 22)
     }
 
     private struct DayDot {
@@ -152,7 +152,7 @@ struct TodayView: View {
                 .foregroundColor(DragonPalette.textMuted)
         }
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: 22).fill(Color.white.opacity(0.94)))
+        .claySurface(cornerRadius: 22)
     }
 
     // MARK: - Wishes
@@ -195,6 +195,6 @@ struct TodayView: View {
             }
         }
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: 22).fill(Color.white.opacity(0.94)))
+        .claySurface(cornerRadius: 22)
     }
 }

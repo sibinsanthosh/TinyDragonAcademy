@@ -24,7 +24,7 @@ struct DragonCollectionView: View {
 
     var body: some View {
         ZStack {
-            DragonPalette.skyGradient.ignoresSafeArea()
+            ClayBackdrop()
 
             VStack(spacing: 12) {
                 ScreenTopBar(title: "My Dragons")
@@ -107,7 +107,7 @@ struct DragonCollectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.92)))
+        .claySurface(cornerRadius: 18)
         .contentShape(Rectangle())
         .onTapGesture {
             guard dragon.residence == .den else { return }
@@ -149,7 +149,7 @@ struct DragonCollectionView: View {
                 }
                 .padding(10)
                 .frame(maxWidth: .infinity)
-                .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.85)))
+                .claySurface(cornerRadius: 16)
             }
         }
     }

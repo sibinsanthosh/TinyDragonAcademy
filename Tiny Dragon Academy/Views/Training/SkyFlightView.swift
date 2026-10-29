@@ -69,7 +69,7 @@ private struct SkyFlightPlayView: View {
                             .font(.clay(24, .heavy))
                             .foregroundColor(DragonPalette.textDark)
                             .padding(.horizontal, 18).padding(.vertical, 10)
-                            .background(Capsule().fill(Color.white.opacity(0.9)))
+                            .claySurface(cornerRadius: 100, elevation: 0.7)
                             .position(x: w / 2, y: h * 0.7)
                     }
 

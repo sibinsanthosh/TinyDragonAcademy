@@ -36,7 +36,7 @@ struct ReminderPrimerView: View {
                     .foregroundColor(DragonPalette.textMuted)
             }
             .padding(24)
-            .background(RoundedRectangle(cornerRadius: 24).fill(Color.white))
+            .claySurface(cornerRadius: 24)
             .padding(.horizontal, 28)
         }
     }

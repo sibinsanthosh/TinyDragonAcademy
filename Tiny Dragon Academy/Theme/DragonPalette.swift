@@ -65,16 +65,8 @@ struct KidCardStyle: ViewModifier {
     var shadowRadius: CGFloat = 10
     
     func body(content: Content) -> some View {
-        content
-            .background(
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(backgroundColor)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .stroke(borderColor, lineWidth: borderWidth)
-                    )
-                    .shadow(color: DragonPalette.popShadow, radius: shadowRadius, x: 0, y: 6)
-            )
+        // Cards are clay surfaces now; border and shadow tuning come from the clay style
+        content.claySurface(cornerRadius: min(cornerRadius, 28), fill: backgroundColor)
     }
 }
 

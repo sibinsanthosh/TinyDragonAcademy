@@ -644,7 +644,7 @@ struct DragonPlaygroundView: View {
                     .foregroundColor(DragonPalette.softPurple)
             }
             .padding(22)
-            .background(RoundedRectangle(cornerRadius: 24).fill(Color.white.opacity(0.95)))
+            .claySurface(cornerRadius: 24)
             .padding(.horizontal, 26)
         }
     }

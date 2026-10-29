@@ -41,8 +41,7 @@ struct ShapeMagicGameView: View {
     
     var body: some View {
         ZStack {
-            DragonPalette.skyGradient
-                .ignoresSafeArea()
+            ClayBackdrop()
             
             VStack(spacing: 16) {
                 // Header
@@ -59,7 +58,7 @@ struct ShapeMagicGameView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(Capsule().fill(Color.white.opacity(0.9)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
                 
                 Spacer()
                 
@@ -114,7 +113,7 @@ struct ShapeMagicGameView: View {
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 6)
-                .background(Capsule().fill(Color.white.opacity(0.85)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
             
             Spacer()
             

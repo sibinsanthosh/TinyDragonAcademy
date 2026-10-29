@@ -12,7 +12,7 @@ struct TrainingHubView: View {
 
     var body: some View {
         ZStack {
-            DragonPalette.skyGradient.ignoresSafeArea()
+            ClayBackdrop()
 
             VStack(spacing: 12) {
                 ScreenTopBar(title: "Training")
@@ -27,7 +27,7 @@ struct TrainingHubView: View {
                     }
                 }
                 .padding(14)
-                .background(RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.9)))
+                .claySurface(cornerRadius: 20)
                 .padding(.horizontal, 16)
 
                 if !gameManager.canTrainActiveDragon {
@@ -99,7 +99,7 @@ struct TrainingHubView: View {
                     .foregroundColor(game.themeColor)
             }
             .padding(14)
-            .background(RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.92)))
+            .claySurface(cornerRadius: 20)
         }
         .buttonStyle(.plain)
     }

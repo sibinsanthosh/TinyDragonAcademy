@@ -18,8 +18,7 @@ struct MainMenuView: View {
     var body: some View {
         ZStack {
             // Background Sky
-            DragonPalette.skyGradient
-                .ignoresSafeArea()
+            ClayBackdrop()
             
             FloatingParticlesView(particleCount: 16, themeColor: DragonPalette.softPurple)
             
@@ -82,7 +81,7 @@ struct MainMenuView: View {
                     .foregroundColor(DragonPalette.textDark)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(Capsule().fill(Color.white.opacity(0.9)))
+                    .claySurface(cornerRadius: 100, elevation: 0.7)
             }
             .accessibilityLabel("\(gameManager.state.streak.current) day care streak")
             

@@ -82,7 +82,7 @@ struct DragonDressUpView: View {
                                 .foregroundColor(DragonPalette.textDark)
                         }
                         .padding(18)
-                        .background(RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.95)))
+                        .claySurface(cornerRadius: 20)
                         .transition(.scale.combined(with: .opacity))
                     }
                 }
@@ -128,7 +128,7 @@ struct DragonDressUpView: View {
                 .foregroundColor(DragonPalette.softPurple)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(Capsule().fill(Color.white.opacity(0.9)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
             }
             
             // Save Button

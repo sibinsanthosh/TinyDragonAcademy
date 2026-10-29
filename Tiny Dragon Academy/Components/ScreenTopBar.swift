@@ -2,7 +2,8 @@
 //  ScreenTopBar.swift
 //  Tiny Dragon Academy
 //
-//  Back pill, centered title and star counter used across screens.
+//  Round clay back button, centered Baloo title and the star pill.
+//  Tab roots have no back button: the tab bar is how you leave them.
 //
 
 import SwiftUI
@@ -12,32 +13,31 @@ struct ScreenTopBar: View {
     let title: String
     var backTo: AppRoute = .mainMenu
 
+    private var showsBack: Bool {
+        !AppTab.isRoot(gameManager.currentRoute)
+    }
+
     var body: some View {
-        HStack {
-            Button {
-                HapticsService.shared.medium()
-                AudioService.shared.playPop()
-                gameManager.navigate(to: backTo)
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "chevron.left.circle.fill").font(.system(size: 26))
-                    Text("Back").font(.clay(17, .bold))
-                }
-                .foregroundColor(DragonPalette.textDark)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(Capsule().fill(Color.white.opacity(0.9)))
-            }
-            Spacer()
+        ZStack {
             Text(title)
-                .font(.clay(22, .heavy))
-                .foregroundColor(DragonPalette.textDark)
+                .font(.clay(24, .heavy))
+                .foregroundColor(ClayColor.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-            Spacer()
-            StarCounterView(count: gameManager.totalStars)
+                .padding(.horizontal, 64)
+            HStack {
+                if showsBack {
+                    ClayIconButton(systemName: "chevron.left", accessibilityLabel: "Back") {
+                        gameManager.navigate(to: backTo)
+                    }
+                } else {
+                    Color.clear.frame(width: 44, height: 44)
+                }
+                Spacer()
+                StarCounterView(count: gameManager.totalStars)
+            }
         }
         .padding(.horizontal, 16)
-        .padding(.top, 10)
+        .padding(.top, 8)
     }
 }

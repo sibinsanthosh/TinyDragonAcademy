@@ -39,7 +39,7 @@ struct TrainingGameShell<Content: View>: View {
 
     var body: some View {
         ZStack {
-            DragonPalette.skyGradient.ignoresSafeArea()
+            ClayBackdrop()
 
             VStack(spacing: 0) {
                 header
@@ -79,7 +79,7 @@ struct TrainingGameShell<Content: View>: View {
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(Capsule().fill(Color.white.opacity(0.9)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
             }
             Spacer()
             Text(game.rawValue)
@@ -125,7 +125,7 @@ struct TrainingGameShell<Content: View>: View {
             }
         }
         .padding(24)
-        .background(RoundedRectangle(cornerRadius: 24).fill(Color.white.opacity(0.92)))
+        .claySurface(cornerRadius: 24)
         .padding(.horizontal, 24)
     }
 

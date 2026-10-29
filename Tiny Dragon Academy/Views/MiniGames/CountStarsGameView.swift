@@ -46,7 +46,7 @@ struct CountStarsGameView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(Capsule().fill(Color.white.opacity(0.18)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
                 
                 // Starry Sky Field (Play area)
                 GeometryReader { geo in
@@ -121,7 +121,7 @@ struct CountStarsGameView: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 6)
-                .background(Capsule().fill(Color.white.opacity(0.25)))
+                .claySurface(cornerRadius: 100, elevation: 0.7)
             
             Spacer()
             

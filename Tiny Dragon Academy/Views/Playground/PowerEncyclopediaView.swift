@@ -21,8 +21,7 @@ struct PowerEncyclopediaView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                DragonPalette.skyGradient
-                    .ignoresSafeArea()
+                ClayBackdrop()
                 
                 ScrollView {
                     VStack(spacing: 16) {

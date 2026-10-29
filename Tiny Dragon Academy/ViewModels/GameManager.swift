@@ -155,8 +155,8 @@ final class GameManager: ObservableObject {
     }
     
     func navigate(to route: AppRoute) {
-        // With no den dragon selected (e.g. all spirits moved on), care happens from the Den
-        let destination: AppRoute = (route == .dragonPlayground && !hasActiveDenDragon) ? .den : route
+        // With no den dragon selected (e.g. all spirits moved on), Home shows the hatch-an-egg welcome
+        let destination: AppRoute = (route == .dragonPlayground && !hasActiveDenDragon) ? .mainMenu : route
         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
             currentRoute = destination
         }
