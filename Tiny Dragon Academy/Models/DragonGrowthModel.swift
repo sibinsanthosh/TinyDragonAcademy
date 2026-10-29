@@ -299,6 +299,8 @@ struct DragonStats: Codable, Equatable {
     var lastSimulatedAt: Date = Date()
     var stagesRewarded: Set<GrowthStage> = [.baby]
     var bornAt: Date = Date()
+    /// Training points per `DragonSkill` raw value; stars come from the species base plus these.
+    var skillPoints: [String: Int] = [:]
 
     init() {}
 
@@ -308,6 +310,7 @@ struct DragonStats: Codable, Equatable {
         case lastCareTimestamp, lastFeedingTimestamp, unlockedPowerIds, equippedPowerId
         case fitness, condition, fullnessZeroMinutes, lowFitnessMinutes, cureSessionsRemaining
         case tummyAcheUntil, isSleepingEarly, lastSimulatedAt, stagesRewarded, bornAt
+        case skillPoints
     }
 
     // Every field is optional on decode so saves from older versions keep loading.
@@ -337,6 +340,7 @@ struct DragonStats: Codable, Equatable {
         lastSimulatedAt = try c.decodeIfPresent(Date.self, forKey: .lastSimulatedAt) ?? Date()
         stagesRewarded = try c.decodeIfPresent(Set<GrowthStage>.self, forKey: .stagesRewarded) ?? [.baby]
         bornAt = try c.decodeIfPresent(Date.self, forKey: .bornAt) ?? Date()
+        skillPoints = try c.decodeIfPresent([String: Int].self, forKey: .skillPoints) ?? [:]
     }
 
     var canEvolve: Bool {
