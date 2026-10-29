@@ -22,6 +22,6 @@ struct StarCounterView: View {
             ClayPill(systemName: "star.fill", iconColor: ClayColor.sun, value: "\(count)", accessibilityLabel: "Stars")
         }
         .buttonStyle(.plain)
-        .disabled(!isInteractive)
+        .allowsHitTesting(isInteractive)
     }
 }

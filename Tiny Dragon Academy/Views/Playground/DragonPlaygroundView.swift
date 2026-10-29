@@ -20,11 +20,12 @@ struct DragonPlaygroundView: View {
     @State private var activePowerFX: ElementalPower? = nil
     @State private var showEvolutionModal: Bool = false
     @State private var showPowersBook: Bool = false
-    @State private var showFoodPantry: Bool = false
     @State private var showAchievements: Bool = false
     @State private var floatingXPBadge: Int? = nil
     @State private var showFavoriteCelebration: Bool = false
     @State private var selectedFood: FoodType? = nil
+    @State private var showFoodTray: Bool = false
+    @State private var showParentGate: Bool = false
     
     // Dragon mouth position in playground coordinate space
     @State private var dragonMouthPosition: CGPoint = CGPoint(x: 200, y: 380)
@@ -109,9 +110,6 @@ struct DragonPlaygroundView: View {
                         }
                     )
                     
-                    // Dragon Name & Species Pill
-                    dragonTitleBadge
-
                 }
             }
             
@@ -131,24 +129,32 @@ struct DragonPlaygroundView: View {
                     .zIndex(22)
             }
             
-            // 4. Main UI HUD Overlay (Top & Bottom)
-            VStack {
-                // Top Navigation & Stats Bar
+            // 4. Home HUD: top bar, dragon card, then Today, the food tray and the care dock
+            VStack(spacing: 10) {
                 topHUDBar
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
-                
-                // Growth & Vitals Gauges
-                vitalsStatusCard
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 16)
                     .padding(.top, 6)
-                
-                Spacer()
-                
-                // Bottom Interactive Controls (Feeding Tray + Power Button)
-                bottomControlsBar
-                    .padding(.bottom, 16)
+
+                dragonCard
+                    .padding(.horizontal, 16)
+
+                Spacer(minLength: 0)
+
+                if showFoodTray {
+                    foodTray
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                } else {
+                    todayCard
+                        .padding(.horizontal, 16)
+                        .transition(.opacity)
+                }
+
+                careDock
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
             }
+            .overlay { denSwitcher }
+            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: showFoodTray)
             .zIndex(10)
             
             // 4b. Night-time sleep tint
@@ -208,9 +214,9 @@ struct DragonPlaygroundView: View {
                         .font(.clay(24, .heavy))
                         .foregroundColor(DragonPalette.coral)
                     if showFavoriteCelebration {
-                        Text("✨ Favorite Food! 2x Bonus! ✨")
+                        Label("Favorite food · 2× XP", systemImage: "heart.fill")
                             .font(.clay(15, .bold))
-                            .foregroundColor(DragonPalette.buttercup)
+                            .foregroundColor(ClayColor.rose)
                     }
                 }
                 .padding(.horizontal, 18)
@@ -225,6 +231,19 @@ struct DragonPlaygroundView: View {
                 .zIndex(48)
             }
             
+            // 10. Settings sit behind the parent gate
+            if showParentGate {
+                ParentGateView(
+                    onSuccess: {
+                        showParentGate = false
+                        gameManager.navigate(to: .settings)
+                    },
+                    onCancel: { showParentGate = false }
+                )
+                .transition(.opacity)
+                .zIndex(70)
+            }
+
             // 11. Evolution Ceremony Sheet
             if showEvolutionModal {
                 EvolutionCeremonyView(
@@ -256,10 +275,6 @@ struct DragonPlaygroundView: View {
         }
         .sheet(isPresented: $showPowersBook) {
             PowerEncyclopediaView(dragon: activeDragon)
-                .environmentObject(gameManager)
-        }
-        .sheet(isPresented: $showFoodPantry) {
-            FoodInventoryView()
                 .environmentObject(gameManager)
         }
         .sheet(isPresented: $showAchievements) {
@@ -358,254 +373,180 @@ struct DragonPlaygroundView: View {
         }
     }
     
-    // MARK: - Dragon Title Badge
-    
-    private var dragonTitleBadge: some View {
-        HStack(spacing: 8) {
-            Text(activeDragon.badgedName)
-                .font(.clay(18, .heavy))
-                .foregroundColor(DragonPalette.textDark)
-            
-            HStack(spacing: 4) {
-                Image(systemName: activeDragon.element.iconName)
-                    .font(.system(size: 13))
-                Text(activeDragon.element.rawValue)
-                    .font(.clay(13, .bold))
-            }
-            .foregroundColor(.white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(Capsule().fill(activeDragon.element.themeColor))
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 6)
-        .background(
-            Capsule()
-                .fill(Color.white.opacity(0.92))
-                .shadow(color: DragonPalette.softShadow, radius: 4, x: 0, y: 2)
-        )
-    }
-    
-    // MARK: - Top HUD Bar
-    
+    // MARK: - Top Bar
+
     private var topHUDBar: some View {
-        HStack {
-            // Back to Main Menu Button
-            Button(action: {
-                HapticsService.shared.light()
-                AudioService.shared.playPop()
-                gameManager.navigate(to: .mainMenu)
-            }) {
-                HStack(spacing: 6) {
-                    Image(systemName: "house.fill")
-                        .font(.system(size: 16))
-                    Text("Home")
-                        .font(.clay(15, .bold))
-                }
-                .foregroundColor(DragonPalette.textDark)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(Color.white.opacity(0.9))
-                        .shadow(color: DragonPalette.softShadow, radius: 4, x: 0, y: 2)
-                )
-            }
-            
+        HStack(spacing: 8) {
+            StarCounterView(count: gameManager.totalStars)
+            ClayPill(systemName: "flame.fill", iconColor: ClayColor.coral,
+                     value: "\(gameManager.state.streak.current)", accessibilityLabel: "Care streak")
             Spacer()
-            
-            // Quick Action Buttons (Powers Book, Food Pantry, Achievements)
-            HStack(spacing: 10) {
-                hudIconButton(icon: "sparkles.rectangle.stack.fill", badge: availablePowers.count) {
+            ClayIconButton(systemName: "gearshape.fill", accessibilityLabel: "Settings") {
+                showParentGate = true
+            }
+        }
+    }
+
+    // MARK: - Dragon Card
+
+    private var dragonCard: some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(activeDragon.badgedName)
+                        .font(.clay(24, .heavy))
+                        .foregroundColor(ClayColor.ink)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    HStack(spacing: 6) {
+                        Label(activeDragon.element.rawValue, systemImage: activeDragon.element.iconName)
+                            .foregroundColor(ClayColor.inkSoft)
+                        Text("Lvl \(stats.level) · \(stats.growthStage.rawValue)")
+                            .foregroundColor(ClayColor.inkSoft)
+                    }
+                    .font(.clay(13, .bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                }
+                Spacer(minLength: 4)
+                ClayIconButton(systemName: "sparkles", size: 40, tint: ClayColor.accent, badge: availablePowers.count, accessibilityLabel: "Powers") {
                     showPowersBook = true
                 }
-                
-                hudIconButton(icon: "fork.knife", badge: totalFoodCount) {
-                    showFoodPantry = true
-                }
-                
-                hudIconButton(icon: "trophy.fill", badge: unlockedAchievementsCount) {
+                ClayIconButton(systemName: "trophy.fill", size: 40, tint: ClayColor.sunShade, badge: unlockedAchievementsCount, accessibilityLabel: "Achievements") {
                     showAchievements = true
                 }
-                
-                StarCounterView(count: gameManager.totalStars)
             }
+
+            ClayMeter(value: stats.currentLevelProgress * 100, color: ClayColor.accent, height: 8)
+
+            HStack(spacing: 8) {
+                vitalMeter(icon: "fork.knife", value: stats.hunger, color: ClayColor.coral)
+                vitalMeter(icon: "heart.fill", value: stats.happiness, color: ClayColor.rose)
+                vitalMeter(icon: "bolt.fill", value: stats.energy, color: ClayColor.sun)
+                vitalMeter(icon: "figure.run", value: stats.fitness, color: ClayColor.sky)
+                vitalMeter(icon: "cross.fill", value: stats.health, color: ClayColor.mint)
+            }
+
+            statusRow
         }
+        .padding(14)
+        .claySurface(cornerRadius: 26)
     }
-    
-    private var totalFoodCount: Int {
-        gameManager.state.foodInventory.values.reduce(0, +)
-    }
-    
+
     private var unlockedAchievementsCount: Int {
         gameManager.state.achievements.filter { $0.isUnlocked }.count
     }
-    
-    private func hudIconButton(icon: String, badge: Int, action: @escaping () -> Void) -> some View {
-        Button(action: {
-            HapticsService.shared.medium()
-            AudioService.shared.playPop()
-            action()
-        }) {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: icon)
-                    .font(.system(size: 18))
-                    .foregroundColor(DragonPalette.textDark)
-                    .frame(width: 40, height: 40)
-                    .background(
-                        Circle()
-                            .fill(Color.white.opacity(0.92))
-                            .shadow(color: DragonPalette.softShadow, radius: 4, x: 0, y: 2)
-                    )
-                
-                if badge > 0 {
-                    Text("\(badge)")
-                        .font(.clay(10, .heavy))
+
+    /// Illness, tummy ache and evolution as small clay chips; empty when all is well.
+    @ViewBuilder
+    private var statusRow: some View {
+        let canEvolve = stats.canEvolve && stats.condition == .healthy
+        if stats.condition.illness != nil || stats.tummyAcheUntil != nil || canEvolve {
+            HStack(spacing: 8) {
+                if let illness = stats.condition.illness {
+                    Label(illness.displayName, systemImage: "thermometer.medium")
+                        .font(.clay(13, .heavy))
                         .foregroundColor(.white)
-                        .padding(4)
-                        .background(Circle().fill(DragonPalette.coral))
-                        .offset(x: 4, y: -4)
+                        .padding(.horizontal, 10).padding(.vertical, 6)
+                        .background(Capsule().fill(ClayColor.coralShade))
+                    Button {
+                        if !gameManager.useHealingHerb() { gameManager.navigate(to: .foodInventoryShop) }
+                    } label: {
+                        Label(gameManager.state.itemCount(.healingHerb) > 0 ? "Cure ×\(gameManager.state.itemCount(.healingHerb))" : "Buy herb",
+                              systemImage: "leaf.fill")
+                            .font(.clay(13, .heavy))
+                            .foregroundColor(ClayColor.ink)
+                            .padding(.horizontal, 12).padding(.vertical, 6)
+                    }
+                    .buttonStyle(ClayButtonStyle(color: ClayColor.mint, cornerRadius: 14))
+                } else if stats.tummyAcheUntil != nil {
+                    Label("Tummy ache", systemImage: "face.dashed")
+                        .font(.clay(13, .heavy))
+                        .foregroundColor(ClayColor.coralShade)
                 }
-            }
-        }
-    }
-    
-    // MARK: - Vitals Status Card
-    
-    private var vitalsStatusCard: some View {
-        VStack(spacing: 8) {
-            // Stage & Level Row
-            HStack {
-                HStack(spacing: 6) {
-                    Image(systemName: "sparkles")
-                        .foregroundColor(DragonPalette.buttercup)
-                    Text(stats.growthStage.rawValue)
-                        .font(.clay(14, .heavy))
-                        .foregroundColor(DragonPalette.softPurple)
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(Capsule().fill(DragonPalette.softPurple.opacity(0.15)))
-                
-                Text("Age: \(stats.ageInDays) days")
-                    .font(.clay(12, .medium))
-                    .foregroundColor(DragonPalette.textMuted)
-                
-                Spacer()
-                
-                // Evolution Alert Button if Ready
-                if stats.canEvolve && stats.condition == .healthy {
-                    Button(action: {
+                Spacer(minLength: 0)
+                if canEvolve {
+                    Button {
                         HapticsService.shared.medium()
                         showEvolutionModal = true
-                    }) {
-                        HStack(spacing: 4) {
-                            Text("Evolve!")
-                                .font(.clay(12, .heavy))
-                            Image(systemName: "arrow.up.circle.fill")
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(Capsule().fill(DragonPalette.coral))
+                    } label: {
+                        Label("Evolve", systemImage: "arrow.up.circle.fill")
+                            .font(.clay(14, .heavy))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12).padding(.vertical, 6)
                     }
+                    .buttonStyle(ClayButtonStyle(color: ClayColor.accent, cornerRadius: 14))
                 }
-                
-                Text("Lvl \(stats.level)")
-                    .font(.clay(14, .heavy))
-                    .foregroundColor(DragonPalette.textDark)
-            }
-            
-            // Level XP Progress Bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color.black.opacity(0.08))
-                    Capsule()
-                        .fill(
-                            LinearGradient(
-                                colors: [DragonPalette.skyBlue, DragonPalette.lavender],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: geo.size.width * CGFloat(stats.currentLevelProgress))
-                }
-            }
-            .frame(height: 6)
-            
-            // Care Gauges Grid (Hunger, Happiness, Energy, Health)
-            HStack(spacing: 8) {
-                vitalMeter(icon: "fork.knife", label: "Hunger", value: stats.hunger, color: DragonPalette.coral)
-                vitalMeter(icon: "heart.fill", label: "Happy", value: stats.happiness, color: DragonPalette.rosyPink)
-                vitalMeter(icon: "bolt.fill", label: "Energy", value: stats.energy, color: DragonPalette.buttercup)
-                vitalMeter(icon: "figure.run", label: "Fitness", value: stats.fitness, color: DragonPalette.skyBlue)
-                vitalMeter(icon: "shield.fill", label: "Health", value: stats.health, color: DragonPalette.mintGreen)
-            }
-            
-            careActionsRow
-        }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white.opacity(0.92))
-                .shadow(color: DragonPalette.softShadow, radius: 6, x: 0, y: 3)
-        )
-    }
-    
-    // MARK: - Care Actions (illness, bedtime)
-    
-    private var careActionsRow: some View {
-        HStack(spacing: 8) {
-            if let illness = stats.condition.illness {
-                Label(illness.displayName, systemImage: "thermometer.medium")
-                    .font(.clay(12, .heavy))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 10).padding(.vertical, 5)
-                    .background(Capsule().fill(DragonPalette.coral))
-                Button {
-                    if !gameManager.useHealingHerb() { gameManager.navigate(to: .foodInventoryShop) }
-                } label: {
-                    Text(gameManager.state.itemCount(.healingHerb) > 0 ? "Cure (Herb ×\(gameManager.state.itemCount(.healingHerb)))" : "Buy Healing Herb")
-                        .font(.clay(12, .heavy))
-                        .foregroundColor(DragonPalette.textDark)
-                        .padding(.horizontal, 10).padding(.vertical, 5)
-                        .background(Capsule().fill(DragonPalette.mintGreen))
-                }
-            } else if stats.tummyAcheUntil != nil {
-                Label("Tummy ache", systemImage: "face.dashed")
-                    .font(.clay(12, .heavy))
-                    .foregroundColor(DragonPalette.coral)
-            }
-            Spacer()
-            if !isSpirit {
-                Button {
-                    HapticsService.shared.light()
-                    if stats.isSleepingEarly { gameManager.wakeUp() } else { gameManager.lightsOut() }
-                } label: {
-                    Label(stats.isSleepingEarly ? "Wake up" : "Lights out",
-                          systemImage: stats.isSleepingEarly ? "sun.max.fill" : "moon.fill")
-                        .font(.clay(12, .heavy))
-                        .foregroundColor(DragonPalette.textDark)
-                        .padding(.horizontal, 10).padding(.vertical, 5)
-                        .background(Capsule().fill(DragonPalette.lavender))
-                }
-                .disabled(!stats.isSleepingEarly && !gameManager.canLightsOut)
-                .opacity(!stats.isSleepingEarly && !gameManager.canLightsOut ? 0.5 : 1)
             }
         }
     }
-    
+
+    // MARK: - Den switcher
+
+    /// Arrows beside the dragon when the den holds more than one dragon.
+    @ViewBuilder
+    private var denSwitcher: some View {
+        let den = gameManager.state.denDragons
+        if den.count > 1, let index = den.firstIndex(where: { $0.id == activeDragon.id }) {
+            HStack {
+                ClayIconButton(systemName: "chevron.left", size: 40, accessibilityLabel: "Previous dragon") {
+                    gameManager.selectDragon(id: den[(index + den.count - 1) % den.count].id)
+                }
+                Spacer()
+                ClayIconButton(systemName: "chevron.right", size: 40, accessibilityLabel: "Next dragon") {
+                    gameManager.selectDragon(id: den[(index + 1) % den.count].id)
+                }
+            }
+            .padding(.horizontal, 10)
+        }
+    }
+
+    // MARK: - Today
+
+    private var todayCard: some View {
+        let quests = gameManager.state.daily.quests
+        let done = quests.filter(\.isComplete).count
+        return Button {
+            HapticsService.shared.light()
+            gameManager.navigate(to: .today)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "checklist")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(ClayColor.ink)
+                    .frame(width: 38, height: 38)
+                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(ClayColor.sun))
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Today's quests")
+                            .font(.clay(16, .heavy))
+                            .foregroundColor(ClayColor.ink)
+                        Spacer()
+                        Text("\(done)/\(max(quests.count, 1))")
+                            .font(.clay(15, .heavy))
+                            .foregroundColor(ClayColor.inkSoft)
+                    }
+                    ClayMeter(value: quests.isEmpty ? 0 : Double(done) / Double(quests.count) * 100, color: ClayColor.mint, height: 8)
+                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .heavy))
+                    .foregroundColor(ClayColor.inkSoft)
+            }
+            .padding(12)
+        }
+        .buttonStyle(ClaySecondaryButtonStyle(cornerRadius: 22))
+    }
+
     private var sleepOverlay: some View {
         ZStack(alignment: .top) {
             Color(red: 0.12, green: 0.10, blue: 0.30).opacity(0.35)
                 .ignoresSafeArea()
-            Text("💤 \(activeDragon.name) is sleeping")
+            Label("\(activeDragon.name) is sleeping", systemImage: "moon.zzz.fill")
                 .font(.clay(16, .heavy))
                 .foregroundColor(.white)
-                .padding(.horizontal, 14).padding(.vertical, 8)
+                .padding(.horizontal, 16).padding(.vertical, 8)
                 .background(Capsule().fill(Color.black.opacity(0.35)))
-                .padding(.top, 250)
+                .padding(.top, 300)
         }
         .allowsHitTesting(false)
     }
@@ -619,7 +560,7 @@ struct DragonPlaygroundView: View {
                 DragonView(dragon: activeDragon, mood: .sleepy, size: 130, allowInteractivePetting: false)
                     .opacity(0.45)
                     .colorMultiply(Color(red: 0.8, green: 0.85, blue: 1.0))
-                Text("\(activeDragon.name) has become a spirit 👻")
+                Text("\(activeDragon.name) has become a spirit")
                     .font(.clay(20, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                     .multilineTextAlignment(.center)
@@ -639,7 +580,7 @@ struct DragonPlaygroundView: View {
                     .disabled(gameManager.totalStars < CareItem.phoenixEmber.price)
                     .opacity(gameManager.totalStars < CareItem.phoenixEmber.price ? 0.5 : 1)
                 }
-                Button("Back to the Den") { gameManager.navigate(to: .den) }
+                Button("See all dragons") { gameManager.navigate(to: .dragonCollection) }
                     .font(.clay(15, .bold))
                     .foregroundColor(DragonPalette.softPurple)
             }
@@ -649,104 +590,104 @@ struct DragonPlaygroundView: View {
         }
     }
     
-    private func vitalMeter(icon: String, label: String, value: Double, color: Color) -> some View {
-        VStack(spacing: 3) {
-            HStack(spacing: 3) {
-                Image(systemName: icon)
-                    .font(.system(size: 10))
-                    .foregroundColor(color)
-                Text("\(Int(value))%")
-                    .font(.clay(11, .bold))
-                    .foregroundColor(DragonPalette.textDark)
+    private func vitalMeter(icon: String, value: Double, color: Color) -> some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(color)
+            ClayMeter(value: value, color: color, height: 8)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityValue("\(Int(value)) percent")
+    }
+
+    // MARK: - Care Dock
+
+    private var careDock: some View {
+        HStack(alignment: .top, spacing: 0) {
+            dockButton(showFoodTray ? "Close" : "Feed", icon: showFoodTray ? "xmark" : "fork.knife", color: ClayColor.coral,
+                       badge: showFoodTray ? 0 : totalFoodCount) {
+                showFoodTray.toggle()
             }
-            
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color.black.opacity(0.08))
-                    Capsule()
-                        .fill(color)
-                        .frame(width: geo.size.width * (min(max(value, 0.0), 100.0) / 100.0))
+            dockButton("Pet", icon: "hand.wave.fill", color: ClayColor.rose, enabled: !isSpirit) {
+                gameManager.petActiveDragon()
+                setTemporaryMood(.happy, duration: 1.2)
+            }
+            dockButton("Power", icon: primaryPower.iconName, color: activeDragon.element.themeColor,
+                       enabled: stats.energy >= primaryPower.energyCost && !isSpirit && !isAsleep) {
+                castElementalPower()
+            }
+            dockButton(stats.isSleepingEarly ? "Wake" : "Sleep", icon: stats.isSleepingEarly ? "sun.max.fill" : "moon.fill",
+                       color: ClayColor.sky, enabled: !isSpirit && (stats.isSleepingEarly || gameManager.canLightsOut)) {
+                if stats.isSleepingEarly { gameManager.wakeUp() } else { gameManager.lightsOut() }
+            }
+            Button {
+                HapticsService.shared.medium()
+                AudioService.shared.playPop()
+                gameManager.navigate(to: .trainingHub)
+            } label: {
+                VStack(spacing: 2) {
+                    Image(systemName: "play.fill").font(.system(size: 20, weight: .heavy))
+                    Text("Train").font(.clay(15, .heavy))
                 }
+                .foregroundColor(.white)
+                .frame(width: 76, height: 66)
             }
-            .frame(height: 5)
+            .buttonStyle(ClayButtonStyle(color: ClayColor.accent, cornerRadius: 24))
+            .accessibilityLabel("Train")
         }
     }
-    
-    // MARK: - Bottom Controls Bar
-    
-    private var bottomControlsBar: some View {
-        VStack(spacing: 10) {
-            // Food Selection Strip
+
+    private var totalFoodCount: Int {
+        gameManager.state.foodInventory.values.reduce(0, +)
+    }
+
+    private func dockButton(_ title: String, icon: String, color: Color, badge: Int = 0, enabled: Bool = true,
+                            action: @escaping () -> Void) -> some View {
+        VStack(spacing: 4) {
+            ClayIconButton(systemName: icon, size: 52, tint: color, badge: badge, accessibilityLabel: title, action: action)
+                .disabled(!enabled)
+                .opacity(enabled ? 1 : 0.45)
+            Text(title)
+                .font(.clay(12, .heavy))
+                .foregroundColor(ClayColor.ink)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Food Tray
+
+    /// Food to tap (it flies to the dragon) or hold and drag into its mouth.
+    private var foodTray: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("Tap a snack, or hold and drag it to \(activeDragon.name)")
+                    .font(.clay(13, .bold))
+                    .foregroundColor(ClayColor.inkSoft)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Spacer()
+                Button("Shop") { gameManager.navigate(to: .foodInventoryShop) }
+                    .font(.clay(14, .heavy))
+                    .foregroundColor(ClayColor.accent)
+            }
+            .padding(.horizontal, 18)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(FoodType.allCases) { food in
                         foodChip(food: food)
                     }
                 }
-                .padding(.horizontal, 20)
-            }
-            
-            // Action Buttons: Elemental Power Trigger & Petting
-            HStack(spacing: 16) {
-                // Trigger Equipped Elemental Power
-                Button(action: {
-                    castElementalPower()
-                }) {
-                    HStack(spacing: 8) {
-                        Image(systemName: primaryPower.iconName)
-                            .font(.system(size: 18, weight: .bold))
-                        
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(primaryPower.name)
-                                .font(.clay(15, .heavy))
-                            Text("-\(Int(primaryPower.energyCost)) Energy")
-                                .font(.clay(11, .medium))
-                                .opacity(0.85)
-                        }
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 12)
-                    .background(
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [activeDragon.element.themeColor, activeDragon.element.themeColor.opacity(0.8)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .shadow(color: activeDragon.element.themeColor.opacity(0.5), radius: 6, x: 0, y: 3)
-                    )
-                }
-                .disabled(stats.energy < primaryPower.energyCost || isSpirit || isAsleep)
-                .opacity(stats.energy < primaryPower.energyCost || isSpirit || isAsleep ? 0.6 : 1.0)
-                
-                // Pet Dragon Shortcut
-                Button(action: {
-                    gameManager.petActiveDragon()
-                    setTemporaryMood(.happy, duration: 1.2)
-                }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "hand.tap.fill")
-                            .font(.system(size: 16))
-                        Text("Pet")
-                            .font(.clay(15, .heavy))
-                    }
-                    .foregroundColor(DragonPalette.textDark)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        Capsule()
-                            .fill(Color.white.opacity(0.92))
-                            .shadow(color: DragonPalette.softShadow, radius: 5, x: 0, y: 2)
-                    )
-                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
             }
         }
+        .padding(.top, 12)
+        .padding(.bottom, 4)
+        .claySurface(cornerRadius: 28)
+        .padding(.horizontal, 10)
     }
-    
+
     private func foodChip(food: FoodType) -> some View {
         let count = gameManager.state.foodInventory[food.rawValue] ?? 0
         let isFavorite = (food == activeDragon.favoriteFoodType)
@@ -778,18 +719,14 @@ struct DragonPlaygroundView: View {
                 .lineLimit(1)
             
             if isFavorite && activeDragon.stats.favoriteFoodDiscovered {
-                Text("❤️ Fav")
-                    .font(.clay(9, .heavy))
-                    .foregroundColor(DragonPalette.rosyPink)
+                Label("Fav", systemImage: "heart.fill")
+                    .font(.clay(10, .heavy))
+                    .foregroundColor(ClayColor.rose)
             }
         }
         .frame(width: 76, height: 86)
         .padding(.vertical, 6)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color.white.opacity(count > 0 ? 0.95 : 0.6))
-                .shadow(color: DragonPalette.softShadow, radius: 4, x: 0, y: 2)
-        )
+        .claySurface(cornerRadius: 18, elevation: 0.7)
         .contentShape(Rectangle())
         .opacity(count > 0 ? 1.0 : 0.5)
         // UIKit recognizers so a quick swipe still scrolls the strip; the drag starts only after a hold.
