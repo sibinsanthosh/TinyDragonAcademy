@@ -108,8 +108,8 @@ struct ContentView: View {
                     .background(alignment: .bottom) {
                         // Fade scrolling content out before it reaches the bar
                         LinearGradient(colors: [ClayColor.backdropBottom.opacity(0), ClayColor.backdropBottom],
-                                       startPoint: .top, endPoint: .center)
-                            .frame(height: 110)
+                                       startPoint: .top, endPoint: .bottom)
+                            .frame(height: 44)
                             .ignoresSafeArea(edges: .bottom)
                             .allowsHitTesting(false)
                     }

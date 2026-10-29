@@ -91,7 +91,8 @@ struct DragonPlaygroundView: View {
                     DragonView(
                         dragon: activeDragon,
                         mood: (isAsleep || isSpirit) ? .sleepy : playgroundMood,
-                        size: 210,
+                        // Smaller on short phones so the dragon card doesn't cover its head
+                        size: UIScreen.main.bounds.height < 750 ? 150 : 210,
                         allowInteractivePetting: !isEatingSequenceRunning && !isDraggingFood && !isSpirit
                     ) {
                         gameManager.petActiveDragon()
