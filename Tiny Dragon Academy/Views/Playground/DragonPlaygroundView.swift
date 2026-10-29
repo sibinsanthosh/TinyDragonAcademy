@@ -35,6 +35,7 @@ struct DragonPlaygroundView: View {
     @State private var isDraggingFood: Bool = false
     @State private var isNearMouth: Bool = false
     @State private var dragStardustTrail: [CGPoint] = []
+    @State private var playgroundOrigin: CGPoint = .zero
     
     // Flying food animation state (tap-to-feed or animated giving)
     @State private var flyingFood: FoodType? = nil
@@ -241,6 +242,13 @@ struct DragonPlaygroundView: View {
             }
         }
         .coordinateSpace(name: "playgroundSpace")
+        .background(
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear { playgroundOrigin = geo.frame(in: .global).origin }
+                    .onChange(of: geo.frame(in: .global).origin) { _, origin in playgroundOrigin = origin }
+            }
+        )
         .onPreferenceChange(DragonMouthPreferenceKey.self) { pos in
             if pos != .zero {
                 dragonMouthPosition = pos
@@ -784,76 +792,73 @@ struct DragonPlaygroundView: View {
         )
         .contentShape(Rectangle())
         .opacity(count > 0 ? 1.0 : 0.5)
-        .gesture(
-            SpatialTapGesture(coordinateSpace: .named("playgroundSpace"))
-                .onEnded { value in
+        // UIKit recognizers so a quick swipe still scrolls the strip; the drag starts only after a hold.
+        .overlay(
+            HoldDragTapView(
+                onTap: { location in
                     guard count > 0 && !isEatingSequenceRunning && !isDraggingFood else { return }
-                    launchFlyingFood(food: food, from: value.location)
-                }
-        )
-        .simultaneousGesture(
-            LongPressGesture(minimumDuration: 0.22)
-                .sequenced(before: DragGesture(coordinateSpace: .named("playgroundSpace")))
-                .onChanged { value in
+                    launchFlyingFood(food: food, from: toPlayground(location))
+                },
+                onDragChanged: { location in
                     guard count > 0 && !isEatingSequenceRunning else { return }
-                    switch value {
-                    case .second(true, let drag):
-                        if let drag = drag {
-                            if draggedFood == nil {
-                                draggedFood = food
-                                isDraggingFood = true
-                                HapticsService.shared.light()
-                            }
-                            dragCurrentPosition = drag.location
-                            
-                            // Trailing stardust
-                            dragStardustTrail.append(drag.location)
-                            if dragStardustTrail.count > 6 {
-                                dragStardustTrail.removeFirst()
-                            }
-                            
-                            let dist = hypot(drag.location.x - dragonMouthPosition.x, drag.location.y - dragonMouthPosition.y)
-                            let near = dist < 170
-                            if near != isNearMouth {
-                                isNearMouth = near
-                                if near {
-                                    playgroundMood = .anticipatingFood
-                                    HapticsService.shared.light()
-                                } else {
-                                    playgroundMood = .idle
-                                }
-                            }
-                        }
-                    default:
-                        break
-                    }
+                    foodDragChanged(food: food, to: toPlayground(location))
+                },
+                onDragEnded: { location in
+                    foodDragEnded(at: toPlayground(location))
                 }
-                .onEnded { value in
-                    guard isDraggingFood, let food = draggedFood else { return }
-                    switch value {
-                    case .second(true, let drag):
-                        if let drag = drag {
-                            let dist = hypot(drag.location.x - dragonMouthPosition.x, drag.location.y - dragonMouthPosition.y)
-                            if dist < 170 {
-                                startFeedingSequence(food: food, from: drag.location)
-                                return
-                            }
-                        }
-                    default:
-                        break
-                    }
-                    
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
-                        isDraggingFood = false
-                        draggedFood = nil
-                        isNearMouth = false
-                        dragStardustTrail.removeAll()
-                        if playgroundMood == .anticipatingFood {
-                            playgroundMood = .idle
-                        }
-                    }
-                }
+            )
         )
+    }
+    
+    /// Converts a window location into the playground's coordinate space.
+    private func toPlayground(_ global: CGPoint) -> CGPoint {
+        CGPoint(x: global.x - playgroundOrigin.x, y: global.y - playgroundOrigin.y)
+    }
+    
+    private func foodDragChanged(food: FoodType, to location: CGPoint) {
+        if draggedFood == nil {
+            draggedFood = food
+            isDraggingFood = true
+            HapticsService.shared.light()
+        }
+        dragCurrentPosition = location
+        
+        // Trailing stardust
+        dragStardustTrail.append(location)
+        if dragStardustTrail.count > 6 {
+            dragStardustTrail.removeFirst()
+        }
+        
+        let dist = hypot(location.x - dragonMouthPosition.x, location.y - dragonMouthPosition.y)
+        let near = dist < 170
+        if near != isNearMouth {
+            isNearMouth = near
+            if near {
+                playgroundMood = .anticipatingFood
+                HapticsService.shared.light()
+            } else {
+                playgroundMood = .idle
+            }
+        }
+    }
+    
+    private func foodDragEnded(at location: CGPoint) {
+        guard isDraggingFood, let food = draggedFood else { return }
+        let dist = hypot(location.x - dragonMouthPosition.x, location.y - dragonMouthPosition.y)
+        if dist < 170 {
+            startFeedingSequence(food: food, from: location)
+            return
+        }
+        
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+            isDraggingFood = false
+            draggedFood = nil
+            isNearMouth = false
+            dragStardustTrail.removeAll()
+            if playgroundMood == .anticipatingFood {
+                playgroundMood = .idle
+            }
+        }
     }
     
     // MARK: - Animated Feeding Sequence
