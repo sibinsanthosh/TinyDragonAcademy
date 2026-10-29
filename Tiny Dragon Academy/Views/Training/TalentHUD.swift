@@ -24,7 +24,7 @@ struct TalentHUD: View {
             VStack {
                 if badgeAtTop { badge(talent) }
                 if showPop {
-                    Text("✨ \(talent.title)!")
+                    Label("\(talent.title)!", systemImage: "sparkles")
                         .font(.clay(24, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                         .padding(.horizontal, 16)

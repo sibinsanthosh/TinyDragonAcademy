@@ -45,17 +45,19 @@ private struct SkyFlightPlayView: View {
                 }
             } content: {
                 ZStack(alignment: .topLeading) {
+                    SkyScene(size: geo.size)
+
                     ForEach(Array(state.pillars.enumerated()), id: \.offset) { _, pillar in
                         let gapTop = (1 - (pillar.gapCenter + pillar.gapHeight / 2)) * h
                         let gapBottom = (1 - (pillar.gapCenter - pillar.gapHeight / 2)) * h
-                        cloud(width: pillarWidth, height: gapTop)
+                        ClayCloudPillar(width: pillarWidth, height: gapTop, capAtBottom: true)
                             .position(x: pillar.x * w, y: gapTop / 2)
-                        cloud(width: pillarWidth, height: h - gapBottom)
+                        ClayCloudPillar(width: pillarWidth, height: h - gapBottom, capAtBottom: false)
                             .position(x: pillar.x * w, y: (gapBottom + h) / 2)
                     }
 
                     ForEach(Array(state.gems.enumerated()), id: \.offset) { _, gem in
-                        Text("💎").font(.system(size: SkyFlightGameState.gemRadius * h))
+                        ClayGem(size: SkyFlightGameState.gemRadius * h * 1.6)
                             .position(x: gem.x * w, y: (1 - gem.y) * h)
                     }
 
@@ -73,11 +75,8 @@ private struct SkyFlightPlayView: View {
                             .position(x: w / 2, y: h * 0.7)
                     }
 
-                    Text("\(state.score)")
-                        .font(.clay(34, .heavy))
-                        .foregroundColor(DragonPalette.textDark)
+                    ClayGameHUD(score: "\(state.score)", scoreIcon: "cloud.fill")
                         .frame(width: w)
-                        .padding(.top, 8)
                 }
                 .frame(width: w, height: h)
                 .overlay {
@@ -98,10 +97,4 @@ private struct SkyFlightPlayView: View {
         }
     }
 
-    private func cloud(width: CGFloat, height: CGFloat) -> some View {
-        RoundedRectangle(cornerRadius: width / 2)
-            .fill(Color.white.opacity(0.95))
-            .overlay(RoundedRectangle(cornerRadius: width / 2).stroke(DragonPalette.skyBlue, lineWidth: 3))
-            .frame(width: width, height: max(0, height))
-    }
 }
