@@ -35,7 +35,7 @@ struct StarCounterView: View {
                     .shadow(color: Color.yellow.opacity(0.5), radius: 4)
                 
                 Text("\(count)")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .font(.clay(20, .bold))
                     .foregroundColor(DragonPalette.textDark)
             }
             .padding(.horizontal, 16)

@@ -111,7 +111,7 @@ struct ContentView: View {
         .overlay(alignment: .top) {
             if let toast = gameManager.toasts.first {
                 Text(toast)
-                    .font(.system(size: 15, weight: .heavy, design: .rounded))
+                    .font(.clay(15, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 18)

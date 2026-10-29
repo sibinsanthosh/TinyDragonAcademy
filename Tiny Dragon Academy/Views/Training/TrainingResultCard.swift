@@ -19,10 +19,10 @@ struct TrainingResultCard: View {
     var body: some View {
         VStack(spacing: 12) {
             Text(result.isNewBest ? "New Best! 🏆" : "Training Complete!")
-                .font(.system(size: 26, weight: .heavy, design: .rounded))
+                .font(.clay(26, .heavy))
                 .foregroundColor(DragonPalette.textDark)
             Text("Score \(score)  •  Best \(best)")
-                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .font(.clay(17, .bold))
                 .foregroundColor(DragonPalette.textMuted)
 
             if let reward = result.reward {
@@ -42,7 +42,7 @@ struct TrainingResultCard: View {
                 }
             } else {
                 Text("Too short to count — train for at least 20 seconds.")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(.clay(14, .semibold))
                     .foregroundColor(DragonPalette.coral)
                     .multilineTextAlignment(.center)
             }
@@ -68,6 +68,6 @@ struct TrainingResultCard: View {
             Image(systemName: icon).foregroundColor(game.themeColor)
             Text(text).foregroundColor(DragonPalette.textDark)
         }
-        .font(.system(size: 16, weight: .bold, design: .rounded))
+        .font(.clay(16, .bold))
     }
 }

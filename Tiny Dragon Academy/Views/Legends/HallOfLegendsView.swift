@@ -26,7 +26,7 @@ struct HallOfLegendsList: View {
         VStack(spacing: 12) {
             if gameManager.state.hallOfLegends.isEmpty {
                 Text("No legends yet. Every dragon here is still with you. 💜")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.clay(15, .semibold))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
                     .padding(.top, 30)
@@ -39,13 +39,13 @@ struct HallOfLegendsList: View {
                     }
                     VStack(alignment: .leading, spacing: 3) {
                         Text(memorial.isShiny ? "\(memorial.name) ★" : memorial.name)
-                            .font(.system(size: 17, weight: .heavy, design: .rounded))
+                            .font(.clay(17, .heavy))
                             .foregroundColor(DragonPalette.textDark)
                         Text("\(memorial.speciesTitle) • \(memorial.stage.rawValue) • Lvl \(memorial.level)")
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .font(.clay(12, .bold))
                             .foregroundColor(DragonPalette.textMuted)
                         Text("\(memorial.bornAt.formatted(date: .abbreviated, time: .omitted)) – \(memorial.diedAt.formatted(date: .abbreviated, time: .omitted))")
-                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .font(.clay(12, .medium))
                             .foregroundColor(DragonPalette.textMuted)
                     }
                     Spacer()

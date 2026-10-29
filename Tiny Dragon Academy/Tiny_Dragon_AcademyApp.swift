@@ -12,6 +12,7 @@ struct Tiny_Dragon_AcademyApp: App {
     @StateObject private var gameManager = GameManager()
     
     init() {
+        FontRegistry.registerBundledFonts()
         #if DEBUG
         GameLogicTests.runAllTests()
         #endif

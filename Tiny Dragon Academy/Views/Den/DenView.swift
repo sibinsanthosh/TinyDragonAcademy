@@ -22,7 +22,7 @@ struct DenView: View {
 
                 if remindersDenied && gameManager.state.remindersEnabled {
                     Label("Reminders are off in Settings — your dragons could get sick without you noticing.", systemImage: "bell.slash.fill")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .font(.clay(13, .bold))
                         .foregroundColor(.white)
                         .padding(12)
                         .background(RoundedRectangle(cornerRadius: 14).fill(DragonPalette.coral))
@@ -69,13 +69,13 @@ struct DenView: View {
                     .opacity(dragon.stats.condition.isSpirit ? 0.4 : 1)
                     .frame(height: 96)
                 Text(dragon.badgedName)
-                    .font(.system(size: 17, weight: .heavy, design: .rounded))
+                    .font(.clay(17, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 if let status {
                     DragonStatusBadge(status: status)
                 } else {
                     Text("Happy & healthy")
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .font(.clay(12, .bold))
                         .foregroundColor(DragonPalette.textMuted)
                 }
                 DragonMetersView(stats: dragon.stats, compact: true)
@@ -101,10 +101,10 @@ struct DenView: View {
                     .font(.system(size: 40))
                     .foregroundColor(DragonPalette.lavender)
                 Text("Empty spot")
-                    .font(.system(size: 15, weight: .heavy, design: .rounded))
+                    .font(.clay(15, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 Text("Hatch an egg →")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(.clay(13, .bold))
                     .foregroundColor(DragonPalette.textMuted)
             }
             .frame(maxWidth: .infinity, minHeight: 200)

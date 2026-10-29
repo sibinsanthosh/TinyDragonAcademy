@@ -40,10 +40,10 @@ struct TodayView: View {
                 Text("🔥").font(.system(size: 40))
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(streak.current)-day care streak")
-                        .font(.system(size: 22, weight: .heavy, design: .rounded))
+                        .font(.clay(22, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                     Text("Best \(streak.best) • Feed or train and keep everyone healthy")
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .font(.clay(13, .medium))
                         .foregroundColor(DragonPalette.textMuted)
                 }
                 Spacer()
@@ -56,7 +56,7 @@ struct TodayView: View {
                             .frame(width: 26, height: 26)
                             .overlay(Image(systemName: day.icon).font(.system(size: 11, weight: .bold)).foregroundColor(.white))
                         Text(day.label)
-                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .font(.clay(11, .bold))
                             .foregroundColor(DragonPalette.textMuted)
                     }
                     .frame(maxWidth: .infinity)
@@ -68,7 +68,7 @@ struct TodayView: View {
                         .foregroundColor(i < streak.shields ? DragonPalette.skyBlue : DragonPalette.textMuted.opacity(0.4))
                 }
                 Text(streak.shields == 1 ? "1 Streak Shield — covers one missed day" : "\(streak.shields) Streak Shields — earned at 7 days")
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .font(.clay(12, .bold))
                     .foregroundColor(DragonPalette.textMuted)
                 Spacer()
             }
@@ -115,16 +115,16 @@ struct TodayView: View {
         return VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Label("Today's quests", systemImage: "checklist")
-                    .font(.system(size: 18, weight: .heavy, design: .rounded))
+                    .font(.clay(18, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 Spacer()
                 Text("\(gameManager.todayQuestsDone)/\(daily.quests.count)")
-                    .font(.system(size: 15, weight: .heavy, design: .rounded))
+                    .font(.clay(15, .heavy))
                     .foregroundColor(DragonPalette.coral)
             }
             if daily.quests.isEmpty {
                 Text("Quests appear after your first dragon hatches.")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.clay(14, .medium))
                     .foregroundColor(DragonPalette.textMuted)
             }
             ForEach(Array(daily.quests.enumerated()), id: \.offset) { _, quest in
@@ -135,20 +135,20 @@ struct TodayView: View {
                         .frame(width: 28)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(quest.title)
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .font(.clay(15, .bold))
                             .foregroundColor(DragonPalette.textDark)
                             .strikethrough(quest.isComplete)
                         ProgressView(value: Double(min(quest.progress, quest.target)), total: Double(quest.target))
                             .tint(quest.isComplete ? DragonPalette.mintGreen : DragonPalette.coral)
                     }
                     Text("+\(DailyRules.questReward)★")
-                        .font(.system(size: 13, weight: .heavy, design: .rounded))
+                        .font(.clay(13, .heavy))
                         .foregroundColor(DragonPalette.textMuted)
                 }
             }
             Text(daily.allClearRewarded ? "All done today — see you tomorrow at 7am! 🌙"
                                         : "Finish all three for +\(DailyRules.allClearStars)★ and a Healing Herb.")
-                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .font(.clay(13, .bold))
                 .foregroundColor(DragonPalette.textMuted)
         }
         .padding(16)
@@ -160,11 +160,11 @@ struct TodayView: View {
     private var wishesCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label("Dragon wishes", systemImage: "sparkles")
-                .font(.system(size: 18, weight: .heavy, design: .rounded))
+                .font(.clay(18, .heavy))
                 .foregroundColor(DragonPalette.textDark)
             if gameManager.state.denDragons.isEmpty {
                 Text("No dragons in the den yet.")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.clay(14, .medium))
                     .foregroundColor(DragonPalette.textMuted)
             }
             ForEach(gameManager.state.denDragons) { dragon in
@@ -178,10 +178,10 @@ struct TodayView: View {
                                 .frame(width: 56, height: 56)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(dragon.badgedName)
-                                    .font(.system(size: 15, weight: .heavy, design: .rounded))
+                                    .font(.clay(15, .heavy))
                                     .foregroundColor(DragonPalette.textDark)
                                 Text(wish.granted ? "Wish granted! 💫" : wish.title)
-                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                    .font(.clay(13, .medium))
                                     .foregroundColor(DragonPalette.textMuted)
                             }
                             Spacer()

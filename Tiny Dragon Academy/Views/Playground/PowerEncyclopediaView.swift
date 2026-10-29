@@ -44,7 +44,7 @@ struct PowerEncyclopediaView: View {
                     Button("Done") {
                         dismiss()
                     }
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.clay(16, .bold))
                     .foregroundColor(DragonPalette.textDark)
                 }
             }
@@ -61,11 +61,11 @@ struct PowerEncyclopediaView: View {
             
             VStack(alignment: .leading, spacing: 3) {
                 Text("\(dragon.name)'s \(dragon.element.rawValue) Powers")
-                    .font(.system(size: 18, weight: .heavy, design: .rounded))
+                    .font(.clay(18, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 
                 Text("Powers awaken as your dragon grows from Baby to Ancient!")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.clay(13, .medium))
                     .foregroundColor(DragonPalette.textMuted)
             }
             
@@ -103,14 +103,14 @@ struct PowerEncyclopediaView: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(isUnlocked ? power.name : "Mysterious Power")
-                        .font(.system(size: 16, weight: .heavy, design: .rounded))
+                        .font(.clay(16, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                     
                     Spacer()
                     
                     // Stage Tag
                     Text(power.stageRequired.rawValue)
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .font(.clay(11, .bold))
                         .foregroundColor(power.stageRequired.badgeColor)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
@@ -118,7 +118,7 @@ struct PowerEncyclopediaView: View {
                 }
                 
                 Text(isUnlocked ? power.description : "Requires \(power.stageRequired.rawValue) (Level \(power.levelRequired)) to unlock.")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.clay(13, .medium))
                     .foregroundColor(isUnlocked ? DragonPalette.textMuted : DragonPalette.coral)
                     .lineLimit(2)
                 
@@ -127,7 +127,7 @@ struct PowerEncyclopediaView: View {
                         Label("Energy: \(Int(power.energyCost))", systemImage: "bolt.fill")
                         Label("Cooldown: \(Int(power.cooldownSeconds))s", systemImage: "timer")
                     }
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .font(.clay(11, .semibold))
                     .foregroundColor(DragonPalette.textMuted)
                 }
             }

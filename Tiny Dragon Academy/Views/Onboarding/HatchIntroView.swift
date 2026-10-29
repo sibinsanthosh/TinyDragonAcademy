@@ -74,7 +74,7 @@ struct HatchIntroView: View {
     private var careModeStep: some View {
         VStack(spacing: 16) {
             Text("Who's raising \(finalName)?")
-                .font(.system(size: 26, weight: .heavy, design: .rounded))
+                .font(.clay(26, .heavy))
                 .foregroundColor(DragonPalette.textDark)
                 .multilineTextAlignment(.center)
             
@@ -93,7 +93,7 @@ struct HatchIntroView: View {
             ) { showParentGate = true }
             
             Text("A grown-up can change this later in Settings.")
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .font(.clay(13, .medium))
                 .foregroundColor(DragonPalette.textMuted)
         }
         .padding(24)
@@ -112,10 +112,10 @@ struct HatchIntroView: View {
                     .foregroundColor(color)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
-                        .font(.system(size: 19, weight: .heavy, design: .rounded))
+                        .font(.clay(19, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                     Text(subtitle)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .font(.clay(13, .medium))
                         .foregroundColor(DragonPalette.textMuted)
                         .multilineTextAlignment(.leading)
                 }
@@ -152,12 +152,12 @@ struct HatchIntroView: View {
             
             VStack(spacing: 8) {
                 Text("Tiny Dragon Academy")
-                    .font(.system(size: 32, weight: .heavy, design: .rounded))
+                    .font(.clay(32, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                     .multilineTextAlignment(.center)
                 
                 Text("A magical island where friendly baby dragons play, learn, and grow!")
-                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                    .font(.clay(18, .medium))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 16)
@@ -189,7 +189,7 @@ struct HatchIntroView: View {
                     .font(.system(size: 24))
                     .foregroundColor(DragonPalette.softPurple)
                 Text(eggPromptText)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.clay(24, .bold))
                     .foregroundColor(DragonPalette.textDark)
             }
             .padding(.horizontal, 20)
@@ -284,7 +284,7 @@ struct HatchIntroView: View {
     private var namingAndWelcomeStep: some View {
         VStack(spacing: 20) {
             Text("Name Your Dragon!")
-                .font(.system(size: 28, weight: .heavy, design: .rounded))
+                .font(.clay(28, .heavy))
                 .foregroundColor(DragonPalette.textDark)
             
             DragonView(
@@ -310,7 +310,7 @@ struct HatchIntroView: View {
             
             // Optional custom name field
             TextField("Or type a name...", text: $chosenName)
-                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .font(.clay(18, .bold))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
                 .background(
@@ -346,7 +346,7 @@ struct HatchIntroView: View {
             chosenName = name
         }) {
             Text(name)
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.clay(16, .bold))
                 .foregroundColor(chosenName == name ? .white : DragonPalette.textDark)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)

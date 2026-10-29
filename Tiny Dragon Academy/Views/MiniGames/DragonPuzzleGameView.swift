@@ -41,7 +41,7 @@ struct DragonPuzzleGameView: View {
                         .font(.system(size: 20))
                         .foregroundColor(DragonPalette.coral)
                     Text(isComplete ? "Hooray! The puzzle is complete!" : "Place the pieces to reveal the dragon!")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(.clay(16, .bold))
                         .foregroundColor(DragonPalette.textDark)
                 }
                 .padding(.horizontal, 16)
@@ -111,7 +111,7 @@ struct DragonPuzzleGameView: View {
             Spacer()
             
             Text("Baby Dragon Puzzle")
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.clay(16, .bold))
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 6)
@@ -202,7 +202,7 @@ struct DragonPuzzleGameView: View {
     private var piecesTrayView: some View {
         VStack(spacing: 8) {
             Text("Tap a piece, then tap its slot:")
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .font(.clay(13, .medium))
                 .foregroundColor(DragonPalette.textMuted)
             
             HStack(spacing: 12) {

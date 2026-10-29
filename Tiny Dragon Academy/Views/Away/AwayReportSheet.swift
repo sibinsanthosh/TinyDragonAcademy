@@ -40,11 +40,11 @@ struct AwayReportSheet: View {
                     ForEach(rows, id: \.title) { row in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(row.title)
-                                .font(.system(size: 16, weight: .heavy, design: .rounded))
+                                .font(.clay(16, .heavy))
                                 .foregroundColor(DragonPalette.textDark)
                             ForEach(row.lines, id: \.self) { line in
                                 Text("• \(line)")
-                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                                    .font(.clay(14, .medium))
                                     .foregroundColor(DragonPalette.textMuted)
                             }
                         }
@@ -52,11 +52,11 @@ struct AwayReportSheet: View {
                     if !gameManager.awayStreakNotes.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("🔥 Care streak")
-                        .font(.system(size: 16, weight: .heavy, design: .rounded))
+                        .font(.clay(16, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                     ForEach(gameManager.awayStreakNotes, id: \.self) { note in
                         Text("• \(note)")
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .font(.clay(14, .medium))
                             .foregroundColor(DragonPalette.textMuted)
                     }
                 }
@@ -64,10 +64,10 @@ struct AwayReportSheet: View {
             if let bonus = gameManager.dailyBonus {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("✨ Daily care bonus")
-                                .font(.system(size: 16, weight: .heavy, design: .rounded))
+                                .font(.clay(16, .heavy))
                                 .foregroundColor(DragonPalette.coral)
                             Text("+\(bonus.stars) stars and \(TimeProgressionService.bonusFoodCount) \(bonus.food.displayName)")
-                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .font(.clay(14, .medium))
                                 .foregroundColor(DragonPalette.textMuted)
                         }
                     }
@@ -81,7 +81,7 @@ struct AwayReportSheet: View {
 
             VStack(spacing: 14) {
                 Text("While you were away")
-                    .font(.system(size: 24, weight: .heavy, design: .rounded))
+                    .font(.clay(24, .heavy))
                     .foregroundColor(DragonPalette.textDark)
 
                 // Short reports hug their content; long ones scroll

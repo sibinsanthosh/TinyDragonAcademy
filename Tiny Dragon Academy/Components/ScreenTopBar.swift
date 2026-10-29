@@ -21,7 +21,7 @@ struct ScreenTopBar: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "chevron.left.circle.fill").font(.system(size: 26))
-                    Text("Back").font(.system(size: 17, weight: .bold, design: .rounded))
+                    Text("Back").font(.clay(17, .bold))
                 }
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 14)
@@ -30,7 +30,7 @@ struct ScreenTopBar: View {
             }
             Spacer()
             Text(title)
-                .font(.system(size: 22, weight: .heavy, design: .rounded))
+                .font(.clay(22, .heavy))
                 .foregroundColor(DragonPalette.textDark)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)

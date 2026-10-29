@@ -37,11 +37,11 @@ struct GameVictoryModal: View {
                 
                 VStack(spacing: 6) {
                     Text("Magical Job!")
-                        .font(.system(size: 30, weight: .heavy, design: .rounded))
+                        .font(.clay(30, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                     
                     Text("You earned 3 shiny dragon stars!")
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .font(.clay(16, .medium))
                         .foregroundColor(DragonPalette.textMuted)
                 }
                 
@@ -69,7 +69,7 @@ struct GameVictoryModal: View {
                             Image(systemName: "house.fill")
                             Text("Back to Island")
                         }
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .font(.clay(17, .bold))
                         .foregroundColor(DragonPalette.textDark)
                         .padding(.vertical, 10)
                     }

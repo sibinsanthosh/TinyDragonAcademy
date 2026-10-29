@@ -31,7 +31,7 @@ struct DragonMetersView: View {
                         .frame(width: compact ? 14 : 18)
                     if !compact {
                         Text(meter.label)
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .font(.clay(13, .bold))
                             .foregroundColor(DragonPalette.textDark)
                             .frame(width: 76, alignment: .leading)
                     }
@@ -46,7 +46,7 @@ struct DragonMetersView: View {
                     .frame(height: compact ? 6 : 10)
                     if !compact {
                         Text("\(Int(meter.value.rounded()))")
-                            .font(.system(size: 12, weight: .heavy, design: .rounded))
+                            .font(.clay(12, .heavy))
                             .foregroundColor(DragonPalette.textMuted)
                             .frame(width: 28, alignment: .trailing)
                     }

@@ -78,7 +78,7 @@ struct MainMenuView: View {
                 gameManager.navigate(to: .today)
             } label: {
                 Text("🔥 \(gameManager.state.streak.current)")
-                    .font(.system(size: 17, weight: .heavy, design: .rounded))
+                    .font(.clay(17, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
@@ -180,7 +180,7 @@ struct MainMenuView: View {
                         Text(gameManager.hasActiveDenDragon
                              ? "\(gameManager.activeDragon.name) • Lvl \(gameManager.activeDragon.stats.level) \(gameManager.activeDragon.stats.growthStage.rawValue)"
                              : "Your den is empty — hatch an egg!")
-                            .font(.system(size: 14, weight: .heavy, design: .rounded))
+                            .font(.clay(14, .heavy))
                             .foregroundColor(DragonPalette.textDark)
                         Image(systemName: "arrow.right.circle.fill")
                             .font(.system(size: 14))
@@ -233,9 +233,9 @@ struct MainMenuView: View {
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Learning Games")
-                            .font(.system(size: 24, weight: .heavy, design: .rounded))
+                            .font(.clay(24, .heavy))
                         Text("4 fun dragon adventures!")
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .font(.clay(14, .medium))
                             .opacity(0.9)
                     }
                     
@@ -321,7 +321,7 @@ struct MainMenuView: View {
                     .font(.system(size: 28, weight: .bold))
                 
                 Text(title)
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.clay(15, .bold))
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .minimumScaleFactor(0.7)

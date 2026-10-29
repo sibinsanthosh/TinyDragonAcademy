@@ -74,7 +74,7 @@ struct TrainingGameShell<Content: View>: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "chevron.left.circle.fill").font(.system(size: 26))
-                    Text("Back").font(.system(size: 17, weight: .bold, design: .rounded))
+                    Text("Back").font(.clay(17, .bold))
                 }
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 14)
@@ -83,7 +83,7 @@ struct TrainingGameShell<Content: View>: View {
             }
             Spacer()
             Text(game.rawValue)
-                .font(.system(size: 20, weight: .heavy, design: .rounded))
+                .font(.clay(20, .heavy))
                 .foregroundColor(DragonPalette.textDark)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -101,14 +101,14 @@ struct TrainingGameShell<Content: View>: View {
                 .font(.system(size: 34, weight: .bold))
                 .foregroundColor(game.themeColor)
             Text(game.subtitle)
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .font(.clay(16, .semibold))
                 .foregroundColor(DragonPalette.textDark)
                 .multilineTextAlignment(.center)
             HStack(spacing: 16) {
                 Label("Best \(gameManager.state.trainingBests[game.rawValue] ?? 0)", systemImage: "trophy.fill")
                 Label("\(Int(LifeRules.trainingEnergyCost)) energy", systemImage: "bolt.fill")
             }
-            .font(.system(size: 13, weight: .bold, design: .rounded))
+            .font(.clay(13, .bold))
             .foregroundColor(DragonPalette.textMuted)
 
             if gameManager.hasActiveDenDragon {
@@ -119,7 +119,7 @@ struct TrainingGameShell<Content: View>: View {
                 KidButton(title: "Start!", icon: "play.fill", backgroundColor: game.themeColor) { start() }
             } else {
                 Text(cannotTrainReason)
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.clay(15, .bold))
                     .foregroundColor(DragonPalette.coral)
                     .multilineTextAlignment(.center)
             }
@@ -140,14 +140,14 @@ struct TrainingGameShell<Content: View>: View {
                 Text(SkillStars.text(dragon.skillStars(skill)))
                     .foregroundColor(DragonPalette.starGold)
             }
-            .font(.system(size: 15, weight: .heavy, design: .rounded))
+            .font(.clay(15, .heavy))
             .foregroundColor(DragonPalette.textDark)
 
             if let talent = dragon.talent {
                 Text(talent.game == game
                      ? "✨ Talent: \(talent.title) — \(talent.summary)"
                      : "\(dragon.name)'s talent \(talent.title) shines in \(talent.game.rawValue).")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(.clay(13, .bold))
                     .foregroundColor(talent.game == game ? DragonPalette.textDark : DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
             }

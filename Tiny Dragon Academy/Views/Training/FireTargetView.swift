@@ -61,7 +61,7 @@ private struct FireTargetPlayView: View {
                         ZStack {
                             Text(emoji(for: target.kind)).font(.system(size: FireTargetGameState.targetRadius * w * 1.8))
                             if target.kind == .shield && target.hitsRemaining > 1 {
-                                Text("×\(target.hitsRemaining)").font(.system(size: 13, weight: .heavy, design: .rounded))
+                                Text("×\(target.hitsRemaining)").font(.clay(13, .heavy))
                                     .foregroundColor(.white).padding(3).background(Circle().fill(DragonPalette.coral))
                                     .offset(x: 18, y: -18)
                             }
@@ -76,7 +76,7 @@ private struct FireTargetPlayView: View {
                         VStack(spacing: 0) {
                             if burst.points > 0 {
                                 Text("+\(burst.points)")
-                                    .font(.system(size: 22, weight: .heavy, design: .rounded))
+                                    .font(.clay(22, .heavy))
                                     .foregroundColor(DragonPalette.coral)
                             }
                             Text("💥").font(.system(size: 34))
@@ -105,7 +105,7 @@ private struct FireTargetPlayView: View {
                         Text(state.combo > 1 ? "Combo ×\(state.combo)" : " ")
                             .foregroundColor(DragonPalette.coral)
                     }
-                    .font(.system(size: 18, weight: .heavy, design: .rounded))
+                    .font(.clay(18, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                     .padding(.horizontal, 20)
                     .padding(.top, 8)

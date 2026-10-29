@@ -79,7 +79,7 @@ struct DragonPlaygroundView: View {
                     // Today's wish, as a speech bubble above the dragon
                     if let wish = gameManager.state.daily.wishes[activeDragon.id], !wish.granted, !isSpirit {
                         Label(wish.title, systemImage: wish.iconName)
-                            .font(.system(size: 13, weight: .heavy, design: .rounded))
+                            .font(.clay(13, .heavy))
                             .foregroundColor(DragonPalette.textDark)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 7)
@@ -205,11 +205,11 @@ struct DragonPlaygroundView: View {
             if let xp = floatingXPBadge {
                 VStack(spacing: 4) {
                     Text("+\(xp) XP!")
-                        .font(.system(size: 24, weight: .heavy, design: .rounded))
+                        .font(.clay(24, .heavy))
                         .foregroundColor(DragonPalette.coral)
                     if showFavoriteCelebration {
                         Text("✨ Favorite Food! 2x Bonus! ✨")
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .font(.clay(15, .bold))
                             .foregroundColor(DragonPalette.buttercup)
                     }
                 }
@@ -284,7 +284,7 @@ struct DragonPlaygroundView: View {
                 )
             
             Text(isNearMouth ? "Drop to Munch! 😋" : "Bring Treat Here! 🍓")
-                .font(.system(size: 13, weight: .heavy, design: .rounded))
+                .font(.clay(13, .heavy))
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 5)
@@ -303,7 +303,7 @@ struct DragonPlaygroundView: View {
     private func nomNomBubble(text: String) -> some View {
         HStack(spacing: 6) {
             Text(text)
-                .font(.system(size: 16, weight: .heavy, design: .rounded))
+                .font(.clay(16, .heavy))
                 .foregroundColor(DragonPalette.textDark)
         }
         .padding(.horizontal, 16)
@@ -363,14 +363,14 @@ struct DragonPlaygroundView: View {
     private var dragonTitleBadge: some View {
         HStack(spacing: 8) {
             Text(activeDragon.badgedName)
-                .font(.system(size: 18, weight: .heavy, design: .rounded))
+                .font(.clay(18, .heavy))
                 .foregroundColor(DragonPalette.textDark)
             
             HStack(spacing: 4) {
                 Image(systemName: activeDragon.element.iconName)
                     .font(.system(size: 13))
                 Text(activeDragon.element.rawValue)
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(.clay(13, .bold))
             }
             .foregroundColor(.white)
             .padding(.horizontal, 8)
@@ -400,7 +400,7 @@ struct DragonPlaygroundView: View {
                     Image(systemName: "house.fill")
                         .font(.system(size: 16))
                     Text("Home")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .font(.clay(15, .bold))
                 }
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 14)
@@ -460,7 +460,7 @@ struct DragonPlaygroundView: View {
                 
                 if badge > 0 {
                     Text("\(badge)")
-                        .font(.system(size: 10, weight: .heavy, design: .rounded))
+                        .font(.clay(10, .heavy))
                         .foregroundColor(.white)
                         .padding(4)
                         .background(Circle().fill(DragonPalette.coral))
@@ -480,7 +480,7 @@ struct DragonPlaygroundView: View {
                     Image(systemName: "sparkles")
                         .foregroundColor(DragonPalette.buttercup)
                     Text(stats.growthStage.rawValue)
-                        .font(.system(size: 14, weight: .heavy, design: .rounded))
+                        .font(.clay(14, .heavy))
                         .foregroundColor(DragonPalette.softPurple)
                 }
                 .padding(.horizontal, 10)
@@ -488,7 +488,7 @@ struct DragonPlaygroundView: View {
                 .background(Capsule().fill(DragonPalette.softPurple.opacity(0.15)))
                 
                 Text("Age: \(stats.ageInDays) days")
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .font(.clay(12, .medium))
                     .foregroundColor(DragonPalette.textMuted)
                 
                 Spacer()
@@ -501,7 +501,7 @@ struct DragonPlaygroundView: View {
                     }) {
                         HStack(spacing: 4) {
                             Text("Evolve!")
-                                .font(.system(size: 12, weight: .heavy, design: .rounded))
+                                .font(.clay(12, .heavy))
                             Image(systemName: "arrow.up.circle.fill")
                         }
                         .foregroundColor(.white)
@@ -512,7 +512,7 @@ struct DragonPlaygroundView: View {
                 }
                 
                 Text("Lvl \(stats.level)")
-                    .font(.system(size: 14, weight: .heavy, design: .rounded))
+                    .font(.clay(14, .heavy))
                     .foregroundColor(DragonPalette.textDark)
             }
             
@@ -559,7 +559,7 @@ struct DragonPlaygroundView: View {
         HStack(spacing: 8) {
             if let illness = stats.condition.illness {
                 Label(illness.displayName, systemImage: "thermometer.medium")
-                    .font(.system(size: 12, weight: .heavy, design: .rounded))
+                    .font(.clay(12, .heavy))
                     .foregroundColor(.white)
                     .padding(.horizontal, 10).padding(.vertical, 5)
                     .background(Capsule().fill(DragonPalette.coral))
@@ -567,14 +567,14 @@ struct DragonPlaygroundView: View {
                     if !gameManager.useHealingHerb() { gameManager.navigate(to: .foodInventoryShop) }
                 } label: {
                     Text(gameManager.state.itemCount(.healingHerb) > 0 ? "Cure (Herb ×\(gameManager.state.itemCount(.healingHerb)))" : "Buy Healing Herb")
-                        .font(.system(size: 12, weight: .heavy, design: .rounded))
+                        .font(.clay(12, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .background(Capsule().fill(DragonPalette.mintGreen))
                 }
             } else if stats.tummyAcheUntil != nil {
                 Label("Tummy ache", systemImage: "face.dashed")
-                    .font(.system(size: 12, weight: .heavy, design: .rounded))
+                    .font(.clay(12, .heavy))
                     .foregroundColor(DragonPalette.coral)
             }
             Spacer()
@@ -585,7 +585,7 @@ struct DragonPlaygroundView: View {
                 } label: {
                     Label(stats.isSleepingEarly ? "Wake up" : "Lights out",
                           systemImage: stats.isSleepingEarly ? "sun.max.fill" : "moon.fill")
-                        .font(.system(size: 12, weight: .heavy, design: .rounded))
+                        .font(.clay(12, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .background(Capsule().fill(DragonPalette.lavender))
@@ -601,7 +601,7 @@ struct DragonPlaygroundView: View {
             Color(red: 0.12, green: 0.10, blue: 0.30).opacity(0.35)
                 .ignoresSafeArea()
             Text("💤 \(activeDragon.name) is sleeping")
-                .font(.system(size: 16, weight: .heavy, design: .rounded))
+                .font(.clay(16, .heavy))
                 .foregroundColor(.white)
                 .padding(.horizontal, 14).padding(.vertical, 8)
                 .background(Capsule().fill(Color.black.opacity(0.35)))
@@ -620,12 +620,12 @@ struct DragonPlaygroundView: View {
                     .opacity(0.45)
                     .colorMultiply(Color(red: 0.8, green: 0.85, blue: 1.0))
                 Text("\(activeDragon.name) has become a spirit 👻")
-                    .font(.system(size: 20, weight: .heavy, design: .rounded))
+                    .font(.clay(20, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                     .multilineTextAlignment(.center)
                 if let status { DragonStatusBadge(status: status) }
                 Text("A Phoenix Ember can bring them back. They'll keep their level but lose one growth stage.")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.clay(13, .medium))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
                 if embers > 0 {
@@ -640,7 +640,7 @@ struct DragonPlaygroundView: View {
                     .opacity(gameManager.totalStars < CareItem.phoenixEmber.price ? 0.5 : 1)
                 }
                 Button("Back to the Den") { gameManager.navigate(to: .den) }
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.clay(15, .bold))
                     .foregroundColor(DragonPalette.softPurple)
             }
             .padding(22)
@@ -656,7 +656,7 @@ struct DragonPlaygroundView: View {
                     .font(.system(size: 10))
                     .foregroundColor(color)
                 Text("\(Int(value))%")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .font(.clay(11, .bold))
                     .foregroundColor(DragonPalette.textDark)
             }
             
@@ -699,9 +699,9 @@ struct DragonPlaygroundView: View {
                         
                         VStack(alignment: .leading, spacing: 1) {
                             Text(primaryPower.name)
-                                .font(.system(size: 15, weight: .heavy, design: .rounded))
+                                .font(.clay(15, .heavy))
                             Text("-\(Int(primaryPower.energyCost)) Energy")
-                                .font(.system(size: 11, weight: .medium, design: .rounded))
+                                .font(.clay(11, .medium))
                                 .opacity(0.85)
                         }
                     }
@@ -732,7 +732,7 @@ struct DragonPlaygroundView: View {
                         Image(systemName: "hand.tap.fill")
                             .font(.system(size: 16))
                         Text("Pet")
-                            .font(.system(size: 15, weight: .heavy, design: .rounded))
+                            .font(.clay(15, .heavy))
                     }
                     .foregroundColor(DragonPalette.textDark)
                     .padding(.horizontal, 16)
@@ -764,7 +764,7 @@ struct DragonPlaygroundView: View {
                 
                 if count > 0 {
                     Text("\(count)")
-                        .font(.system(size: 10, weight: .heavy, design: .rounded))
+                        .font(.clay(10, .heavy))
                         .foregroundColor(.white)
                         .padding(4)
                         .background(Circle().fill(food.primaryColor))
@@ -773,13 +773,13 @@ struct DragonPlaygroundView: View {
             }
             
             Text(food.displayName)
-                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .font(.clay(11, .bold))
                 .foregroundColor(DragonPalette.textDark)
                 .lineLimit(1)
             
             if isFavorite && activeDragon.stats.favoriteFoodDiscovered {
                 Text("❤️ Fav")
-                    .font(.system(size: 9, weight: .heavy, design: .rounded))
+                    .font(.clay(9, .heavy))
                     .foregroundColor(DragonPalette.rosyPink)
             }
         }

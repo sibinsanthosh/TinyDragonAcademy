@@ -33,7 +33,7 @@ struct MiniGamesHubView: View {
                             Image(systemName: "chevron.left.circle.fill")
                                 .font(.system(size: 26))
                             Text("Back")
-                                .font(.system(size: 17, weight: .bold, design: .rounded))
+                                .font(.clay(17, .bold))
                         }
                         .foregroundColor(DragonPalette.textDark)
                         .padding(.horizontal, 14)
@@ -51,11 +51,11 @@ struct MiniGamesHubView: View {
                 // Hub Title
                 VStack(spacing: 4) {
                     Text("Learning Games")
-                        .font(.system(size: 30, weight: .heavy, design: .rounded))
+                        .font(.clay(30, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                     
                     Text("Choose a fun learning adventure!")
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .font(.clay(15, .medium))
                         .foregroundColor(DragonPalette.textMuted)
                 }
                 
@@ -93,12 +93,12 @@ struct MiniGamesHubView: View {
                 
                 VStack(spacing: 4) {
                     Text(game.rawValue)
-                        .font(.system(size: 20, weight: .heavy, design: .rounded))
+                        .font(.clay(20, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                         .multilineTextAlignment(.center)
                     
                     Text(game.subtitle)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .font(.clay(13, .medium))
                         .foregroundColor(DragonPalette.textMuted)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
@@ -108,7 +108,7 @@ struct MiniGamesHubView: View {
                 // Age & Star Reward Pill
                 HStack(spacing: 8) {
                     Text(game.ageRecommendation)
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .font(.clay(11, .bold))
                         .foregroundColor(DragonPalette.softPurple)
                     
                     HStack(spacing: 3) {
@@ -116,7 +116,7 @@ struct MiniGamesHubView: View {
                             .font(.system(size: 11))
                             .foregroundStyle(DragonPalette.buttercup)
                         Text("+3")
-                            .font(.system(size: 11, weight: .heavy, design: .rounded))
+                            .font(.clay(11, .heavy))
                             .foregroundColor(DragonPalette.textDark)
                     }
                 }

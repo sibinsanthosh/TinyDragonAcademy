@@ -30,7 +30,7 @@ struct SettingsView: View {
                             Image(systemName: "chevron.left.circle.fill")
                                 .font(.system(size: 26))
                             Text("Back")
-                                .font(.system(size: 16, weight: .bold, design: .rounded))
+                                .font(.clay(16, .bold))
                         }
                         .foregroundColor(DragonPalette.textDark)
                         .padding(.horizontal, 14)
@@ -41,7 +41,7 @@ struct SettingsView: View {
                     Spacer()
                     
                     Text("Parent Zone")
-                        .font(.system(size: 20, weight: .heavy, design: .rounded))
+                        .font(.clay(20, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                     
                     Spacer()
@@ -131,14 +131,14 @@ struct SettingsView: View {
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(DragonPalette.softPurple)
                 Text(title)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .font(.clay(17, .bold))
                     .foregroundColor(DragonPalette.textDark)
             }
             
             Divider()
             
             content()
-                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .font(.clay(16, .medium))
                 .foregroundColor(DragonPalette.textDark)
         }
         .padding(18)
@@ -154,7 +154,7 @@ struct SettingsView: View {
                     .font(.system(size: 20))
                     .foregroundColor(DragonPalette.mintGreen)
                 Text("Child Safety & Privacy")
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .font(.clay(17, .bold))
                     .foregroundColor(DragonPalette.textDark)
             }
             
@@ -179,7 +179,7 @@ struct SettingsView: View {
                 .foregroundColor(DragonPalette.softPurple)
                 .frame(width: 18)
             Text(text)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .font(.clay(13, .medium))
                 .foregroundColor(DragonPalette.textMuted)
         }
     }
@@ -195,13 +195,13 @@ struct SettingsView: View {
                     Image(systemName: "trash")
                     Text("Reset All Saved Progress")
                 }
-                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .font(.clay(15, .bold))
                 .foregroundColor(DragonPalette.coral)
                 .padding(.vertical, 8)
             }
             
             Text("Erases unlocked dragons, island layout, and star balance.")
-                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .font(.clay(12, .medium))
                 .foregroundColor(DragonPalette.textMuted)
         }
         .padding(14)
@@ -220,11 +220,11 @@ struct SettingsView: View {
                     .foregroundColor(DragonPalette.coral)
                 
                 Text("Reset Everything?")
-                    .font(.system(size: 22, weight: .heavy, design: .rounded))
+                    .font(.clay(22, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 
                 Text("This will restore the app to its fresh install state and hatch your first egg again.")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.clay(14, .medium))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
                 
@@ -232,7 +232,7 @@ struct SettingsView: View {
                     Button("Cancel") {
                         showResetConfirmation = false
                     }
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.clay(16, .bold))
                     .foregroundColor(DragonPalette.textDark)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
@@ -242,7 +242,7 @@ struct SettingsView: View {
                         showResetConfirmation = false
                         gameManager.resetAllProgress()
                     }
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.clay(16, .bold))
                     .foregroundColor(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)

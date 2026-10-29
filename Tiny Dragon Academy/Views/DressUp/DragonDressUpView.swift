@@ -78,7 +78,7 @@ struct DragonDressUpView: View {
                                 .font(.system(size: 40))
                                 .foregroundColor(DragonPalette.mintGreen)
                             Text("Saved!")
-                                .font(.system(size: 16, weight: .bold, design: .rounded))
+                                .font(.clay(16, .bold))
                                 .foregroundColor(DragonPalette.textDark)
                         }
                         .padding(18)
@@ -123,7 +123,7 @@ struct DragonDressUpView: View {
                     Image(systemName: "wand.and.stars")
                         .font(.system(size: 16))
                     Text("Random")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(.clay(14, .bold))
                 }
                 .foregroundColor(DragonPalette.softPurple)
                 .padding(.horizontal, 12)
@@ -137,7 +137,7 @@ struct DragonDressUpView: View {
                     Image(systemName: "checkmark")
                         .font(.system(size: 14, weight: .heavy))
                     Text("Save")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(.clay(14, .bold))
                 }
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 14)
@@ -169,7 +169,7 @@ struct DragonDressUpView: View {
                             Image(systemName: tab.iconName)
                                 .font(.system(size: 14))
                             Text(tab.rawValue)
-                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .font(.clay(14, .bold))
                         }
                         .foregroundColor(isSelected ? .white : DragonPalette.textDark)
                         .padding(.horizontal, 14)
@@ -252,7 +252,7 @@ struct DragonDressUpView: View {
                         .font(.system(size: 24))
                         .foregroundColor(isSelected ? DragonPalette.softPurple : DragonPalette.textDark)
                     Text(style.rawValue)
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .font(.clay(11, .bold))
                         .foregroundColor(DragonPalette.textDark)
                 }
                 .frame(width: 80, height: 75)
@@ -278,7 +278,7 @@ struct DragonDressUpView: View {
                         .font(.system(size: 24))
                         .foregroundColor(isSelected ? DragonPalette.softPurple : DragonPalette.textDark)
                     Text(style.rawValue)
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .font(.clay(11, .bold))
                         .foregroundColor(DragonPalette.textDark)
                 }
                 .frame(width: 85, height: 75)
@@ -319,14 +319,14 @@ struct DragonDressUpView: View {
                     }
                     
                     Text(accessory.rawValue)
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .font(.clay(10, .bold))
                         .foregroundColor(DragonPalette.textDark)
                         .lineLimit(1)
                     
                     if !isUnlocked {
                         HStack(spacing: 2) {
                             Image(systemName: "star.fill").font(.system(size: 9)).foregroundColor(DragonPalette.buttercup)
-                            Text("\(accessory.unlockStars)").font(.system(size: 10, weight: .heavy, design: .rounded))
+                            Text("\(accessory.unlockStars)").font(.clay(10, .heavy))
                         }
                     }
                 }
@@ -355,7 +355,7 @@ struct DragonDressUpView: View {
                         .overlay(Circle().stroke(Color.white, lineWidth: 2))
                     
                     Text(backdrop.rawValue)
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .font(.clay(10, .bold))
                         .foregroundColor(DragonPalette.textDark)
                         .lineLimit(1)
                 }

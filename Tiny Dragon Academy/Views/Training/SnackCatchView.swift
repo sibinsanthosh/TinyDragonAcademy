@@ -58,7 +58,7 @@ private struct SnackCatchPlayView: View {
                         Spacer()
                         Text(String(repeating: "❤️", count: state.lives))
                     }
-                    .font(.system(size: 18, weight: .heavy, design: .rounded))
+                    .font(.clay(18, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                     .padding(.horizontal, 20)
                     .padding(.top, 8)

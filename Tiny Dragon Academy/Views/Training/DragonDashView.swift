@@ -60,7 +60,7 @@ private struct DragonDashPlayView: View {
                                   y: groundY - (state.dragonY + DashGameState.dragonHeight / 2) * w)
 
                     Text("\(state.score)")
-                        .font(.system(size: 32, weight: .heavy, design: .rounded))
+                        .font(.clay(32, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                         .frame(width: w)
                         .padding(.top, 12)

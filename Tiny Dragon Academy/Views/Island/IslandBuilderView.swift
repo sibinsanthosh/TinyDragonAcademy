@@ -69,7 +69,7 @@ struct IslandBuilderView: View {
                     Image(systemName: "chevron.left.circle.fill")
                         .font(.system(size: 26))
                     Text("Back")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(.clay(16, .bold))
                 }
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 12)
@@ -91,7 +91,7 @@ struct IslandBuilderView: View {
                     Image(systemName: "paintpalette")
                     Text("Theme")
                 }
-                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .font(.clay(14, .bold))
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
@@ -190,7 +190,7 @@ struct IslandBuilderView: View {
         HStack {
             if let id = selectedPlacedItemId, let item = gameManager.state.island.placedItems.first(where: { $0.id == id }) {
                 Text(item.itemType.rawValue)
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .font(.clay(14, .bold))
                     .foregroundColor(DragonPalette.textDark)
                 
                 Spacer()
@@ -205,7 +205,7 @@ struct IslandBuilderView: View {
                         Image(systemName: "trash.fill")
                         Text("Remove")
                     }
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(.clay(13, .bold))
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 5)
@@ -213,11 +213,11 @@ struct IslandBuilderView: View {
                 }
             } else if let toPlace = selectedItemToPlace {
                 Text("Tap anywhere on the green island to place \(toPlace.rawValue)!")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(.clay(13, .bold))
                     .foregroundColor(DragonPalette.softPurple)
             } else {
                 Text("Tap an item below to add to your island!")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.clay(13, .medium))
                     .foregroundColor(DragonPalette.textMuted)
             }
         }
@@ -237,7 +237,7 @@ struct IslandBuilderView: View {
                     activeCategory = cat
                 }) {
                     Text(cat.rawValue)
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .font(.clay(13, .bold))
                         .foregroundColor(isSelected ? .white : DragonPalette.textDark)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 6)
@@ -267,7 +267,7 @@ struct IslandBuilderView: View {
                         VStack(spacing: 4) {
                             decorationGraphic(for: type, size: 44)
                             Text(type.rawValue)
-                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                                .font(.clay(10, .bold))
                                 .foregroundColor(DragonPalette.textDark)
                                 .lineLimit(1)
                         }

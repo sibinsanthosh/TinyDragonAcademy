@@ -104,7 +104,7 @@ struct ColorGardenGameView: View {
             
             // Round Badge
             Text("Round \(round) of 3")
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.clay(16, .bold))
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 6)
@@ -123,7 +123,7 @@ struct ColorGardenGameView: View {
                 .font(.system(size: 20))
                 .foregroundColor(DragonPalette.softPurple)
             Text("Match the color to the basket!")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .font(.clay(18, .bold))
                 .foregroundColor(DragonPalette.textDark)
         }
         .padding(.horizontal, 18)
@@ -168,7 +168,7 @@ struct ColorGardenGameView: View {
             }
             
             Text("Drag or tap me!")
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.clay(14, .semibold))
                 .foregroundColor(DragonPalette.textMuted)
         }
     }
@@ -212,7 +212,7 @@ struct ColorGardenGameView: View {
                 }
                 
                 Text(basket.name)
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .font(.clay(14, .bold))
                     .foregroundColor(DragonPalette.textDark)
             }
             .scaleEffect(isGlow ? 1.08 : 1.0)

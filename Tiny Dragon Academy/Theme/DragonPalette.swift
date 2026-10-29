@@ -10,21 +10,21 @@ import SwiftUI
 enum DragonPalette {
     // Primary Pastel Hues
     static let lavender = Color(red: 0.82, green: 0.78, blue: 0.96)
-    static let skyBlue = Color(red: 0.65, green: 0.85, blue: 0.98)
-    static let mintGreen = Color(red: 0.68, green: 0.92, blue: 0.82)
+    static let skyBlue = ClayColor.sky
+    static let mintGreen = ClayColor.mint
     static let peach = Color(red: 1.0, green: 0.80, blue: 0.72)
-    static let buttercup = Color(red: 1.0, green: 0.92, blue: 0.60)
-    static let rosyPink = Color(red: 1.0, green: 0.75, blue: 0.82)
+    static let buttercup = ClayColor.sun
+    static let rosyPink = ClayColor.rose
     static let cream = Color(red: 0.99, green: 0.98, blue: 0.93)
-    static let softPurple = Color(red: 0.72, green: 0.62, blue: 0.92)
-    static let coral = Color(red: 0.98, green: 0.62, blue: 0.60)
+    static let softPurple = ClayColor.accent
+    static let coral = ClayColor.coral
     static let turquoise = Color(red: 0.52, green: 0.86, blue: 0.84)
     /// Deeper gold for star ratings, readable on white cards.
     static let starGold = Color(red: 0.92, green: 0.60, blue: 0.08)
     
     // Background Gradients
     static let skyGradient = LinearGradient(
-        colors: [Color(red: 0.74, green: 0.88, blue: 1.0), Color(red: 0.93, green: 0.88, blue: 1.0)],
+        colors: [ClayColor.backdropTop, ClayColor.backdropBottom],
         startPoint: .top,
         endPoint: .bottom
     )
@@ -47,13 +47,13 @@ enum DragonPalette {
         endPoint: .bottom
     )
     
-    static let cardBackground = Color.white.opacity(0.85)
-    static let textDark = Color(red: 0.25, green: 0.22, blue: 0.38)
-    static let textMuted = Color(red: 0.50, green: 0.48, blue: 0.60)
+    static let cardBackground = ClayColor.surface
+    static let textDark = ClayColor.ink
+    static let textMuted = ClayColor.inkSoft
     
     // Shadow definitions
     static let softShadow = Color.black.opacity(0.08)
-    static let popShadow = Color(red: 0.40, green: 0.35, blue: 0.55).opacity(0.25)
+    static let popShadow = ClayColor.shadow
 }
 
 // Custom ViewModifier for playful, tactile kid-friendly buttons and cards

@@ -21,7 +21,7 @@ struct TrainingHubView: View {
                     DragonView(dragon: gameManager.activeDragon, mood: .happy, size: 70, allowInteractivePetting: false)
                     VStack(alignment: .leading, spacing: 6) {
                         Text("\(gameManager.activeDragon.name)'s fitness")
-                            .font(.system(size: 15, weight: .heavy, design: .rounded))
+                            .font(.clay(15, .heavy))
                             .foregroundColor(DragonPalette.textDark)
                         DragonMetersView(stats: gameManager.activeDragon.stats)
                     }
@@ -32,7 +32,7 @@ struct TrainingHubView: View {
 
                 if !gameManager.canTrainActiveDragon {
                     Text(blockedReason)
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(.clay(14, .bold))
                         .foregroundColor(DragonPalette.coral)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
@@ -84,13 +84,13 @@ struct TrainingHubView: View {
                     .background(RoundedRectangle(cornerRadius: 16).fill(game.themeColor))
                 VStack(alignment: .leading, spacing: 3) {
                     Text(game.rawValue)
-                        .font(.system(size: 18, weight: .heavy, design: .rounded))
+                        .font(.clay(18, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                     Text(game.subtitle)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .font(.clay(13, .medium))
                         .foregroundColor(DragonPalette.textMuted)
                     Text(skillLine(for: game))
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .font(.clay(12, .bold))
                         .foregroundColor(game.themeColor)
                 }
                 Spacer()

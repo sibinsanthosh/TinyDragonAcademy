@@ -64,11 +64,11 @@ struct IncubatorView: View {
                     }
                 }
                 Text(egg.tier.displayName)
-                    .font(.system(size: 17, weight: .heavy, design: .rounded))
+                    .font(.clay(17, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 if slot.isReady {
                     Text("Ready! Tap to hatch 🐣")
-                        .font(.system(size: 15, weight: .heavy, design: .rounded))
+                        .font(.clay(15, .heavy))
                         .foregroundColor(DragonPalette.coral)
                 } else {
                     progressRow(label: "Hatching", value: slot.progress, color: egg.tier.shellColor,
@@ -82,10 +82,10 @@ struct IncubatorView: View {
                     .font(.system(size: 36))
                     .foregroundColor(DragonPalette.coral.opacity(0.6))
                 Text("Empty incubator")
-                    .font(.system(size: 16, weight: .heavy, design: .rounded))
+                    .font(.clay(16, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 Text(gameManager.state.eggBasket.isEmpty ? "Earn eggs by growing and training dragons, or buy one in the shop." : "Place an egg from your basket below.")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.clay(13, .medium))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
             }
@@ -102,7 +102,7 @@ struct IncubatorView: View {
                 Spacer()
                 Text(trailing)
             }
-            .font(.system(size: 12, weight: .bold, design: .rounded))
+            .font(.clay(12, .bold))
             .foregroundColor(DragonPalette.textMuted)
             ProgressView(value: max(0, min(1, value)))
                 .tint(color)
@@ -119,11 +119,11 @@ struct IncubatorView: View {
     private var basket: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Egg Basket (\(gameManager.state.eggBasket.count))", systemImage: "basket.fill")
-                .font(.system(size: 18, weight: .heavy, design: .rounded))
+                .font(.clay(18, .heavy))
                 .foregroundColor(DragonPalette.textDark)
             if gameManager.state.eggBasket.isEmpty {
                 Text("No eggs waiting.")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.clay(14, .medium))
                     .foregroundColor(DragonPalette.textMuted)
             }
             ForEach(gameManager.state.eggBasket) { egg in
@@ -131,11 +131,11 @@ struct IncubatorView: View {
                     Circle().fill(egg.tier.shellColor).frame(width: 26, height: 32)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(egg.tier.displayName)
-                            .font(.system(size: 15, weight: .heavy, design: .rounded))
+                            .font(.clay(15, .heavy))
                         if let species = egg.fixedSpeciesId,
                            let dragon = gameManager.state.dragons.first(where: { $0.id == species }) {
                             Text("Carries \(dragon.speciesTitle)")
-                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .font(.clay(12, .medium))
                                 .foregroundColor(DragonPalette.textMuted)
                         }
                     }
@@ -145,7 +145,7 @@ struct IncubatorView: View {
                     Button("Place") {
                         if let free { _ = gameManager.placeEgg(egg.id, slot: free) }
                     }
-                    .font(.system(size: 14, weight: .heavy, design: .rounded))
+                    .font(.clay(14, .heavy))
                     .buttonStyle(.borderedProminent)
                     .tint(DragonPalette.coral)
                     .disabled(free == nil)

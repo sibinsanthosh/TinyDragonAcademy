@@ -32,7 +32,7 @@ struct KidButton: View {
                         .font(.system(size: fontSize + 2, weight: .bold))
                 }
                 Text(title)
-                    .font(.system(size: fontSize, weight: .bold, design: .rounded))
+                    .font(.clay(fontSize, .bold))
             }
             .foregroundColor(foregroundColor)
             .padding(.horizontal, 24)

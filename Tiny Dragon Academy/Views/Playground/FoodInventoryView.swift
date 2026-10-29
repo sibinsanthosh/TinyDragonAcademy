@@ -87,7 +87,7 @@ struct FoodInventoryView: View {
                             dismiss()
                         }
                     }
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.clay(16, .bold))
                     .foregroundColor(DragonPalette.textDark)
                 }
             }
@@ -98,11 +98,11 @@ struct FoodInventoryView: View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
                 Text("Treat Pantry")
-                    .font(.system(size: 18, weight: .heavy, design: .rounded))
+                    .font(.clay(18, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 
                 Text(activeDragon.stats.favoriteFoodDiscovered ? "Favorite: \(activeDragon.favoriteFoodType.displayName) (2x Bonus!)" : "Tip: Discover \(activeDragon.name)'s favorite treat for 2x XP!")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.clay(13, .medium))
                     .foregroundColor(DragonPalette.coral)
             }
             
@@ -120,7 +120,7 @@ struct FoodInventoryView: View {
     
     private func sectionTitle(_ title: String, icon: String) -> some View {
         Label(title, systemImage: icon)
-            .font(.system(size: 18, weight: .heavy, design: .rounded))
+            .font(.clay(18, .heavy))
             .foregroundColor(DragonPalette.textDark)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 4)
@@ -137,23 +137,23 @@ struct FoodInventoryView: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
                     Text(title)
-                        .font(.system(size: 16, weight: .heavy, design: .rounded))
+                        .font(.clay(16, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                     Spacer()
                     if let owned {
                         Text(owned)
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .font(.clay(13, .bold))
                             .foregroundColor(DragonPalette.textMuted)
                     }
                 }
                 Text(subtitle)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .font(.clay(12, .medium))
                     .foregroundColor(DragonPalette.textMuted)
             }
             Button(action: action) {
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill").font(.system(size: 11)).foregroundColor(DragonPalette.buttercup)
-                    Text("\(price)").font(.system(size: 13, weight: .heavy, design: .rounded)).foregroundColor(DragonPalette.textDark)
+                    Text("\(price)").font(.clay(13, .heavy)).foregroundColor(DragonPalette.textDark)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
@@ -184,12 +184,12 @@ struct FoodInventoryView: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
                     Text(food.displayName)
-                        .font(.system(size: 16, weight: .heavy, design: .rounded))
+                        .font(.clay(16, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                     
                     if isFavorite && activeDragon.stats.favoriteFoodDiscovered {
                         Text("❤️ Fav")
-                            .font(.system(size: 10, weight: .heavy, design: .rounded))
+                            .font(.clay(10, .heavy))
                             .foregroundColor(DragonPalette.rosyPink)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
@@ -199,12 +199,12 @@ struct FoodInventoryView: View {
                     Spacer()
                     
                     Text("In Stock: \(count)")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .font(.clay(13, .bold))
                         .foregroundColor(DragonPalette.textMuted)
                 }
                 
                 Text(food.description)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .font(.clay(12, .medium))
                     .foregroundColor(DragonPalette.textMuted)
                     .lineLimit(1)
                 
@@ -213,7 +213,7 @@ struct FoodInventoryView: View {
                     Text("+\(Int(food.energyRestored)) Energy")
                     Text("+\(food.baseXP) XP")
                 }
-                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .font(.clay(11, .bold))
                 .foregroundColor(food.primaryColor)
             }
             
@@ -226,7 +226,7 @@ struct FoodInventoryView: View {
                         .font(.system(size: 11))
                         .foregroundColor(DragonPalette.buttercup)
                     Text("\(food.purchaseStarCost)")
-                        .font(.system(size: 13, weight: .heavy, design: .rounded))
+                        .font(.clay(13, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                 }
                 .padding(.horizontal, 10)

@@ -37,7 +37,7 @@ struct AchievementsView: View {
                     Button("Done") {
                         dismiss()
                     }
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.clay(16, .bold))
                     .foregroundColor(DragonPalette.textDark)
                 }
             }
@@ -59,11 +59,11 @@ struct AchievementsView: View {
             
             VStack(alignment: .leading, spacing: 3) {
                 Text(ach.title)
-                    .font(.system(size: 16, weight: .heavy, design: .rounded))
+                    .font(.clay(16, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 
                 Text(ach.subtitle)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .font(.clay(12, .medium))
                     .foregroundColor(DragonPalette.textMuted)
                 
                 // Progress Bar
@@ -84,7 +84,7 @@ struct AchievementsView: View {
                 Image(systemName: "star.fill")
                     .foregroundColor(DragonPalette.buttercup)
                 Text("+\(ach.rewardStars)")
-                    .font(.system(size: 14, weight: .heavy, design: .rounded))
+                    .font(.clay(14, .heavy))
                     .foregroundColor(DragonPalette.textDark)
             }
             .padding(.horizontal, 10)

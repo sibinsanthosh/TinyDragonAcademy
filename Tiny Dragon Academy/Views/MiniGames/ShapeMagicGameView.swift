@@ -54,7 +54,7 @@ struct ShapeMagicGameView: View {
                         .font(.system(size: 20))
                         .foregroundColor(DragonPalette.softPurple)
                     Text("Place each magical shape in its outline!")
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .font(.clay(17, .bold))
                         .foregroundColor(DragonPalette.textDark)
                 }
                 .padding(.horizontal, 16)
@@ -110,7 +110,7 @@ struct ShapeMagicGameView: View {
             Spacer()
             
             Text("Round \(round) of 3")
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.clay(16, .bold))
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 6)
@@ -128,7 +128,7 @@ struct ShapeMagicGameView: View {
     private var spellTabletView: some View {
         VStack(spacing: 16) {
             Text("Spell Tablet")
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.clay(16, .bold))
                 .foregroundColor(DragonPalette.textMuted)
             
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 80, maximum: 100), spacing: 16)], spacing: 16) {
@@ -189,7 +189,7 @@ struct ShapeMagicGameView: View {
     private var shapesTrayView: some View {
         VStack(spacing: 10) {
             Text("Tap a shape, then tap its outline:")
-                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .font(.clay(14, .medium))
                 .foregroundColor(DragonPalette.textMuted)
             
             HStack(spacing: 14) {

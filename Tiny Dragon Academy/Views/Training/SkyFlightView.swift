@@ -66,7 +66,7 @@ private struct SkyFlightPlayView: View {
 
                     if !state.hasStarted {
                         Text("Tap to flap!")
-                            .font(.system(size: 24, weight: .heavy, design: .rounded))
+                            .font(.clay(24, .heavy))
                             .foregroundColor(DragonPalette.textDark)
                             .padding(.horizontal, 18).padding(.vertical, 10)
                             .background(Capsule().fill(Color.white.opacity(0.9)))
@@ -74,7 +74,7 @@ private struct SkyFlightPlayView: View {
                     }
 
                     Text("\(state.score)")
-                        .font(.system(size: 34, weight: .heavy, design: .rounded))
+                        .font(.clay(34, .heavy))
                         .foregroundColor(DragonPalette.textDark)
                         .frame(width: w)
                         .padding(.top, 8)
