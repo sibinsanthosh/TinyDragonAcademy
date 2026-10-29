@@ -53,20 +53,37 @@ struct DashGameState {
 
     var elapsed: Double = 0
     var distance: Double = 0
-    var score: Int { Int(distance * 100) }
+    /// What the player sees; Sunrise Sprint counts distance 25% faster.
+    var score: Int { Int(distance * (style.has(.sunriseSprint) ? 125 : 100)) }
+    /// The score without talent bonuses, used for rewards and quests.
+    var baseScore: Int { Int(distance * 100) }
     var isOver = false
+    /// Counts Rock Hide saves so the view can pop a label.
+    var talentTriggers = 0
+
+    let style: DragonPlayStyle
+    /// Stamina: +4% jump height per star above 1★.
+    let jumpVelocity: Double
+    let maxHoldTime: Double
+    let heldGravity: Double
     var dragonY: Double = 0
     var velocityY: Double = 0
     var obstacles: [DashObstacle] = []
     var distanceToNextSpawn: Double = 1.0
 
     private var holdTime: Double = 0
+    private var rockHideUsed = false
     private var rng: SeededRNG
 
     var isOnGround: Bool { dragonY <= 0 }
 
-    init(seed: UInt64) {
+    init(seed: UInt64, style: DragonPlayStyle = .neutral) {
         rng = SeededRNG(seed: seed)
+        self.style = style
+        jumpVelocity = Self.jumpVelocity * (1 + 0.04 * style.boost(.stamina)).squareRoot()
+        let glide = style.has(.leafGlide)
+        maxHoldTime = glide ? 0.55 : Self.maxHoldTime
+        heldGravity = glide ? 1.0 : Self.heldGravity
     }
 
     /// +5% speed for every full 10 seconds survived.
@@ -82,12 +99,12 @@ struct DashGameState {
 
         // Jumping: a held jump floats higher for a short while
         if input.jumpPressed && isOnGround {
-            velocityY = Self.jumpVelocity
+            velocityY = jumpVelocity
             holdTime = 0
         }
-        let floating = input.jumpHeld && velocityY > 0 && holdTime < Self.maxHoldTime
+        let floating = input.jumpHeld && velocityY > 0 && holdTime < maxHoldTime
         if floating { holdTime += dt }
-        velocityY -= (floating ? Self.heldGravity : Self.gravity) * dt
+        velocityY -= (floating ? heldGravity : Self.gravity) * dt
         dragonY += velocityY * dt
         if dragonY <= 0 {
             dragonY = 0
@@ -103,7 +120,14 @@ struct DashGameState {
         }
 
         if obstacles.contains(where: collides) {
-            isOver = true
+            if style.has(.rockHide) && !rockHideUsed {
+                // Rock Hide: the first crash smashes the obstacle instead
+                rockHideUsed = true
+                talentTriggers += 1
+                obstacles.removeAll(where: collides)
+            } else {
+                isOver = true
+            }
         }
     }
 
