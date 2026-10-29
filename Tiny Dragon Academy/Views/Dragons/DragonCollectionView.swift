@@ -20,6 +20,7 @@ struct DragonCollectionView: View {
 
     @State private var tab: Tab = .den
     @State private var refusal: String?
+    @State private var skillsDragon: DragonModel?
 
     var body: some View {
         ZStack {
@@ -64,6 +65,7 @@ struct DragonCollectionView: View {
         } message: {
             Text(refusal ?? "")
         }
+        .sheet(item: $skillsDragon) { DragonSkillsSheet(dragon: $0) }
         .onAppear { gameManager.tick() }
     }
 
@@ -87,6 +89,7 @@ struct DragonCollectionView: View {
                     .font(.system(size: 12, weight: .bold, design: .rounded))
                     .foregroundColor(DragonPalette.textMuted)
                 if let status { DragonStatusBadge(status: status) }
+                DragonSkillsStrip(dragon: dragon) { skillsDragon = dragon }
             }
             Spacer()
             if dragon.residence == .den {

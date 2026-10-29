@@ -18,7 +18,7 @@ enum TrainingGameType: String, CaseIterable, Codable, Identifiable {
     var subtitle: String {
         switch self {
         case .dragonDash: return "Run and jump over rocks, cacti and bats!"
-        case .fireTarget: return "Pull back, aim and blast the targets!"
+        case .fireTarget: return "Touch a target, let go and blast it!"
         case .skyFlight: return "Tap to flap through the cloud gaps!"
         case .snackCatch: return "Catch falling snacks, dodge the storms!"
         }

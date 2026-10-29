@@ -306,28 +306,36 @@ extension GameManager {
     func finishTraining(
         _ game: TrainingGameType,
         score: Int,
+        baseScore: Int? = nil,
         duration: Double,
         completedRound: Bool,
         caughtSnacks: [FoodType] = [],
         rng: inout some RandomNumberGenerator
     ) -> TrainingResult {
         let idx = activeDragonIndex
+        // Talent bonuses (Sweet Tooth, Sunrise Sprint) show in the score and best, not in rewards or quests
+        let rewardScore = baseScore ?? score
+        let baseBest = state.trainingBaseBests[game.rawValue] ?? state.trainingBests[game.rawValue] ?? 0
+        let isNewBaseBest = rewardScore > baseBest
         let isNewBest = score > (state.trainingBests[game.rawValue] ?? 0)
         if isNewBest { state.trainingBests[game.rawValue] = score }
+        if isNewBaseBest { state.trainingBaseBests[game.rawValue] = rewardScore }
 
         let snacks = Array(caughtSnacks.prefix(TrainingSessionRules.maxSnacksPerRound))
         for food in snacks {
             state.foodInventory[food.rawValue] = (state.foodInventory[food.rawValue] ?? 0) + 1
         }
 
-        guard TrainingSessionRules.counts(game, duration: duration, score: score, completedRound: completedRound) else {
+        guard TrainingSessionRules.counts(game, duration: duration, score: rewardScore, completedRound: completedRound) else {
             save()
             return TrainingResult(counted: false, reward: nil, isNewBest: isNewBest, droppedEmber: false,
                                   earnedEgg: false, snacksAdded: snacks, cured: false)
         }
 
         let isIll = state.dragons[idx].stats.condition.illness != nil
-        let reward = CareActions.trainingReward(normalizedScore: TrainingSessionRules.normalizedScore(game, score: score), isIll: isIll)
+        let normalized = TrainingSessionRules.normalizedScore(game, score: rewardScore)
+        let reward = CareActions.trainingReward(normalizedScore: normalized, isIll: isIll)
+        let skillGain = growSkill(for: game, normalizedScore: normalized, dragonIndex: idx)
         let cured = CareActions.applyCountedSession(&state.dragons[idx].stats, reward: reward)
         state.dragons[idx].stats.experience += GameManager.shinyBoosted(reward.xp, isShiny: state.dragons[idx].isShiny)
         state.dragons[idx].stats.level = calculateLevel(for: state.dragons[idx].stats.experience)
@@ -337,17 +345,25 @@ extension GameManager {
         let earnedEgg = state.trainingSessionsCompleted % TrainingSessionRules.sessionsPerEgg == 0
         if earnedEgg { state.eggBasket.append(Egg(tier: .common)) }
 
-        let droppedEmber = isNewBest && Double.random(in: 0..<1, using: &rng) < TrainingSessionRules.emberDropChance
+        let droppedEmber = isNewBaseBest && Double.random(in: 0..<1, using: &rng) < TrainingSessionRules.emberDropChance
         if droppedEmber {
             state.itemInventory[CareItem.phoenixEmber.rawValue] = state.itemCount(.phoenixEmber) + 1
         }
 
         AudioService.shared.playStarCollect()
         save()
-        record(.trained(game: game, score: score, dragonId: state.dragons[idx].id))
+        record(.trained(game: game, score: rewardScore, dragonId: state.dragons[idx].id))
         rescheduleNotifications()
         return TrainingResult(counted: true, reward: reward, isNewBest: isNewBest, droppedEmber: droppedEmber,
-                              earnedEgg: earnedEgg, snacksAdded: snacks, cured: cured)
+                              earnedEgg: earnedEgg, snacksAdded: snacks, cured: cured, skillGain: skillGain)
+    }
+
+    private func growSkill(for game: TrainingGameType, normalizedScore: Double, dragonIndex idx: Int) -> SkillGain {
+        let skill = DragonSkill.forGame(game)
+        let before = state.dragons[idx].skillStars(skill)
+        let points = SkillRules.points(forNormalizedScore: normalizedScore)
+        state.dragons[idx].stats.skillPoints[skill.rawValue, default: 0] += points
+        return SkillGain(skill: skill, points: points, starsBefore: before, starsAfter: state.dragons[idx].skillStars(skill))
     }
 }
 

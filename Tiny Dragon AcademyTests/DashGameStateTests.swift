@@ -105,4 +105,55 @@ final class DashGameStateTests: XCTestCase {
         XCTAssertEqual(a.obstacles, b.obstacles)
         XCTAssertEqual(a.isOver, b.isOver)
     }
+
+    // MARK: - Skills & talents
+
+    private func styledPeak(_ style: DragonPlayStyle, holdFrames: Int) -> Double {
+        var s = DashGameState(seed: 7, style: style)
+        s.obstacles = []
+        s.distanceToNextSpawn = 1_000
+        var peak = 0.0
+        for frame in 0..<180 {
+            s.step(dt: dt, input: DashInput(jumpPressed: frame == 0, jumpHeld: frame < holdFrames))
+            peak = max(peak, s.dragonY)
+        }
+        return peak
+    }
+
+    func test_stamina_jumpsHigher() {
+        let one = styledPeak(.neutral, holdFrames: 0)
+        let five = styledPeak(DragonPlayStyle(stars: [.stamina: 5]), holdFrames: 0)
+        XCTAssertEqual(five / one, 1.16, accuracy: 0.02, "+4% height per star above 1★")
+    }
+
+    func test_rockHide_survivesTheFirstCrashOnly() {
+        var s = DashGameState(seed: 7, style: DragonPlayStyle(talent: .rockHide))
+        s.distanceToNextSpawn = 1_000
+        s.obstacles = [DashObstacle(kind: .rock, x: DashGameState.dragonX)]
+        s.step(dt: dt, input: DashInput(jumpPressed: false, jumpHeld: false))
+        XCTAssertFalse(s.isOver)
+        XCTAssertTrue(s.obstacles.isEmpty, "the rock is smashed")
+        XCTAssertEqual(s.talentTriggers, 1)
+        s.obstacles = [DashObstacle(kind: .rock, x: DashGameState.dragonX)]
+        s.step(dt: dt, input: DashInput(jumpPressed: false, jumpHeld: false))
+        XCTAssertTrue(s.isOver)
+    }
+
+    func test_leafGlide_floatsLongerWhenHeld() {
+        let plain = styledPeak(.neutral, holdFrames: 60)
+        let glide = styledPeak(DragonPlayStyle(talent: .leafGlide), holdFrames: 60)
+        XCTAssertGreaterThan(glide, plain * 1.2)
+        XCTAssertEqual(styledPeak(DragonPlayStyle(talent: .leafGlide), holdFrames: 0), styledPeak(.neutral, holdFrames: 0),
+                       accuracy: 1e-9, "a tap jump is unchanged")
+    }
+
+    func test_sunriseSprint_boostsShownScoreOnly() {
+        var s = DashGameState(seed: 7, style: DragonPlayStyle(talent: .sunriseSprint))
+        s.obstacles = []
+        s.distanceToNextSpawn = 1_000
+        for _ in 0..<600 { s.step(dt: dt, input: DashInput(jumpPressed: false, jumpHeld: false)) }
+        XCTAssertEqual(s.baseScore, Int(s.distance * 100))
+        XCTAssertEqual(s.score, Int(s.distance * 125))
+        XCTAssertEqual(emptyState().score, emptyState().baseScore)
+    }
 }

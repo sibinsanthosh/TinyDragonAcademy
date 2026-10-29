@@ -30,6 +30,12 @@ struct TrainingResultCard: View {
                     rewardRow("figure.run", "+\(Int(reward.fitness)) fitness")
                     rewardRow("sparkles", "+\(reward.xp) XP")
                     rewardRow("star.fill", "+\(reward.stars) stars")
+                    if let gain = result.skillGain {
+                        rewardRow(gain.skill.iconName, "+\(gain.points) \(gain.skill.title) points")
+                        if gain.gainedStar {
+                            rewardRow("star.circle.fill", "\(gain.skill.title) grew to \(SkillStars.text(gain.starsAfter))!")
+                        }
+                    }
                     if result.cured { rewardRow("cross.case.fill", "Sluggish Scales cured!") }
                     if result.earnedEgg { rewardRow("oval.portrait.fill", "Training egg earned!") }
                     if result.droppedEmber { rewardRow("flame.circle.fill", "A Phoenix Ember dropped!") }

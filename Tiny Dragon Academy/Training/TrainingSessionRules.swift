@@ -15,6 +15,17 @@ struct TrainingResult: Equatable {
     let earnedEgg: Bool
     let snacksAdded: [FoodType]
     let cured: Bool
+    var skillGain: SkillGain? = nil
+}
+
+/// Skill points a counted session added to the dragon, and its stars before and after.
+struct SkillGain: Equatable {
+    let skill: DragonSkill
+    let points: Int
+    let starsBefore: Int
+    let starsAfter: Int
+
+    var gainedStar: Bool { starsAfter > starsBefore }
 }
 
 enum TrainingSessionRules {

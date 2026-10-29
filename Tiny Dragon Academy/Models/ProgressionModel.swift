@@ -54,6 +54,8 @@ struct AppProgressState: Codable, Equatable {
     var denCapacity: Int = 3
     var itemInventory: [String: Int] = [:]
     var trainingBests: [String: Int] = [:]
+    /// Bests without talent score bonuses; the Phoenix Ember roll compares against these.
+    var trainingBaseBests: [String: Int] = [:]
     var trainingSessionsCompleted: Int = 0
     var hallOfLegends: [Memorial] = []
     var remindersEnabled: Bool = true
@@ -184,7 +186,7 @@ struct AppProgressState: Codable, Equatable {
         case hasCompletedOnboarding, totalStars, selectedDragonId, dragons
         case island, unlockedAccessories, gameStats, settings
         case foodInventory, achievements, lastDailyBonusClaimDate
-        case eggBasket, incubatorSlots, denCapacity, itemInventory, trainingBests
+        case eggBasket, incubatorSlots, denCapacity, itemInventory, trainingBests, trainingBaseBests
         case trainingSessionsCompleted, hallOfLegends, remindersEnabled, hasSeenReminderPrimer
         case careMode, daily, streak
     }
@@ -238,6 +240,7 @@ struct AppProgressState: Codable, Equatable {
         denCapacity = try container.decodeIfPresent(Int.self, forKey: .denCapacity) ?? 3
         itemInventory = try container.decodeIfPresent([String: Int].self, forKey: .itemInventory) ?? [:]
         trainingBests = try container.decodeIfPresent([String: Int].self, forKey: .trainingBests) ?? [:]
+        trainingBaseBests = try container.decodeIfPresent([String: Int].self, forKey: .trainingBaseBests) ?? trainingBests
         trainingSessionsCompleted = try container.decodeIfPresent(Int.self, forKey: .trainingSessionsCompleted) ?? 0
         hallOfLegends = try container.decodeIfPresent([Memorial].self, forKey: .hallOfLegends) ?? []
         remindersEnabled = try container.decodeIfPresent(Bool.self, forKey: .remindersEnabled) ?? true
@@ -293,6 +296,7 @@ struct AppProgressState: Codable, Equatable {
         try container.encode(denCapacity, forKey: .denCapacity)
         try container.encode(itemInventory, forKey: .itemInventory)
         try container.encode(trainingBests, forKey: .trainingBests)
+        try container.encode(trainingBaseBests, forKey: .trainingBaseBests)
         try container.encode(trainingSessionsCompleted, forKey: .trainingSessionsCompleted)
         try container.encode(hallOfLegends, forKey: .hallOfLegends)
         try container.encode(remindersEnabled, forKey: .remindersEnabled)

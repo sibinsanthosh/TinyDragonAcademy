@@ -60,6 +60,16 @@ struct TrainingHubView: View {
         return "\(dragon.name) needs at least \(Int(LifeRules.trainingEnergyCost)) energy to train."
     }
 
+    /// "Best 12 • Aim ★★★ ✨" — the active dragon's skill here, ✨ where its talent works.
+    private func skillLine(for game: TrainingGameType) -> String {
+        let best = "Best \(gameManager.state.trainingBests[game.rawValue] ?? 0)"
+        guard gameManager.hasActiveDenDragon else { return "\(best) • Trains \(game.trainsLabel)" }
+        let dragon = gameManager.activeDragon
+        let skill = DragonSkill.forGame(game)
+        let sparkle = dragon.talent?.game == game ? " ✨" : ""
+        return "\(best) • \(skill.title) \(SkillStars.text(dragon.skillStars(skill)))\(sparkle)"
+    }
+
     private func gameCard(_ game: TrainingGameType) -> some View {
         Button {
             HapticsService.shared.medium()
@@ -79,7 +89,7 @@ struct TrainingHubView: View {
                     Text(game.subtitle)
                         .font(.system(size: 13, weight: .medium, design: .rounded))
                         .foregroundColor(DragonPalette.textMuted)
-                    Text("Best \(gameManager.state.trainingBests[game.rawValue] ?? 0) • Trains \(game.trainsLabel)")
+                    Text(skillLine(for: game))
                         .font(.system(size: 12, weight: .bold, design: .rounded))
                         .foregroundColor(game.themeColor)
                 }
