@@ -29,6 +29,8 @@ struct IncubatorView: View {
                         }
 
                         basket
+
+                        DragonNestCard()
                     }
                     .padding(.horizontal, 16)
                     .padding(.bottom, 20)
