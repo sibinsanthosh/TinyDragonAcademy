@@ -47,7 +47,7 @@ struct IncubatorView: View {
         return VStack(spacing: 10) {
             if let egg = slot.egg {
                 EggView(
-                    eggColor: egg.tier.shellColor,
+                    eggColor: egg.shellColor,
                     spotColor: .white,
                     crackStage: slot.isReady ? 3 : min(2, Int(slot.progress * 3)),
                     size: 130
@@ -58,7 +58,7 @@ struct IncubatorView: View {
                         gameManager.warmEgg(slot: index)
                     }
                 }
-                Text(egg.tier.displayName)
+                Text(egg.displayName)
                     .font(.clay(17, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                 if slot.isReady {
@@ -68,8 +68,8 @@ struct IncubatorView: View {
                         .padding(.horizontal, 14).padding(.vertical, 7)
                         .background(Capsule().fill(ClayColor.sun))
                 } else {
-                    progressRow(label: "Hatching", value: slot.progress, color: egg.tier.shellColor,
-                                trailing: timeLeft(slot, tier: egg.tier))
+                    progressRow(label: "Hatching", value: slot.progress, color: egg.shellColor,
+                                trailing: timeLeft(slot, egg: egg))
                     progressRow(label: "Warmth", value: slot.warmth / 100,
                                 color: slot.warmth >= LifeSimulator.eggWarmThreshold ? DragonPalette.coral : DragonPalette.skyBlue,
                                 trailing: slot.warmth >= LifeSimulator.eggWarmThreshold ? "Cozy" : "Cold — tap to warm!")
@@ -110,9 +110,9 @@ struct IncubatorView: View {
         }
     }
 
-    private func timeLeft(_ slot: IncubatorSlot, tier: EggTier) -> String {
+    private func timeLeft(_ slot: IncubatorSlot, egg: Egg) -> String {
         let speed = slot.warmth >= LifeSimulator.eggWarmThreshold ? 1.0 : 0.5
-        let seconds = (1 - slot.progress) * tier.hatchDuration / speed
+        let seconds = (1 - slot.progress) * egg.hatchDuration / speed
         let minutes = Int(seconds / 60)
         return minutes >= 60 ? "\(minutes / 60)h \(minutes % 60)m left" : "\(max(1, minutes))m left"
     }
@@ -136,9 +136,9 @@ struct IncubatorView: View {
             }
             ForEach(gameManager.state.eggBasket) { egg in
                 HStack {
-                    Circle().fill(egg.tier.shellColor).frame(width: 26, height: 32)
+                    Circle().fill(egg.shellColor).frame(width: 26, height: 32)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(egg.tier.displayName)
+                        Text(egg.displayName)
                             .font(.clay(15, .heavy))
                         if let species = egg.fixedSpeciesId,
                            let dragon = gameManager.state.dragons.first(where: { $0.id == species }) {

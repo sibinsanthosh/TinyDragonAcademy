@@ -181,6 +181,24 @@ extension GameManager {
         return true
     }
 
+    /// Pairs two dragons in the Dragon Nest. Returns why not, or nil after laying the egg.
+    @discardableResult
+    func breed(_ idA: String, _ idB: String) -> BreedingRefusal? {
+        guard let a = state.dragons.firstIndex(where: { $0.id == idA }),
+              let b = state.dragons.firstIndex(where: { $0.id == idB }) else { return .notAvailable }
+        let now = clock.now()
+        if let refusal = BreedingRules.refusal(state.dragons[a], state.dragons[b], stars: state.totalStars, now: now) {
+            return refusal
+        }
+        state.totalStars -= BreedingRules.price
+        state.eggBasket.append(BreedingRules.makeEgg(state.dragons[a], state.dragons[b]))
+        state.dragons[a].stats.lastBredAt = now
+        state.dragons[b].stats.lastBredAt = now
+        HapticsService.shared.success()
+        save()
+        return nil
+    }
+
     func purchaseEgg(_ tier: EggTier) -> Bool {
         guard let price = tier.shopPrice, spendStars(price) else { return false }
         state.eggBasket.append(Egg(tier: tier))
@@ -243,6 +261,15 @@ extension GameManager {
         case .dragon(let id):
             let defaultName = DragonModel.defaultDragons().first { $0.id == id }?.name ?? id.capitalized
             DenRules.placeHatched(id, name: defaultName, state: &state, now: now)
+            if let lineage = egg.lineage, let idx = state.dragons.firstIndex(where: { $0.id == id }) {
+                // Nest hatchling: a blend of both parents' colours and a head start in their best skill
+                let d = state.dragons[idx]
+                let colors = BreedingRules.hybridColors(base: [d.primaryColorHex, d.secondaryColorHex, d.bellyColorHex], lineage: lineage)
+                state.dragons[idx].primaryColorHex = colors[0]
+                state.dragons[idx].secondaryColorHex = colors[1]
+                state.dragons[idx].bellyColorHex = colors[2]
+                state.dragons[idx].stats.skillPoints[lineage.bestSkill.rawValue] = BreedingRules.skillHeadStart
+            }
             if EggHatcher.rollShiny(rng: &rng), let idx = state.dragons.firstIndex(where: { $0.id == id }) {
                 let colors = ShinyPalette.colors(for: state.dragons[idx].element)
                 state.dragons[idx].isShiny = true

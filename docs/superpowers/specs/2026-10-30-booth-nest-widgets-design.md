@@ -32,12 +32,14 @@
 - `DragonStats.lastBredAt: Date?` (decodeIfPresent); a new life resets it.
 - `GameManager.breed(_ a:, _ b:) -> BreedingRefusal?`: spends 50★, stamps both parents, adds the egg to
   the basket, saves.
-- Hatching (`EggHatcher.roll`): a hybrid picks parent A or B 50/50; if that species is alive (den or
-  sanctuary) it takes the other; if both are alive → `.stars(EggTier.rare.duplicateStars)`.
-- After a hybrid hatch (`GameManager.crackEgg`): colours = hatched species' defaults blended 60/40 with the
-  other parent's saved colours (`ColorHex.blend(_:_:t:)`, per channel, rounded); skill bonus = 10 points in
-  the other parent's best skill (= +1 star from base, capped at 5 by existing rules). Shiny roll still
-  applies and wins over the blend.
+- Hatching (`EggHatcher.roll`). Ruling (2026-10-30): each species exists once, so a parent's own species
+  is always alive at hatch time. A hybrid instead hatches a species not alive yet from the parents' egg
+  tiers (the starter counts as common); if those are all alive, from the tier above the higher parent;
+  if that is also exhausted → `.stars(EggTier.rare.duplicateStars)`.
+- After a hybrid hatch (`GameManager.crackEgg`): each colour = the hatched species' default blended 40% toward
+  the 50/50 mix of both parents' saved colours (`ColorHex.blend(_:_:t:)`, per channel, rounded); skill
+  bonus = 10 points in the parents' strongest skill (highest stars across both, ties in skill order) — +1 star
+  from base, capped at 5. The shiny roll still applies and wins over the blend.
 - UI: "Dragon Nest" card on the Eggs tab — two parent pickers (menus of den + sanctuary dragons with
   their stage), a blended colour preview, the refusal reason in plain words, and a "Pair · 50★" button.
 

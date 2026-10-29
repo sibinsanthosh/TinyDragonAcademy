@@ -79,6 +79,25 @@ struct Egg: Codable, Equatable, Identifiable {
     var tier: EggTier
     /// Set only for eggs returned when a spirit's revive window expires.
     var fixedSpeciesId: String? = nil
+    /// Set only for eggs laid in the Dragon Nest.
+    var lineage: HybridLineage? = nil
+
+    static let hybridHatchDuration: TimeInterval = 6 * 3600
+
+    var hatchDuration: TimeInterval { lineage == nil ? tier.hatchDuration : Self.hybridHatchDuration }
+    var displayName: String { lineage == nil ? tier.displayName : "Hybrid egg" }
+    var shellColor: Color { lineage == nil ? tier.shellColor : Color(red: 0.86, green: 0.55, blue: 0.95) }
+}
+
+/// The two parents of a Dragon Nest egg: who they were and what they looked like when they paired.
+struct HybridLineage: Codable, Equatable {
+    let parentA: String
+    let parentB: String
+    /// Primary, secondary and belly colour hexes.
+    let colorsA: [String]
+    let colorsB: [String]
+    /// The parents' strongest skill, which the hatchling gets a head start in.
+    let bestSkill: DragonSkill
 }
 
 struct IncubatorSlot: Codable, Equatable {
