@@ -16,30 +16,16 @@ struct MiniGamesHubView: View {
     
     var body: some View {
         ZStack {
-            DragonPalette.meadowGradient
-                .ignoresSafeArea()
+            ClayBackdrop()
             
             FloatingParticlesView(particleCount: 10, themeColor: DragonPalette.softPurple)
             
             VStack(spacing: 16) {
                 // Top Bar: Back Button, Title, Stars
                 HStack {
-                    Button(action: {
-                        HapticsService.shared.medium()
-                        AudioService.shared.playPop()
-                        gameManager.navigate(to: .mainMenu)
-                    }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "chevron.left.circle.fill")
-                                .font(.system(size: 26))
-                            Text("Back")
-                                .font(.clay(17, .bold))
-                        }
-                        .foregroundColor(DragonPalette.textDark)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .claySurface(cornerRadius: 100, elevation: 0.7)
-                    }
+                    ClayIconButton(systemName: "chevron.left", accessibilityLabel: "Back") {
+                gameManager.navigate(to: .trainingHub)
+            }
                     
                     Spacer()
                     

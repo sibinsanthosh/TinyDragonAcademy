@@ -286,3 +286,23 @@ struct ClaySegmented<Option: Hashable>: View {
         .claySurface(cornerRadius: 100, elevation: 0.7)
     }
 }
+
+/// Title and round close button across the top of a sheet.
+struct ClaySheetHeader: View {
+    let title: String
+    let onClose: () -> Void
+
+    var body: some View {
+        HStack {
+            Text(title)
+                .font(.clay(24, .heavy))
+                .foregroundColor(ClayColor.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Spacer()
+            ClayIconButton(systemName: "xmark", accessibilityLabel: "Close", action: onClose)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+    }
+}

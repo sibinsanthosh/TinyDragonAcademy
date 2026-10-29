@@ -56,13 +56,17 @@ struct DragonDressUpView: View {
             VStack(spacing: 12) {
                 // Header: Back, Randomize, Save, Stars
                 headerView
-                
+
+                Spacer(minLength: 0)
+
                 // Central Live Dragon Preview
                 ZStack {
+                    ClayPlatform(top: Color.white.opacity(0.9), side: ClayColor.accent.opacity(0.45), width: 240)
+                        .offset(y: 95)
                     DragonView(
                         dragon: gameManager.activeDragon,
                         mood: previewMood,
-                        size: 210,
+                        size: 240,
                         allowInteractivePetting: true
                     ) {
                         previewMood = .happy
@@ -86,8 +90,10 @@ struct DragonDressUpView: View {
                         .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .frame(height: 220)
-                
+                .frame(height: 290)
+
+                Spacer(minLength: 0)
+
                 // Tab Selection Strip
                 tabStrip
                 
@@ -104,15 +110,8 @@ struct DragonDressUpView: View {
     
     private var headerView: some View {
         HStack {
-            Button(action: {
-                HapticsService.shared.medium()
-                AudioService.shared.playPop()
-                gameManager.navigate(to: .mainMenu)
-            }) {
-                Image(systemName: "chevron.left.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(DragonPalette.textDark)
-                    .background(Circle().fill(Color.white.opacity(0.85)))
+            ClayIconButton(systemName: "chevron.left", accessibilityLabel: "Back") {
+                gameManager.navigate(to: .foodInventoryShop)
             }
             
             Spacer()
@@ -189,10 +188,8 @@ struct DragonDressUpView: View {
     
     private var optionsTray: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 24)
-                .fill(Color.white.opacity(0.85))
-                .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.white, lineWidth: 2))
-                .shadow(color: DragonPalette.softShadow, radius: 8)
+            Color.clear
+                .claySurface(cornerRadius: 28, elevation: 1.2)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
@@ -210,6 +207,7 @@ struct DragonDressUpView: View {
                     }
                 }
                 .padding(.horizontal, 16)
+                .padding(.vertical, 14)
             }
         }
     }

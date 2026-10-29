@@ -19,10 +19,11 @@ struct PowerEncyclopediaView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                ClayBackdrop()
-                
+        ZStack {
+            ClayBackdrop()
+
+            VStack(spacing: 4) {
+                ClaySheetHeader(title: "Powers") { close() }
                 ScrollView {
                     VStack(spacing: 16) {
                         // Header Banner
@@ -36,17 +37,15 @@ struct PowerEncyclopediaView: View {
                     .padding(20)
                 }
             }
-            .navigationTitle("Elemental Powers")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .font(.clay(16, .bold))
-                    .foregroundColor(DragonPalette.textDark)
-                }
-            }
+        }
+    }
+
+    /// Sheets dismiss; the full-screen route goes back Home.
+    private func close() {
+        if gameManager.currentRoute == .powerEncyclopedia || gameManager.currentRoute == .achievementsList {
+            gameManager.navigate(to: .mainMenu)
+        } else {
+            dismiss()
         }
     }
     

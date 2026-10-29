@@ -40,8 +40,7 @@ struct ColorGardenGameView: View {
     
     var body: some View {
         ZStack {
-            DragonPalette.meadowGradient
-                .ignoresSafeArea()
+            ClayBackdrop()
             
             VStack(spacing: 16) {
                 // Header: Back button, Round progress, Stars
@@ -74,7 +73,7 @@ struct ColorGardenGameView: View {
                         startNewGame()
                     },
                     onBackToMenu: {
-                        gameManager.navigate(to: .miniGamesHub)
+                        gameManager.navigate(to: .trainingHub)
                     }
                 )
                 .transition(.opacity)
@@ -89,15 +88,8 @@ struct ColorGardenGameView: View {
     
     private var headerView: some View {
         HStack {
-            Button(action: {
-                HapticsService.shared.medium()
-                AudioService.shared.playPop()
-                gameManager.navigate(to: .miniGamesHub)
-            }) {
-                Image(systemName: "chevron.left.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(DragonPalette.textDark)
-                    .background(Circle().fill(Color.white.opacity(0.85)))
+            ClayIconButton(systemName: "chevron.left", accessibilityLabel: "Back") {
+                gameManager.navigate(to: .trainingHub)
             }
             
             Spacer()
@@ -136,10 +128,10 @@ struct ColorGardenGameView: View {
     private func itemCard(_ item: ColorItem) -> some View {
         VStack(spacing: 8) {
             ZStack {
-                // Background aura
-                Circle()
-                    .fill(item.color.opacity(0.3))
+                // Clay token behind the item
+                Color.clear
                     .frame(width: 140, height: 140)
+                    .claySurface(cornerRadius: 70, elevation: 1.2)
                 
                 // Item Icon
                 Image(systemName: item.iconName)
@@ -300,7 +292,7 @@ struct ColorGardenGameView: View {
         let activeBaskets = Array(availableBaskets.prefix(min(availableBaskets.count, round + 1)))
         
         var generated: [ColorItem] = []
-        let icons = ["apple.logo", "leaf.fill", "star.fill", "heart.fill", "drop.fill"]
+        let icons = ["balloon.fill", "leaf.fill", "star.fill", "heart.fill", "drop.fill"]
         
         for i in 0..<count {
             let basket = activeBaskets[i % activeBaskets.count]

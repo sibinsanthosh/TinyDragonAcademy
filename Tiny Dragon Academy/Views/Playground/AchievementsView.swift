@@ -16,10 +16,11 @@ struct AchievementsView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                ClayBackdrop()
-                
+        ZStack {
+            ClayBackdrop()
+
+            VStack(spacing: 4) {
+                ClaySheetHeader(title: "Milestones") { close() }
                 ScrollView {
                     VStack(spacing: 14) {
                         ForEach(achievements) { ach in
@@ -29,17 +30,15 @@ struct AchievementsView: View {
                     .padding(20)
                 }
             }
-            .navigationTitle("Dragon Milestones")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .font(.clay(16, .bold))
-                    .foregroundColor(DragonPalette.textDark)
-                }
-            }
+        }
+    }
+
+    /// Sheets dismiss; the full-screen route goes back Home.
+    private func close() {
+        if gameManager.currentRoute == .powerEncyclopedia || gameManager.currentRoute == .achievementsList {
+            gameManager.navigate(to: .mainMenu)
+        } else {
+            dismiss()
         }
     }
     

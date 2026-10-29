@@ -43,7 +43,7 @@ struct IslandBuilderView: View {
                         handleCanvasTap(at: location, in: geo.size)
                     }
                 }
-                .frame(maxHeight: 340)
+                .frame(minHeight: 300, maxHeight: .infinity)
                 
                 // Controls Bar: Selected item banner & Remove action
                 selectionStatusBar
@@ -60,21 +60,8 @@ struct IslandBuilderView: View {
     
     private var headerView: some View {
         HStack {
-            Button(action: {
-                HapticsService.shared.medium()
-                AudioService.shared.playPop()
-                gameManager.navigate(to: .mainMenu)
-            }) {
-                HStack(spacing: 6) {
-                    Image(systemName: "chevron.left.circle.fill")
-                        .font(.system(size: 26))
-                    Text("Back")
-                        .font(.clay(16, .bold))
-                }
-                .foregroundColor(DragonPalette.textDark)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .claySurface(cornerRadius: 100, elevation: 0.7)
+            ClayIconButton(systemName: "chevron.left", accessibilityLabel: "Back") {
+                gameManager.navigate(to: .foodInventoryShop)
             }
             
             Spacer()

@@ -42,7 +42,7 @@ struct EvolutionCeremonyView: View {
             VStack(spacing: 20) {
                 // Celebration Title
                 VStack(spacing: 6) {
-                    Text("✨ Time to Evolve! ✨")
+                    Label("Time to evolve!", systemImage: "sparkles")
                         .font(.clay(26, .heavy))
                         .foregroundColor(DragonPalette.buttercup)
                     
@@ -114,7 +114,7 @@ struct EvolutionCeremonyView: View {
                 .padding(.horizontal, 16)
                 
                 // Evolve Action Button
-                KidButton(title: "Evolve Now! 🌟", backgroundColor: DragonPalette.coral) {
+                KidButton(title: "Evolve now", icon: "arrow.up.circle.fill", backgroundColor: ClayColor.accent) {
                     onEvolveConfirmed()
                 }
                 .padding(.horizontal, 24)

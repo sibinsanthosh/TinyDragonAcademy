@@ -80,7 +80,7 @@ struct ShapeMagicGameView: View {
                         startNewGame()
                     },
                     onBackToMenu: {
-                        gameManager.navigate(to: .miniGamesHub)
+                        gameManager.navigate(to: .trainingHub)
                     }
                 )
                 .transition(.opacity)
@@ -95,15 +95,8 @@ struct ShapeMagicGameView: View {
     
     private var headerView: some View {
         HStack {
-            Button(action: {
-                HapticsService.shared.medium()
-                AudioService.shared.playPop()
-                gameManager.navigate(to: .miniGamesHub)
-            }) {
-                Image(systemName: "chevron.left.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(DragonPalette.textDark)
-                    .background(Circle().fill(Color.white.opacity(0.85)))
+            ClayIconButton(systemName: "chevron.left", accessibilityLabel: "Back") {
+                gameManager.navigate(to: .trainingHub)
             }
             
             Spacer()

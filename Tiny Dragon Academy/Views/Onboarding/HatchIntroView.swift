@@ -131,39 +131,33 @@ struct HatchIntroView: View {
     
     private var storyIntroStep: some View {
         VStack(spacing: 24) {
-            // Academy Crest
+            // The starter dragon waiting on its cushion
             ZStack {
-                Circle()
-                    .fill(Color.white.opacity(0.85))
-                    .frame(width: 130, height: 130)
-                    .shadow(color: DragonPalette.popShadow, radius: 10, x: 0, y: 5)
-                
-                Image(systemName: "wand.and.stars")
-                    .font(.system(size: 60))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [DragonPalette.softPurple, DragonPalette.rosyPink],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                ClayPlatform(top: Color(red: 0.93, green: 0.88, blue: 1.0), side: Color(red: 0.76, green: 0.68, blue: 0.96), width: 210)
+                    .offset(y: 62)
+                if let starter = DragonModel.defaultDragons().first {
+                    DragonView(dragon: starter, mood: .happy, size: 150, allowInteractivePetting: false)
+                }
             }
-            
+            .frame(height: 190)
+
             VStack(spacing: 8) {
                 Text("Tiny Dragon Academy")
                     .font(.clay(32, .heavy))
                     .foregroundColor(DragonPalette.textDark)
                     .multilineTextAlignment(.center)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
                 
-                Text("A magical island where friendly baby dragons play, learn, and grow!")
-                    .font(.clay(18, .medium))
+                Text("Hatch, raise and train your own baby dragon.")
+                    .font(.clay(18, .semibold))
                     .foregroundColor(DragonPalette.textMuted)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 16)
             }
             
             KidButton(
-                title: "Find My Dragon Egg!",
+                title: "Find my egg",
                 icon: "sparkles",
                 backgroundColor: DragonPalette.softPurple,
                 minWidth: 260
