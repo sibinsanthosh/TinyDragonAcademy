@@ -9,8 +9,8 @@ import SwiftUI
 
 struct DragonDashView: View {
     var body: some View {
-        TrainingGameShell(game: .dragonDash) { finish in
-            DragonDashPlayView(onFinish: finish)
+        TrainingGameShell(game: .dragonDash) { finish, style in
+            DragonDashPlayView(style: style, onFinish: finish)
         }
     }
 }
@@ -19,10 +19,15 @@ private struct DragonDashPlayView: View {
     @EnvironmentObject var gameManager: GameManager
     let onFinish: (TrainingSessionSummary) -> Void
 
-    @State private var state = DashGameState(seed: UInt64.random(in: 1...UInt64.max))
+    @State private var state: DashGameState
     @State private var isHeld = false
     @State private var pressQueued = false
     @State private var reported = false
+
+    init(style: DragonPlayStyle, onFinish: @escaping (TrainingSessionSummary) -> Void) {
+        self.onFinish = onFinish
+        _state = State(initialValue: DashGameState(seed: UInt64.random(in: 1...UInt64.max), style: style))
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -34,7 +39,7 @@ private struct DragonDashPlayView: View {
                 if state.isOver && !reported {
                     reported = true
                     HapticsService.shared.medium()
-                    onFinish(TrainingSessionSummary(score: state.score, duration: state.elapsed, completedRound: false))
+                    onFinish(TrainingSessionSummary(score: state.score, baseScore: state.baseScore, duration: state.elapsed, completedRound: false))
                 }
             } content: {
                 ZStack(alignment: .topLeading) {
@@ -61,6 +66,10 @@ private struct DragonDashPlayView: View {
                         .padding(.top, 12)
                 }
                 .frame(width: w, height: geo.size.height)
+                .overlay {
+                    TalentHUD(talent: state.style.talent, game: .dragonDash, triggers: state.talentTriggers)
+                        .frame(maxWidth: .infinity)
+                }
             }
             .contentShape(Rectangle())
             .gesture(

@@ -21,7 +21,7 @@ struct TrainingGameShell<Content: View>: View {
     @EnvironmentObject var gameManager: GameManager
 
     let game: TrainingGameType
-    let content: (_ finish: @escaping (TrainingSessionSummary) -> Void) -> Content
+    let content: (_ finish: @escaping (TrainingSessionSummary) -> Void, _ style: DragonPlayStyle) -> Content
 
     private enum Phase {
         case ready
@@ -32,7 +32,7 @@ struct TrainingGameShell<Content: View>: View {
     @State private var phase: Phase = .ready
     @State private var runId = 0
 
-    init(game: TrainingGameType, @ViewBuilder content: @escaping (_ finish: @escaping (TrainingSessionSummary) -> Void) -> Content) {
+    init(game: TrainingGameType, @ViewBuilder content: @escaping (_ finish: @escaping (TrainingSessionSummary) -> Void, _ style: DragonPlayStyle) -> Content) {
         self.game = game
         self.content = content
     }
@@ -48,7 +48,7 @@ struct TrainingGameShell<Content: View>: View {
                     case .ready:
                         readyCard
                     case .playing:
-                        content(finish).id(runId)
+                        content(finish, DragonPlayStyle(dragon: gameManager.activeDragon)).id(runId)
                     case .finished(let score, let result):
                         TrainingResultCard(
                             game: game,
@@ -107,10 +107,13 @@ struct TrainingGameShell<Content: View>: View {
             HStack(spacing: 16) {
                 Label("Best \(gameManager.state.trainingBests[game.rawValue] ?? 0)", systemImage: "trophy.fill")
                 Label("\(Int(LifeRules.trainingEnergyCost)) energy", systemImage: "bolt.fill")
-                Label("Trains \(game.trainsLabel)", systemImage: "figure.strengthtraining.traditional")
             }
             .font(.system(size: 13, weight: .bold, design: .rounded))
             .foregroundColor(DragonPalette.textMuted)
+
+            if gameManager.hasActiveDenDragon {
+                skillSummary
+            }
 
             if gameManager.canTrainActiveDragon {
                 KidButton(title: "Start!", icon: "play.fill", backgroundColor: game.themeColor) { start() }
@@ -124,6 +127,31 @@ struct TrainingGameShell<Content: View>: View {
         .padding(24)
         .background(RoundedRectangle(cornerRadius: 24).fill(Color.white.opacity(0.92)))
         .padding(.horizontal, 24)
+    }
+
+    /// The active dragon's skill for this game and where its talent works.
+    private var skillSummary: some View {
+        let dragon = gameManager.activeDragon
+        let skill = DragonSkill.forGame(game)
+        return VStack(spacing: 6) {
+            HStack(spacing: 6) {
+                Image(systemName: skill.iconName)
+                Text("\(dragon.name)'s \(skill.title)")
+                Text(SkillStars.text(dragon.skillStars(skill)))
+                    .foregroundColor(game.themeColor)
+            }
+            .font(.system(size: 15, weight: .heavy, design: .rounded))
+            .foregroundColor(DragonPalette.textDark)
+
+            if let talent = dragon.talent {
+                Text(talent.game == game
+                     ? "✨ Talent: \(talent.title) — \(talent.summary)"
+                     : "\(dragon.name)'s talent \(talent.title) shines in \(talent.game.rawValue).")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(talent.game == game ? DragonPalette.textDark : DragonPalette.textMuted)
+                    .multilineTextAlignment(.center)
+            }
+        }
     }
 
     private var cannotTrainReason: String {

@@ -9,8 +9,8 @@ import SwiftUI
 
 struct SnackCatchView: View {
     var body: some View {
-        TrainingGameShell(game: .snackCatch) { finish in
-            SnackCatchPlayView(onFinish: finish)
+        TrainingGameShell(game: .snackCatch) { finish, style in
+            SnackCatchPlayView(style: style, onFinish: finish)
         }
     }
 }
@@ -19,9 +19,14 @@ private struct SnackCatchPlayView: View {
     @EnvironmentObject var gameManager: GameManager
     let onFinish: (TrainingSessionSummary) -> Void
 
-    @State private var state = SnackCatchGameState(seed: UInt64.random(in: 1...UInt64.max))
+    @State private var state: SnackCatchGameState
     @State private var targetX: Double?
     @State private var reported = false
+
+    init(style: DragonPlayStyle, onFinish: @escaping (TrainingSessionSummary) -> Void) {
+        self.onFinish = onFinish
+        _state = State(initialValue: SnackCatchGameState(seed: UInt64.random(in: 1...UInt64.max), style: style))
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -33,7 +38,7 @@ private struct SnackCatchPlayView: View {
                 if state.isOver && !reported {
                     reported = true
                     HapticsService.shared.medium()
-                    onFinish(TrainingSessionSummary(score: state.score, duration: state.elapsed,
+                    onFinish(TrainingSessionSummary(score: state.score, baseScore: state.baseScore, duration: state.elapsed,
                                                     completedRound: state.timeRemaining == 0, caughtSnacks: state.caught))
                 }
             } content: {
@@ -60,6 +65,10 @@ private struct SnackCatchPlayView: View {
                     .frame(width: w)
                 }
                 .frame(width: w, height: h)
+                .overlay {
+                    TalentHUD(talent: state.style.talent, game: .snackCatch, triggers: state.talentTriggers)
+                        .frame(maxWidth: .infinity)
+                }
                 .clipped()
             }
             .contentShape(Rectangle())

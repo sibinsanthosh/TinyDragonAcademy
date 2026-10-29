@@ -10,8 +10,8 @@ import SwiftUI
 
 struct FireTargetView: View {
     var body: some View {
-        TrainingGameShell(game: .fireTarget) { finish in
-            FireTargetPlayView(onFinish: finish)
+        TrainingGameShell(game: .fireTarget) { finish, style in
+            FireTargetPlayView(style: style, onFinish: finish)
         }
     }
 }
@@ -20,10 +20,15 @@ private struct FireTargetPlayView: View {
     @EnvironmentObject var gameManager: GameManager
     let onFinish: (TrainingSessionSummary) -> Void
 
-    @State private var state = FireTargetGameState(seed: UInt64.random(in: 1...UInt64.max))
+    @State private var state: FireTargetGameState
     @State private var aimPoint: CGPoint?
     @State private var queuedRelease: CGPoint?
     @State private var reported = false
+
+    init(style: DragonPlayStyle, onFinish: @escaping (TrainingSessionSummary) -> Void) {
+        self.onFinish = onFinish
+        _state = State(initialValue: FireTargetGameState(seed: UInt64.random(in: 1...UInt64.max), style: style))
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -40,7 +45,7 @@ private struct FireTargetPlayView: View {
                 queuedRelease = nil
                 if state.isOver && !reported {
                     reported = true
-                    onFinish(TrainingSessionSummary(score: state.score, duration: FireTargetGameState.roundDuration, completedRound: true))
+                    onFinish(TrainingSessionSummary(score: state.score, baseScore: state.baseScore, duration: FireTargetGameState.roundDuration, completedRound: true))
                 }
             } content: {
                 ZStack(alignment: .topLeading) {
@@ -107,6 +112,10 @@ private struct FireTargetPlayView: View {
                     .frame(width: w)
                 }
                 .frame(width: w, height: geo.size.height)
+                .overlay {
+                    TalentHUD(talent: state.style.talent, game: .fireTarget, triggers: state.talentTriggers)
+                        .frame(maxWidth: .infinity)
+                }
             }
             .contentShape(Rectangle())
             .gesture(
@@ -127,7 +136,7 @@ private struct FireTargetPlayView: View {
     private func aimGuide(aim: CGPoint, color: Color, toScreen: @escaping (CGPoint) -> CGPoint) -> some View {
         let origin = FireTargetGameState.launchOrigin
         let steps = FireTargetGameState.flightSteps(from: origin, to: aim)
-        let path = FireTargetGameState.trajectory(origin: origin, aim: aim, steps: steps)
+        let path = FireTargetGameState.trajectory(origin: origin, aim: aim, steps: steps, straight: state.style.has(.laserShot))
         ForEach(Array(path.enumerated()), id: \.offset) { index, point in
             if index % 3 == 2 && index < steps - 2 {
                 Circle().fill(color.opacity(0.7)).frame(width: 7, height: 7).position(toScreen(point))
@@ -143,7 +152,7 @@ private struct FireTargetPlayView: View {
 
     private func isAimed(at target: FireTarget) -> Bool {
         guard let aim = aimPoint else { return false }
-        return hypot(aim.x - target.position.x, aim.y - target.position.y) < FireTargetGameState.targetRadius
+        return hypot(aim.x - target.position.x, aim.y - target.position.y) < state.hitRadius
     }
 
     private func emoji(for kind: FireTarget.Kind) -> String {

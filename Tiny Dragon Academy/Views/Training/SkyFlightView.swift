@@ -9,8 +9,8 @@ import SwiftUI
 
 struct SkyFlightView: View {
     var body: some View {
-        TrainingGameShell(game: .skyFlight) { finish in
-            SkyFlightPlayView(onFinish: finish)
+        TrainingGameShell(game: .skyFlight) { finish, style in
+            SkyFlightPlayView(style: style, onFinish: finish)
         }
     }
 }
@@ -19,10 +19,15 @@ private struct SkyFlightPlayView: View {
     @EnvironmentObject var gameManager: GameManager
     let onFinish: (TrainingSessionSummary) -> Void
 
-    @State private var state = SkyFlightGameState(seed: UInt64.random(in: 1...UInt64.max))
+    @State private var state: SkyFlightGameState
     @State private var flapQueued = false
     @State private var touching = false
     @State private var reported = false
+
+    init(style: DragonPlayStyle, onFinish: @escaping (TrainingSessionSummary) -> Void) {
+        self.onFinish = onFinish
+        _state = State(initialValue: SkyFlightGameState(seed: UInt64.random(in: 1...UInt64.max), style: style))
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -36,7 +41,7 @@ private struct SkyFlightPlayView: View {
                 if state.isOver && !reported {
                     reported = true
                     HapticsService.shared.medium()
-                    onFinish(TrainingSessionSummary(score: state.score, duration: state.elapsed, completedRound: false))
+                    onFinish(TrainingSessionSummary(score: state.score, baseScore: state.baseScore, duration: state.elapsed, completedRound: false))
                 }
             } content: {
                 ZStack(alignment: .topLeading) {
@@ -75,6 +80,10 @@ private struct SkyFlightPlayView: View {
                         .padding(.top, 8)
                 }
                 .frame(width: w, height: h)
+                .overlay {
+                    TalentHUD(talent: state.style.talent, game: .skyFlight, triggers: state.talentTriggers)
+                        .frame(maxWidth: .infinity)
+                }
                 .clipped()
             }
             .contentShape(Rectangle())
