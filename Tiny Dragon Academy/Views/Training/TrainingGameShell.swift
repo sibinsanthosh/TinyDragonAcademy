@@ -10,6 +10,8 @@ import SwiftUI
 
 struct TrainingSessionSummary {
     var score: Int
+    /// The score without talent bonuses; nil when it equals `score`.
+    var baseScore: Int? = nil
     var duration: Double
     var completedRound: Bool
     var caughtSnacks: [FoodType] = []
@@ -144,6 +146,7 @@ struct TrainingGameShell<Content: View>: View {
         let result = gameManager.finishTraining(
             game,
             score: summary.score,
+            baseScore: summary.baseScore,
             duration: summary.duration,
             completedRound: summary.completedRound,
             caughtSnacks: summary.caughtSnacks,

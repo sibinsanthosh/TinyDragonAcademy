@@ -95,4 +95,27 @@ final class DragonSkillsTests: XCTestCase {
         let decoded = try JSONDecoder().decode(DragonStats.self, from: JSONEncoder().encode(stats))
         XCTAssertEqual(decoded.skillPoints, stats.skillPoints)
     }
+
+    func test_revive_keepsSkills_newLifeStartsFresh() {
+        var state = AppProgressState.initial()
+        let idx = state.dragons.firstIndex { $0.id == "ember" }!
+        state.dragons[idx].stats.skillPoints = ["aim": 40]
+        state.dragons[idx].stats.condition = .spirit(diedAt: Date())
+        XCTAssertTrue(CareActions.revive(&state.dragons[idx].stats))
+        XCTAssertEqual(state.dragons[idx].stats.skillPoints, ["aim": 40])
+        DenRules.placeHatched("ember", name: "Ember", state: &state, now: Date())
+        XCTAssertEqual(state.dragons[idx].stats.skillPoints, [:])
+    }
+
+    func test_playStyle_fromDragon() {
+        var ember = DragonModel.defaultDragons().first { $0.id == "ember" }!
+        ember.stats.skillPoints = ["agility": 10]
+        let style = DragonPlayStyle(dragon: ember)
+        XCTAssertEqual(style.stars(.aim), 3)
+        XCTAssertEqual(style.stars(.agility), 2)
+        XCTAssertEqual(style.boost(.aim), 2)
+        XCTAssertTrue(style.has(.splashBlast))
+        XCTAssertEqual(DragonPlayStyle.neutral.stars(.aim), 1)
+        XCTAssertEqual(DragonPlayStyle(stars: [.aim: 9]).stars(.aim), 5, "clamped")
+    }
 }

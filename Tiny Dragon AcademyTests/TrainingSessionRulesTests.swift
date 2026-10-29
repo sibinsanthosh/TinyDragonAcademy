@@ -147,4 +147,46 @@ final class TrainingSessionRulesTests: XCTestCase {
         XCTAssertTrue(gm.finishTraining(.dragonDash, score: 300, duration: 30, completedRound: false, rng: &rng).cured)
         XCTAssertEqual(gm.activeDragon.stats.condition, .healthy)
     }
+
+    // MARK: - Skills
+
+    private func sparkleIndex(_ gm: GameManager) -> Int { gm.state.dragons.firstIndex { $0.id == "sparkle" }! }
+
+    func test_countedSession_growsTheGamesSkill() {
+        let gm = manager()
+        var rng = noDrop
+        let result = gm.finishTraining(.dragonDash, score: 2000, duration: 60, completedRound: false, rng: &rng)
+        XCTAssertEqual(result.skillGain, SkillGain(skill: .stamina, points: 3, starsBefore: 2, starsAfter: 2))
+        XCTAssertEqual(gm.activeDragon.skillPoints(.stamina), 3)
+        XCTAssertEqual(gm.activeDragon.skillPoints(.aim), 0)
+    }
+
+    func test_countedSession_canEarnAStar() {
+        let gm = manager { s in s.dragons[s.dragons.firstIndex { $0.id == "sparkle" }!].stats.skillPoints = ["stamina": 8] }
+        var rng = noDrop
+        let result = gm.finishTraining(.dragonDash, score: 2000, duration: 60, completedRound: false, rng: &rng)
+        XCTAssertEqual(result.skillGain?.starsAfter, 3)
+        XCTAssertEqual(gm.state.dragons[sparkleIndex(gm)].skillStars(.stamina), 3)
+    }
+
+    func test_uncountedSession_growsNothing() {
+        let gm = manager()
+        var rng = noDrop
+        let result = gm.finishTraining(.dragonDash, score: 10, duration: 3, completedRound: false, rng: &rng)
+        XCTAssertNil(result.skillGain)
+        XCTAssertEqual(gm.activeDragon.stats.skillPoints, [:])
+    }
+
+    func test_baseScore_drivesRewardsAndQuests_scoreDrivesBest() {
+        let gm = manager { s in
+            s.daily = DailyState(dayId: "2026-01-05", quests: [DailyQuest(kind: .score(.snackCatch), target: 10)])
+        }
+        var rng = noDrop
+        let result = gm.finishTraining(.snackCatch, score: 16, baseScore: 8, duration: 60, completedRound: true, rng: &rng)
+        let expected = CareActions.trainingReward(normalizedScore: TrainingSessionRules.normalizedScore(.snackCatch, score: 8), isIll: false)
+        XCTAssertEqual(result.reward, expected)
+        XCTAssertEqual(gm.state.trainingBests[TrainingGameType.snackCatch.rawValue], 16)
+        XCTAssertEqual(gm.state.daily.quests[0].progress, 8, "Sweet Tooth's bonus doesn't finish the quest")
+        XCTAssertEqual(result.skillGain?.points, SkillRules.points(forNormalizedScore: TrainingSessionRules.normalizedScore(.snackCatch, score: 8)))
+    }
 }
