@@ -43,6 +43,8 @@ final class GameManager: ObservableObject {
     @Published var toasts: [String] = []
     /// Streak changes that happened at day rollover, for the away report.
     @Published var awayStreakNotes: [String] = []
+    /// A full-screen pop-up on Home (parent gate, evolution) hides the tab bar so it can't be tapped around.
+    @Published var isHomeModalPresented = false
     
     let persistence: PersistenceService
     var clock: GameClock

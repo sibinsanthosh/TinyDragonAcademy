@@ -177,7 +177,7 @@ struct SettingsView: View {
                     Text("Reset All Saved Progress")
                 }
                 .font(.clay(15, .bold))
-                .foregroundColor(DragonPalette.coral)
+                .foregroundColor(ClayColor.coralShade)
                 .padding(.vertical, 8)
             }
             
@@ -198,7 +198,7 @@ struct SettingsView: View {
             VStack(spacing: 18) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 40))
-                    .foregroundColor(DragonPalette.coral)
+                    .foregroundColor(ClayColor.coralShade)
                 
                 Text("Reset Everything?")
                     .font(.clay(22, .heavy))

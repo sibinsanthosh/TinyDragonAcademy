@@ -103,7 +103,7 @@ struct ContentView: View {
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            if AppTab.forRoute(gameManager.currentRoute) != nil {
+            if AppTab.forRoute(gameManager.currentRoute) != nil && !gameManager.isHomeModalPresented {
                 ClayTabBar()
                     .background(alignment: .bottom) {
                         // Fade scrolling content out before it reaches the bar

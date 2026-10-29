@@ -17,7 +17,7 @@ struct ReminderPrimerView: View {
             VStack(spacing: 14) {
                 Image(systemName: "bell.badge.fill")
                     .font(.system(size: 44))
-                    .foregroundColor(DragonPalette.coral)
+                    .foregroundColor(ClayColor.coralShade)
                 Text("Never miss feeding time")
                     .font(.clay(22, .heavy))
                     .foregroundColor(DragonPalette.textDark)

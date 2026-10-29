@@ -68,7 +68,7 @@ private struct FireTargetPlayView: View {
                             if burst.points > 0 {
                                 Text("+\(burst.points)")
                                     .font(.clay(22, .heavy))
-                                    .foregroundColor(DragonPalette.coral)
+                                    .foregroundColor(ClayColor.coralShade)
                             }
                             ClayBurst(size: 40)
                         }

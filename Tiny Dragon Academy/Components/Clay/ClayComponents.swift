@@ -168,8 +168,11 @@ struct ClayPill: View {
         .claySurface(cornerRadius: 17, elevation: 0.7)
         .scaleEffect(bump)
         .onChange(of: value) { _, _ in
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.4)) { bump = 1.15 }
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.6).delay(0.2)) { bump = 1 }
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                bump = 1.15
+            } completion: {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) { bump = 1 }
+            }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel.isEmpty ? value : "\(accessibilityLabel) \(value)")
@@ -182,6 +185,8 @@ struct ClayMeter: View {
     let color: Color
     var height: CGFloat = 10
 
+    private var safeValue: Double { value.isFinite ? min(max(value, 0), 100) : 0 }
+
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
@@ -189,12 +194,12 @@ struct ClayMeter: View {
                     .fill(Color.white.shadow(.inner(color: Color.black.opacity(0.12), radius: 1.5, x: 0, y: 1.5)))
                 Capsule()
                     .fill(color.shadow(.inner(color: Color.white.opacity(0.35), radius: 0, x: 0, y: 2)))
-                    .frame(width: max(height, geo.size.width * min(max(value, 0), 100) / 100))
-                    .opacity(value <= 0 ? 0 : 1)
+                    .frame(width: max(height, geo.size.width * safeValue / 100))
+                    .opacity(safeValue <= 0 ? 0 : 1)
             }
         }
         .frame(height: height)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: value)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: safeValue)
     }
 }
 

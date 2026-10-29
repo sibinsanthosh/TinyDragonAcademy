@@ -103,7 +103,7 @@ struct EvolutionCeremonyView: View {
                             .foregroundColor(DragonPalette.buttercup)
                         Text("+15 Celebration Stars Bonus!")
                             .font(.clay(13, .heavy))
-                            .foregroundColor(DragonPalette.coral)
+                            .foregroundColor(ClayColor.coralShade)
                     }
                 }
                 .padding(14)

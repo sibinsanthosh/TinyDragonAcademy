@@ -94,6 +94,8 @@ struct MainMenuView: View {
                 .transition(.opacity)
             }
         }
+        .onChange(of: showParentGate) { _, shown in gameManager.isHomeModalPresented = shown }
+        .onDisappear { gameManager.isHomeModalPresented = false }
         .onAppear {
             guard !gameManager.state.settings.reduceMotion else { return }
             withAnimation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true)) { bob = -10 }

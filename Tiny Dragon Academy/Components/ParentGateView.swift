@@ -73,7 +73,7 @@ struct ParentGateView: View {
                 Button(action: onCancel) {
                     Text("Go Back")
                         .font(.clay(16, .semibold))
-                        .foregroundColor(DragonPalette.coral)
+                        .foregroundColor(ClayColor.coralShade)
                         .padding(.top, 8)
                 }
             }

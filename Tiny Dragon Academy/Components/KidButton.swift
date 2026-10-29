@@ -50,10 +50,10 @@ struct KidButton: View {
 }
 
 extension Color {
-    /// True for light fills (sun, mint, sky) where white text would be hard to read.
+    /// True for light fills (sun, mint, sky, coral) where white text would be hard to read.
     var isLightClay: Bool {
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         guard UIColor(self).getRed(&r, green: &g, blue: &b, alpha: &a) else { return false }
-        return 0.299 * r + 0.587 * g + 0.114 * b > 0.72
+        return 0.299 * r + 0.587 * g + 0.114 * b > 0.6
     }
 }

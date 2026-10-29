@@ -92,7 +92,7 @@ struct IslandBuilderView: View {
             }) {
                 Image(systemName: "arrow.counterclockwise")
                     .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(DragonPalette.coral)
+                    .foregroundColor(ClayColor.coralShade)
                     .padding(8)
                     .background(Circle().fill(Color.white.opacity(0.9)))
             }

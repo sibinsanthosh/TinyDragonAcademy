@@ -38,7 +38,7 @@ struct DragonPuzzleGameView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "puzzlepiece.fill")
                         .font(.system(size: 20))
-                        .foregroundColor(DragonPalette.coral)
+                        .foregroundColor(ClayColor.coralShade)
                     Text(isComplete ? "Hooray! The puzzle is complete!" : "Place the pieces to reveal the dragon!")
                         .font(.clay(16, .bold))
                         .foregroundColor(DragonPalette.textDark)

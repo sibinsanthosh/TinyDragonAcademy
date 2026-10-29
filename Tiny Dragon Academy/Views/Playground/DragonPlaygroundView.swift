@@ -213,7 +213,7 @@ struct DragonPlaygroundView: View {
                 VStack(spacing: 4) {
                     Text("+\(xp) XP!")
                         .font(.clay(24, .heavy))
-                        .foregroundColor(DragonPalette.coral)
+                        .foregroundColor(ClayColor.coralShade)
                     if showFavoriteCelebration {
                         Label("Favorite food · 2× XP", systemImage: "heart.fill")
                             .font(.clay(15, .bold))
@@ -262,6 +262,8 @@ struct DragonPlaygroundView: View {
             }
         }
         .coordinateSpace(name: "playgroundSpace")
+        .onChange(of: showParentGate || showEvolutionModal) { _, shown in gameManager.isHomeModalPresented = shown }
+        .onDisappear { gameManager.isHomeModalPresented = false }
         .background(
             GeometryReader { geo in
                 Color.clear
@@ -299,7 +301,7 @@ struct DragonPlaygroundView: View {
                         .fill((isNearMouth ? DragonPalette.mintGreen : DragonPalette.buttercup).opacity(0.16))
                 )
             
-            Text(isNearMouth ? "Drop to Munch! 😋" : "Bring Treat Here! 🍓")
+            Text(isNearMouth ? "Drop to munch!" : "Bring the treat here")
                 .font(.clay(13, .heavy))
                 .foregroundColor(DragonPalette.textDark)
                 .padding(.horizontal, 12)
@@ -579,7 +581,6 @@ struct DragonPlaygroundView: View {
                         _ = gameManager.purchaseCareItem(.phoenixEmber)
                     }
                     .disabled(gameManager.totalStars < CareItem.phoenixEmber.price)
-                    .opacity(gameManager.totalStars < CareItem.phoenixEmber.price ? 0.5 : 1)
                 }
                 Button("See all dragons") { gameManager.navigate(to: .dragonCollection) }
                     .font(.clay(15, .bold))

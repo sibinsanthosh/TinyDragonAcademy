@@ -54,7 +54,7 @@ struct TrainingHubView: View {
     private var blockedReason: String {
         let dragon = gameManager.activeDragon
         if !gameManager.hasActiveDenDragon { return "No dragon in your den. Hatch an egg or bring one back from the sanctuary." }
-        if dragon.stats.condition.isSpirit { return "\(dragon.name) is a spirit. Revive them in the Playground first." }
+        if dragon.stats.condition.isSpirit { return "\(dragon.name) is a spirit. Revive them on Home first." }
         if gameManager.isActiveDragonAsleep { return "\(dragon.name) is asleep. Training opens again in the morning." }
         return "\(dragon.name) needs at least \(Int(LifeRules.trainingEnergyCost)) energy to train."
     }

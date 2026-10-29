@@ -19,7 +19,10 @@ struct TrainingResultCard: View {
 
     @State private var shownScore: Double = 0
     @State private var revealed = 0
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @EnvironmentObject private var gameManager: GameManager
+
+    private var reduceMotion: Bool { systemReduceMotion || gameManager.state.settings.reduceMotion }
 
     private struct Row: Identifiable {
         let id: Int
@@ -55,8 +58,7 @@ struct TrainingResultCard: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            VStack(spacing: 14) {
+        VStack(spacing: 14) {
                 if result.isNewBest {
                     Label("New best!", systemImage: "trophy.fill")
                         .font(.clay(16, .heavy))
@@ -121,27 +123,30 @@ struct TrainingResultCard: View {
             .padding(22)
             .claySurface(cornerRadius: 30, elevation: 1.3)
             .padding(.horizontal, 22)
-
-            if celebrates {
-                ConfettiView()
-                    .frame(height: 600)
+            .overlay {
+                if celebrates {
+                    ConfettiView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .ignoresSafeArea()
+                }
             }
-        }
-        .onAppear(perform: reveal)
+            // A task, so the staggered reveal stops if the card goes away
+            .task { await reveal() }
     }
 
-    private func reveal() {
+    private func reveal() async {
         if reduceMotion {
             shownScore = Double(score)
             revealed = rows.count
             return
         }
         withAnimation(.easeOut(duration: 0.9)) { shownScore = Double(score) }
+        try? await Task.sleep(nanoseconds: 800_000_000)
         for i in 0..<rows.count {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8 + Double(i) * 0.18) {
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.6)) { revealed = i + 1 }
-                HapticsService.shared.light()
-            }
+            guard !Task.isCancelled else { return }
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.6)) { revealed = i + 1 }
+            HapticsService.shared.light()
+            try? await Task.sleep(nanoseconds: 180_000_000)
         }
     }
 }

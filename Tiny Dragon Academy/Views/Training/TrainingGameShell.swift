@@ -54,7 +54,6 @@ struct TrainingGameShell<Content: View>: View {
                     case .playing:
                         content(finish, DragonPlayStyle(dragon: gameManager.activeDragon))
                             .id(runId)
-                            .ignoresSafeArea(edges: .bottom)
                     case .finished(let score, let result):
                         TrainingResultCard(
                             game: game,
